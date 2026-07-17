@@ -17,7 +17,6 @@ in {
     services.packagekit.enable = true;
     environment.systemPackages = [
       pkgs."gnome-software"
-      pkgs."gnome-software-plugin-flatpak"
     ];
   };
 }
