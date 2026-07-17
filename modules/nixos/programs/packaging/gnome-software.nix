@@ -4,10 +4,10 @@
   pkgs,
   ...
 }: let
-  cfg = config.hamra.programs.packaging.gnome-software;
+  cfg = config.hamra.programs.packaging."gnome-software";
   inherit (lib) mkOption mkIf types;
 in {
-  options.hamra.programs.packaging.gnome-software = mkOption {
+  options.hamra.programs.packaging."gnome-software" = mkOption {
     type = types.bool;
     default = false;
     description = "Enable GNOME Software with Flatpak support.";

@@ -8,7 +8,7 @@
 in {
   options.hamra.home.programs.shell.aliases = mkOption {
     type = types.bool;
-    default = false;
+    default = true;
     description = "Enable shell aliases.";
   };
 

@@ -8,6 +8,29 @@ implementação. Para usar, basta ativar o toggle em `hosts/<host>/configuration
 
 ## Regras
 
+### Camadas: NixOS vs Home
+
+Define o que entra em cada camada:
+
+| Camada | O que colocar | Exemplos |
+|---|---|---|
+| **NixOS** (`modules/nixos/programs/`) | Daemon systemd, firewall, security wrapper/capability, grupo de usuário, `permittedInsecurePackages`, gerenciador de pacote do sistema, hardware/kernel | Docker, libvirtd, Steam (firewall), btop (cap_perfmon), Flatpak system service |
+| **Home** (`modules/home/programs/`) | Instalação de pacote no perfil, config declarativa HM (`programs.foo`), config de shell/terminal/editor, scripts do usuário, XDG dirs/MIME, tema GTK | spotify, zsh, foot, git config, setup-gpg, aliases, gtk themes |
+| **Split (ambos)** | Quando o programa precisa das duas camadas. A instalação do pacote fica no Home; a config de sistema fica no NixOS. | obsidian (NixOS → electron permissão, Home → pacote), btop (NixOS → wrapper, Home → pacote) |
+
+➡ Se o programa SÓ instala um pacote e não precisa de nada do sistema → **Home**. Se mexe em service, segurança ou hardware → **NixOS**.
+
+### Core vs Opcional
+
+Toggle modules são categorizados em dois tiers:
+
+| Tier | `default` | Critério |
+|---|---|---|
+| **Core** (infraestrutura) | `true` | Dependência de scripts, chamado em keybinds, utilitário recorrente do desktop, parte da base do ambiente |
+| **Opcional** (escolha pessoal) | `false` | Não quebra nada se desligado — jogos, IDEs, players de mídia, ferramentas de segurança |
+
+Programas core podem ser desligados explicitamente por quem quiser um ambiente mais enxuto.
+
 ### Toggle module (NixOS)
 
 Um arquivo por programa. Declara opção + implementação juntas. O `scanPaths` do

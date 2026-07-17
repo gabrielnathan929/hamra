@@ -4,10 +4,10 @@
   pkgs,
   ...
 }: let
-  cfg = config.hamra.programs.virtualisation.virt-manager;
+  cfg = config.hamra.programs.virtualisation."virt-manager";
   inherit (lib) mkOption mkIf types;
 in {
-  options.hamra.programs.virtualisation.virt-manager = mkOption {
+  options.hamra.programs.virtualisation."virt-manager" = mkOption {
     type = types.bool;
     default = false;
     description = "Enable virt-manager with libvirtd (QEMU/KVM).";

@@ -9,7 +9,7 @@
 in {
   options.hamra.home.programs.terminals.foot = mkOption {
     type = types.bool;
-    default = false;
+    default = true;
     description = "Enable Foot terminal configuration.";
   };
 

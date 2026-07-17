@@ -4,7 +4,7 @@
   pkgs,
   ...
 }: let
-  cfg = config.hamra.programs.security.ente-auth;
+  cfg = config.hamra.programs.security."ente-auth";
   inherit (lib) mkOption mkIf types;
 in {
   options.hamra.programs.security."ente-auth" = mkOption {

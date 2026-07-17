@@ -4,7 +4,7 @@
   pkgs,
   ...
 }: let
-  cfg = config.hamra.programs.development.docker-compose;
+  cfg = config.hamra.programs.development."docker-compose";
   inherit (lib) mkOption mkIf types;
 in {
   options.hamra.programs.development."docker-compose" = mkOption {
