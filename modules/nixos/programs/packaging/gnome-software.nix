@@ -15,9 +15,9 @@ in {
 
   config = mkIf cfg {
     services.packagekit.enable = true;
-    environment.systemPackages = with pkgs; [
-      gnome-software
-      gnome-software-plugin-flatpak
+    environment.systemPackages = [
+      pkgs."gnome-software"
+      pkgs."gnome-software-plugin-flatpak"
     ];
   };
 }
