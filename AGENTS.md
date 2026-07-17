@@ -8,6 +8,28 @@ implementação. Para usar, basta ativar o toggle em `hosts/<host>/configuration
 
 ## Regras
 
+### Camadas: NixOS vs Home
+
+Define o que entra em cada camada:
+
+| Camada | O que colocar | Exemplos |
+|---|---|---|
+| **NixOS** (`modules/nixos/programs/{core,optionals}/`) | Toggle modules de programas — instalação de pacote, daemon systemd, firewall, grupo de usuário, permissões de hardware | `core/desktop/grim`, `optionals/games/steam`, `optionals/noctalia/gpu-screen-recorder` |
+| **Home** (`modules/home/programs/`) | Apenas lógicas de configuração declarativa HM (`programs.foo`), config de shell/terminal/editor | zsh, foot, starship, aliases, neovim |
+
+➡ Toda instalação de pacote vai no NixOS. Home é só para config.
+
+### Core vs Opcional
+
+Toggle modules são categorizados em dois tiers:
+
+| Tier | `default` | Critério |
+|---|---|---|
+| **Core** (infraestrutura) | `true` | Dependência de scripts, chamado em keybinds, utilitário recorrente do desktop, parte da base do ambiente |
+| **Opcional** (escolha pessoal) | `false` | Não quebra nada se desligado — jogos, IDEs, players de mídia, ferramentas de segurança |
+
+Programas core podem ser desligados explicitamente por quem quiser um ambiente mais enxuto.
+
 ### Toggle module (NixOS)
 
 Um arquivo por programa. Declara opção + implementação juntas. O `scanPaths` do
@@ -15,10 +37,10 @@ Um arquivo por programa. Declara opção + implementação juntas. O `scanPaths`
 
 ```nix
 {config, lib, pkgs, ...}: let
-  cfg = config.hamra.programs.games.steam;
+  cfg = config.hamra.programs.optionals.games.steam;
   inherit (lib) mkOption mkIf types;
 in {
-  options.hamra.programs.games.steam = mkOption {
+  options.hamra.programs.optionals.games.steam = mkOption {
     type = types.bool;
     default = false;
     description = "Enable Steam.";
@@ -30,7 +52,8 @@ in {
 }
 ```
 
-- Sistema: `options.hamra.programs.<categoria>.<nome>`
+- Core: `options.hamra.programs.core.<categoria>.<nome>`
+- Opcional: `options.hamra.programs.optionals.<categoria>.<nome>`
 - Usuário (Home Manager): `options.hamra.home.programs.<categoria>.<nome>`
 - Nomes com hífen precisam de aspas: `"docker-compose"`
 

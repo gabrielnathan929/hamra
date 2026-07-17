@@ -9,7 +9,7 @@
 in {
   options.hamra.home.programs.terminals.foot = mkOption {
     type = types.bool;
-    default = false;
+    default = true;
     description = "Enable Foot terminal configuration.";
   };
 
@@ -19,7 +19,7 @@ in {
 
       settings = {
         main = {
-          font = "monospace:size=10";
+          font = "monospace:size=8";
           dpi-aware = "yes";
         };
 

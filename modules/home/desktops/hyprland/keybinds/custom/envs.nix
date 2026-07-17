@@ -7,6 +7,7 @@
   terminal = lib.getExe env.terminal;
   browser = lib.getExe env.browser;
   filemanager = lib.getExe env.filemanager;
+  editor = lib.getExe env.editor;
 in ''
   -- Envs
   hl.bind(
@@ -24,6 +25,10 @@ in ''
   hl.bind(
     "SUPER+SHIFT+B",
     hl.dsp.exec_cmd("${browser} --private-window")
+  )
+  hl.bind(
+    "SUPER+SHIFT+N",
+    hl.dsp.exec_cmd("${terminal} -e ${editor}")
   )
 
   -- OCR

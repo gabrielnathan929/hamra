@@ -25,37 +25,78 @@ in {
 
     desktop.default = "sway";
 
+    env = {
+      editor = pkgs.neovim;
+      browser = pkgs.helium;
+      terminal = pkgs.foot;
+      filemanager = pkgs.thunar;
+    };
+
     programs = {
-      virtualisation.boxes = true;
-      packaging.flatpak = true;
-      apps.obsidian = true;
-      services.wayvnc = false;
+      optionals = {
+        virtualisation.boxes = true;
 
-      games = {
-        steam = true;
-        pcsx2 = true;
-        heroic = true;
+        packaging = {
+          flatpak = true;
+          gnome-software = true;
+        };
+
+        productivity = {
+          obsidian = true;
+          office = true;
+        };
+
+        audio = {
+          spotify = true;
+          spicetify = true;
+        };
+
+        remote.remmina = true;
+
+        utility = {
+          localsend = true;
+          obs = true;
+        };
+
+        services.wayvnc = false;
+
+        games = {
+          steam = true;
+          pcsx2 = true;
+          heroic = true;
+        };
+
+        development = {
+          docker = true;
+          lazydocker = true;
+          lazygit = true;
+          ripgrep = true;
+          gnumake = true;
+          gcc = true;
+          nodejs = true;
+          python3 = true;
+        };
+
+        security = {
+          bitwarden = true;
+          "ente-auth" = true;
+        };
+
+        ides = {
+          vscode = true;
+          intellij = true;
+          pycharm = true;
+          android-studio = true;
+          dbeaver = true;
+          netbeans = true;
+        };
       };
 
-      development = {
-        docker = true;
-        lazydocker = true;
-        lazygit = true;
-        opencode = true;
-      };
-
-      security = {
-        bitwarden = true;
-        "ente-auth" = true;
-      };
-
-      ides = {
-        vscode = true;
-        intellij = true;
-        pycharm = true;
-        android-studio = true;
-        dbeaver = true;
-        netbeans = true;
+      core = {
+        development = {
+          git = true;
+          opencode = true;
+        };
       };
     };
   };
@@ -70,77 +111,14 @@ in {
       keyboard = config.hamra.keyboard;
       desktop = config.hamra.desktop.default;
       displays = config.hamra.displays;
-      wayvnc = config.hamra.programs.services.wayvnc;
+      wayvnc = config.hamra.programs.optionals.services.wayvnc;
       env = config.hamra.env;
     };
     users.${config.hamra.users.userName} = {
       home.stateVersion = "26.05";
       imports = [../../modules/home];
 
-      hamra.home.programs = {
-        git = true;
-        xdg = true;
-        terminals.foot = true;
-        shell = {
-          zsh = true;
-          starship = true;
-          aliases = true;
-        };
-        media = {
-          mpv = true;
-          imv = true;
-          zathura = true;
-        };
-        scripts = {
-          setup-ssh = true;
-          "setup-gpg" = true;
-          "flatpak-install" = true;
-          "flatpak-remove" = true;
-        };
-        office = true;
-        apps = {
-          obsidian = true;
-          spotify = true;
-          spicetify = true;
-          localsend = true;
-          gtk = true;
-        };
-        dev = {
-          git = true;
-          neovim = true;
-          ripgrep = true;
-          fd = true;
-          jq = true;
-          gnumake = true;
-          gcc = true;
-          nodejs = true;
-          python3 = true;
-        };
-        nix-tools = {
-          "nix-search" = true;
-          nom = true;
-        };
-        terminal-tools = {
-          tmux = true;
-          eza = true;
-          btop = true;
-          tree = true;
-          curl = true;
-          wget = true;
-          zip = true;
-          unzip = true;
-          fastfetch = true;
-          tesseract = true;
-          wl-clipboard = true;
-          grim = true;
-          slurp = true;
-          "ocr-screenshot" = true;
-          tigervnc = false;
-          remmina = true;
-          gum = true;
-          fzf = true;
-        };
-      };
+      hamra.home.programs = {};
     };
   };
 }

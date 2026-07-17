@@ -113,13 +113,13 @@ in {
 
     {
       assertion =
-        !cfg.programs.services.wayvnc
+        !cfg.programs.optionals.services.wayvnc
         || builtins.elem cfg.desktop.default [
           "hyprland"
           "sway"
         ];
       message =
-        "hamra.programs.services.wayvnc = true requer hamra.desktop.default = "
+        "hamra.programs.optionals.services.wayvnc = true requer hamra.desktop.default = "
         + "\"hyprland\" ou \"sway\" (atual: \"${cfg.desktop.default}\"). "
         + "Niri não suporta headless output para WayVNC.";
     }

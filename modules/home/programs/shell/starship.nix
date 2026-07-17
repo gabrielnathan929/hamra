@@ -8,7 +8,7 @@
 in {
   options.hamra.home.programs.shell.starship = mkOption {
     type = types.bool;
-    default = false;
+    default = true;
     description = "Enable Starship prompt.";
   };
 

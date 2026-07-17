@@ -19,7 +19,7 @@ lib.mkIf (config.hamra.desktop.default == "sway") {
         scale = lib.mkDefault 1.0;
       };
     };
-    headless = lib.mkIf config.hamra.programs.services.wayvnc {
+    headless = lib.mkIf config.hamra.programs.optionals.services.wayvnc {
       "HEADLESS-1" = {
         mode = lib.mkDefault "1920x1080@60";
         position = lib.mkDefault "1920x0";

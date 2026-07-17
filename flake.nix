@@ -59,6 +59,7 @@
           ./hosts/${hostName}/configuration.nix
           inputs.home-manager.nixosModules.home-manager
           inputs.silent-sddm.nixosModules.default
+          inputs.spicetify-nix.nixosModules.spicetify
           {nixpkgs.overlays = [inputs.helium.overlays.default];}
         ];
       };

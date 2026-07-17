@@ -14,7 +14,7 @@ lib.mkIf (config.hamra.desktop.default == "sway") {
       let
         backends =
           "drm,libinput"
-          + lib.optionalString config.hamra.programs.services.wayvnc ",headless";
+          + lib.optionalString config.hamra.programs.optionals.services.wayvnc ",headless";
       in ''
         export WLR_BACKENDS=${backends}
         export WLR_NO_HARDWARE_DBUS=1
