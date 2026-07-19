@@ -1,0 +1,1 @@
+{hamraLib, ...}: {imports = hamraLib.scanPaths ./.;}

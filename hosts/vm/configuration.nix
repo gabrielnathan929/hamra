@@ -29,53 +29,61 @@ in {
       editor = pkgs.neovim;
       browser = pkgs.helium;
       terminal = pkgs.foot;
-      filemanager = pkgs.thunar;
+      filemanager = pkgs.nautilus;
     };
+
+    packages.extra = [];
+
+    mobile.android = false;
 
     programs = {
       optionals = {
-        virtualisation.boxes = true;
+        virtualisation = {
+          boxes = false;
+          virt-manager = false;
+        };
 
         packaging = {
-          flatpak = true;
-          gnome-software = true;
+          flatpak = false;
+          gnome-software = false;
         };
 
         productivity = {
-          obsidian = true;
-          office = true;
+          obsidian = false;
+          office = false;
+          drawio = false;
         };
 
         audio = {
-          spotify = true;
-          spicetify = true;
+          spotify = false;
+          spicetify = false;
         };
 
         remote.remmina = true;
 
         utility = {
-          localsend = true;
-          obs = true;
+          appimage = false;
+          localsend = false;
+          obs = false;
         };
 
         services.wayvnc = false;
 
         games = {
-          steam = true;
-          pcsx2 = true;
-          heroic = true;
+          steam = false;
+          pcsx2 = false;
+          heroic = false;
+          lutris = false;
+          hydralauncher = false;
         };
 
-        development = {
-          docker = true;
-          lazydocker = true;
-          lazygit = true;
-          ripgrep = true;
-          gnumake = true;
-          gcc = true;
-          nodejs = true;
-          python3 = true;
+        media = {
+          kodi = false;
+          nautilus = false;
+          qbittorrent = false;
         };
+
+        communication.discord = false;
 
         security = {
           bitwarden = true;
@@ -84,11 +92,31 @@ in {
 
         ides = {
           vscode = true;
-          intellij = true;
-          pycharm = true;
-          android-studio = true;
-          dbeaver = true;
-          netbeans = true;
+          intellij = false;
+          pycharm = false;
+          android-studio = false;
+          dbeaver = false;
+          netbeans = false;
+          bruno = false;
+          mongodb-compass = false;
+          postman = false;
+          insomnia = false;
+          camunda-modeler = false;
+          brmodelo = false;
+        };
+
+        development = {
+          docker = false;
+          go = false;
+          jdk = false;
+          "docker-compose" = false;
+          gcc = false;
+          gnumake = false;
+          lazydocker = false;
+          lazygit = false;
+          nodejs = false;
+          python3 = false;
+          ripgrep = false;
         };
       };
 
@@ -97,9 +125,19 @@ in {
           git = true;
           opencode = true;
         };
+
+        noctalia = {
+          "gpu-screen-recorder" = true;
+          evtest = true;
+          mpvpaper = true;
+          hyprpicker = true;
+          "translate-shell" = true;
+        };
       };
     };
   };
+
+  programs.nix-ld.enable = true;
 
   system.stateVersion = "26.05";
 
@@ -118,7 +156,9 @@ in {
       home.stateVersion = "26.05";
       imports = [../../modules/home];
 
-      hamra.home.programs = {};
+      hamra.home.programs = {
+        editors.neovim = true;
+      };
     };
   };
 }

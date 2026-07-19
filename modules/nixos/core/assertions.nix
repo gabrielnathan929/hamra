@@ -25,6 +25,8 @@
     "hyprland"
     "niri"
     "sway"
+    "gnome"
+    "plasma"
   ];
   validDisplayManagers = ["sddm"];
 

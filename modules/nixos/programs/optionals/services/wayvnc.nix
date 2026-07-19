@@ -12,13 +12,13 @@
   hyprctl = "${pkgs.hyprland}/bin/hyprctl";
   swaymsg = "${pkgs.swayfx}/bin/swaymsg";
 
-  name = "HEADLESS-1";
+  headlessDisplays = config.hamra.displays.headless or {};
+  headlessNames = builtins.attrNames headlessDisplays;
 
   wayvncDaemon = pkgs.writeShellScript "wayvnc-daemon" ''
     set -e
 
-    NAME="${name}"
-    VNC_PORT="0.0.0.0"
+    VNC_ADDR="0.0.0.0"
     VNC_FPS=30
     TIMEOUT=90
     SLEEP=1
@@ -74,49 +74,110 @@
       return 1
     }
 
+    # Nomes headless declarados na config (ex: HEADLESS-1).
+    WANTED_NAMES="${lib.concatStringsSep " " headlessNames}"
+
+    # Hyprland 0.55 ignora nomes explícitos na criação de headless e gera
+    # HEADLESS-N automaticamente. Detectamos o nome real gerado em runtime.
+    detect_hyprland_headless() {
+      ${hyprctl} monitors all 2>/dev/null \
+        | grep -oE 'HEADLESS-[0-9]+' \
+        | sort -u \
+        | tail -1 || true
+    }
+
+    monitor_rule_for() {
+      # Aplica mode/position/scale da config ao output real detectado.
+      local name=$1
+      local rule
+      rule=$(${pkgs.jq}/bin/jq -n \
+        --arg name "$name" \
+        --argjson displays '${builtins.toJSON headlessDisplays}' \
+        -r '.displays[$name] // (.displays[keys[0]] // {}) | "\(.mode // "1920x1080@60") \(.position // "1920x0") \(.scale // 1)"' 2>/dev/null)
+      read -r h_mode h_position h_scale <<<"$rule"
+      info "Hyprland: aplicando regra para $name (''${h_mode} em ''${h_position}, scale ''${h_scale})"
+      ${hyprctl} eval "hl.monitor({ output = \"$name\", mode = \"''${h_mode}\", position = \"''${h_position}\", scale = ''${h_scale} })" >/dev/null 2>&1 || true
+    }
+
+    move_workspaces() {
+      # Workspaces 6-10 para o monitor headless real.
+      # API Lua 0.55: cria o workspace (focus) antes de mover, pois
+      # moveworkspacetomonitor falha se o workspace nao existe.
+      for ws in 6 7 8 9 10; do
+        ${hyprctl} eval "hl.dispatch(hl.dsp.focus({ workspace = $ws }))" >/dev/null 2>&1 || true
+        ${hyprctl} eval "hl.dispatch(hl.dsp.workspace.move({ workspace = $ws, monitor = '$1' }))" >/dev/null 2>&1 || true
+      done
+      info "Hyprland: workspaces 6-10 movidos para $1"
+    }
+
     setup_headless() {
       local compositor=$1
 
       case "$compositor" in
         hyprland)
-          if ! ${hyprctl} monitors all 2>/dev/null | grep -q "Monitor $NAME "; then
-            info "Hyprland: criando $NAME ..."
-            ${hyprctl} output create headless "$NAME" >/dev/null 2>&1 || true
-            for _ in $(seq 1 15); do
-              if ${hyprctl} monitors all 2>/dev/null | grep -q "Monitor $NAME "; then
-                break
-              fi
-              sleep "$SLEEP"
-            done
-            ${hyprctl} keyword monitor "$NAME,1920x1080@60,1920x0,1" >/dev/null 2>&1 || true
-            ${hyprctl} dispatch moveworkspacetomonitor 6 "$NAME" >/dev/null 2>&1 || true
-          else
-            info "Hyprland: $NAME ja existe"
-          fi
-          ;;
-
-        sway)
-          if ! ${swaymsg} -t get_outputs 2>/dev/null | grep -q "$NAME"; then
-            info "Sway: criando $NAME ..."
-            ${swaymsg} create_output >/dev/null 2>&1 || true
-            for _ in $(seq 1 15); do
-              if ${swaymsg} -t get_outputs 2>/dev/null | grep -q "$NAME"; then
-                break
-              fi
-              sleep "$SLEEP"
-            done
+          # Se ja existe um headless (ex: sessao anterior), reutiliza.
+          local real
+          real=$(detect_hyprland_headless)
+          if [ -n "$real" ]; then
+            info "Hyprland: output headless existente: $real"
+            monitor_rule_for "$real"
+            move_workspaces "$real"
+            echo "$real"
+            return 0
           fi
 
-          if ! ${swaymsg} -t get_outputs 2>/dev/null | grep -q "$NAME"; then
-            error "Sway: falha ao criar $NAME"
+          info "Hyprland: criando output headless (sem nome explicito)..."
+          ${hyprctl} output create headless >/dev/null 2>&1 || true
+          for _ in $(seq 1 15); do
+            real=$(detect_hyprland_headless)
+            if [ -n "$real" ]; then
+              break
+            fi
+            sleep "$SLEEP"
+          done
+
+          if [ -z "$real" ]; then
+            error "Hyprland: falha ao criar output headless"
             return 1
           fi
 
-          if ${swaymsg} output "$NAME" resolution 1920x1080 >/dev/null 2>&1; then
-            info "Sway: $NAME configurado (1920x1080)"
-          else
-            warn "Sway: nao foi possivel aplicar resolucao"
+          info "Hyprland: output criado: $real"
+          monitor_rule_for "$real"
+          move_workspaces "$real"
+          echo "$real"
+          ;;
+
+        sway)
+          local real=""
+          for name in $WANTED_NAMES; do
+            if ${swaymsg} -t get_outputs 2>/dev/null | grep -q "$name"; then
+              real=$name
+              break
+            fi
+          done
+
+          if [ -z "$real" ]; then
+            info "Sway: criando output headless ..."
+            ${swaymsg} create_output >/dev/null 2>&1 || true
+            for _ in $(seq 1 15); do
+              for name in $WANTED_NAMES; do
+                if ${swaymsg} -t get_outputs 2>/dev/null | grep -q "$name"; then
+                  real=$name
+                  break
+                fi
+              done
+              [ -n "$real" ] && break
+              sleep "$SLEEP"
+            done
           fi
+
+          if [ -z "$real" ]; then
+            error "Sway: falha ao criar $WANTED_NAMES"
+            return 1
+          fi
+
+          info "Sway: output headless: $real"
+          echo "$real"
           ;;
       esac
     }
@@ -124,13 +185,13 @@
     main() {
       setup_env
       compositor=$(wait_compositor) || exit 1
-      setup_headless "$compositor" || exit 1
+      output=$(setup_headless "$compositor") || exit 1
 
-      info "Iniciando wayvnc no output '$NAME' (porta $VNC_PORT:5900)..."
+      info "Iniciando wayvnc no output '$output' (porta $VNC_ADDR:5900)..."
       exec ${lib.getExe pkgs.wayvnc} \
-        "$VNC_PORT" \
+        "$VNC_ADDR" \
         --max-fps="$VNC_FPS" \
-        --output="$NAME"
+        --output="$output"
     }
 
     main

@@ -12,7 +12,10 @@ in {
     description = "Enable SSH daemon.";
   };
 
-  config.services.openssh = mkIf cfg {
-    enable = true;
+  config = mkIf cfg {
+    services.openssh = {
+      enable = true;
+      openFirewall = true;
+    };
   };
 }

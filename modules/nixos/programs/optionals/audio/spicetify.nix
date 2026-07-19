@@ -18,8 +18,6 @@ in {
   config = mkIf cfg {
     programs.spicetify = {
       enable = true;
-      theme = spicePkgs.themes.catppuccin;
-      colorScheme = "mocha";
       enabledCustomApps = [spicePkgs.apps.marketplace];
       enabledExtensions = [
         spicePkgs.extensions.popupLyrics

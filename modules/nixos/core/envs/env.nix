@@ -26,7 +26,7 @@ in {
     };
     filemanager = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.thunar;
+      default = pkgs.nautilus;
       description = "Gerenciador de arquivos padrão (\$FILE_MANAGER).";
     };
   };

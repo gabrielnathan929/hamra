@@ -9,7 +9,7 @@
   ...
 }: {
   imports =
-    [
+    lib.optionals (builtins.elem desktop ["hyprland" "niri" "sway"]) [
       ./noctalia
     ]
     ++ lib.optionals (desktop == "hyprland") [

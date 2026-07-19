@@ -7,22 +7,48 @@
 in {
   home.file = builtins.listToAttrs (
     lib.flatten [
-      (map (theme: {
-          name = "noctalia/wallpapers/${theme}.jpg";
+      (map (theme: let
+        wallpaperFiles = builtins.attrNames (
+          builtins.readDir "${themesDir}/${theme}/wallpapers"
+        );
+      in
+        map (file: {
+          name = "noctalia/wallpapers/${file}";
           value = {
-            source = "${themesDir}/${theme}/wallpapers/wallpaper.jpg";
+            source = "${themesDir}/${theme}/wallpapers/${file}";
             force = true;
           };
         })
-        themes)
-      (map (theme: {
-          name = "noctalia/avatars/${theme}.jpg";
+        wallpaperFiles)
+      themes)
+      (map (theme: let
+        iconFiles = builtins.attrNames (
+          builtins.readDir "${themesDir}/${theme}/icons"
+        );
+      in
+        map (file: {
+          name = "noctalia/avatars/${file}";
           value = {
-            source = "${themesDir}/${theme}/icons/profile.jpg";
+            source = "${themesDir}/${theme}/icons/${file}";
             force = true;
           };
         })
-        themes)
+        iconFiles)
+      themes)
+      (map (theme: let
+        videoFiles = builtins.attrNames (
+          builtins.readDir "${themesDir}/${theme}/videos"
+        );
+      in
+        map (file: {
+          name = "noctalia/videos/${file}";
+          value = {
+            source = "${themesDir}/${theme}/videos/${file}";
+            force = true;
+          };
+        })
+        videoFiles)
+      themes)
     ]
   );
 }

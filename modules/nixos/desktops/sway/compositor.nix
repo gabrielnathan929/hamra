@@ -10,16 +10,21 @@ lib.mkIf (config.hamra.desktop.default == "sway") {
     package = pkgs.swayfx;
     wrapperFeatures.gtk = true;
     xwayland.enable = true;
-    extraSessionCommands = lib.mkIf (config.hamra.hardware.gpu == "virtio") (
-      let
-        backends =
-          "drm,libinput"
-          + lib.optionalString config.hamra.programs.optionals.services.wayvnc ",headless";
-      in ''
-        export WLR_BACKENDS=${backends}
-        export WLR_NO_HARDWARE_DBUS=1
-      ''
-    );
+    extraSessionCommands =
+      lib.mkIf (
+        config.hamra.hardware.gpu
+        == "virtio"
+        || config.hamra.programs.optionals.services.wayvnc
+      ) (
+        let
+          backends =
+            "drm,libinput"
+            + lib.optionalString config.hamra.programs.optionals.services.wayvnc ",headless";
+        in ''
+          export WLR_BACKENDS=${backends}
+          export WLR_NO_HARDWARE_DBUS=1
+        ''
+      );
   };
 
   services = {

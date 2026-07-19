@@ -19,6 +19,10 @@
   in {
     type = "app";
     program = "${script}";
+    meta = {
+      description = "Deploy NixOS configuration for ${host}";
+      mainProgram = "hamra-deploy-${host}";
+    };
   };
 
   mkBuildApp = host: let
@@ -36,6 +40,10 @@
   in {
     type = "app";
     program = "${script}";
+    meta = {
+      description = "Build NixOS configuration for ${host}";
+      mainProgram = "hamra-build-${host}";
+    };
   };
 in {
   ${system} = {
