@@ -18,5 +18,10 @@ in {
     remotePlay.openFirewall = true;
     dedicatedServer.openFirewall = true;
     gamescopeSession.enable = true;
+    extraPackages = with pkgs; [
+      gperftools
+      libgcc
+      pipewire
+    ];
   };
 }

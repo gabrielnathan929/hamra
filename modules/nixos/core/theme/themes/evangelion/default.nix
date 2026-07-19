@@ -4,7 +4,8 @@
   ...
 }: {
   hamra.theme = lib.mkIf (config.hamra.theme.name == "evangelion") {
-    wallpaper = ./wallpapers/wallpaper.jpg;
-    profileIcon = ./icons/profile.jpg;
+    wallpaper = ./wallpapers/evangelion-01.jpg;
+    profileIcon = ./icons/evangelion-profile-1.jpg;
+    videosDir = ./videos;
   };
 }

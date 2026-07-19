@@ -32,6 +32,8 @@ in {
       filemanager = pkgs.thunar;
     };
 
+    mobile.android = true;
+
     programs = {
       optionals = {
         virtualisation.boxes = true;
@@ -66,16 +68,7 @@ in {
           heroic = true;
         };
 
-        development = {
-          docker = true;
-          lazydocker = true;
-          lazygit = true;
-          ripgrep = true;
-          gnumake = true;
-          gcc = true;
-          nodejs = true;
-          python3 = true;
-        };
+        media.kodi = true;
 
         security = {
           bitwarden = true;
@@ -90,6 +83,20 @@ in {
           dbeaver = true;
           netbeans = true;
         };
+
+        development = {
+          docker = true;
+          go = true;
+          jdk = true;
+          "docker-compose" = true;
+          gcc = true;
+          gnumake = true;
+          lazydocker = true;
+          lazygit = true;
+          nodejs = true;
+          python3 = true;
+          ripgrep = true;
+        };
       };
 
       core = {
@@ -100,6 +107,8 @@ in {
       };
     };
   };
+
+  programs.nix-ld.enable = true;
 
   system.stateVersion = "26.05";
 
