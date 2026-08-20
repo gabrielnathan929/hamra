@@ -7,6 +7,16 @@
   cfg = config.hamra.programs.optionals.services.samba;
   inherit (lib) mkOption mkIf types stringAfter;
   userName = config.hamra.users.userName;
+  recycleOpts = {
+    "vfs objects" = "recycle";
+    "recycle:repository" = ".trash";
+    "recycle:versions" = "Yes";
+    "recycle:keeptree" = "Yes";
+    "recycle:touch" = "Yes";
+    "recycle:maxsize" = "0";
+    "recycle:exclude" = "*.tmp,*.TMP,~$*";
+    "recycle:noversions" = "*.tmp,*.TMP,~$*";
+  };
 in {
   options.hamra.programs.optionals.services.samba = mkOption {
     type = types.bool;
@@ -25,36 +35,42 @@ in {
           "map to guest" = "never";
           "hosts allow" = "127.0.0.0/8 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16";
         };
-        shared = {
-          path = "/data/shared";
-          comment = "Documentos e arquivos gerais";
-          browseable = "yes";
-          "read only" = "no";
-          "guest ok" = "no";
-          "valid users" = userName;
-          "create mask" = "0644";
-          "directory mask" = "0755";
-        };
-        games = {
-          path = "/data/games";
-          comment = "Instaladores, ROMs e jogos arquivados (storage frio)";
-          browseable = "yes";
-          "read only" = "no";
-          "guest ok" = "no";
-          "valid users" = userName;
-          "create mask" = "0644";
-          "directory mask" = "0755";
-        };
-        backups = {
-          path = "/data/backups";
-          comment = "Backups dos notebooks";
-          browseable = "yes";
-          "read only" = "no";
-          "guest ok" = "no";
-          "valid users" = userName;
-          "create mask" = "0644";
-          "directory mask" = "0755";
-        };
+        shared =
+          {
+            path = "/data/shared";
+            comment = "Documentos e arquivos gerais";
+            browseable = "yes";
+            "read only" = "no";
+            "guest ok" = "no";
+            "valid users" = userName;
+            "create mask" = "0644";
+            "directory mask" = "0755";
+          }
+          // recycleOpts;
+        games =
+          {
+            path = "/data/games";
+            comment = "Instaladores, ROMs e jogos arquivados (storage frio)";
+            browseable = "yes";
+            "read only" = "no";
+            "guest ok" = "no";
+            "valid users" = userName;
+            "create mask" = "0644";
+            "directory mask" = "0755";
+          }
+          // recycleOpts;
+        backups =
+          {
+            path = "/data/backups";
+            comment = "Backups dos notebooks";
+            browseable = "yes";
+            "read only" = "no";
+            "guest ok" = "no";
+            "valid users" = userName;
+            "create mask" = "0644";
+            "directory mask" = "0755";
+          }
+          // recycleOpts;
       };
     };
 

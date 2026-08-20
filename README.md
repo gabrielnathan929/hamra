@@ -88,8 +88,9 @@ Plugins Noctalia ativos: `wallhaven`, `mpvpaper`, `myanimelist`, `notes`,
 
 Ative `hamra.programs.optionals.services.samba = true` no host e ele vira um NAS
 SMB com 3 shares (`shared`, `games`, `backups`), acesso por usuário/senha e
-firewall limitado à rede local. A senha é gerenciada por sops-nix
-(`secrets/samba.yaml`), aplicada sozinha a cada rebuild.
+firewall limitado à rede local. Arquivos apagados via rede caem numa **lixeira**
+(pasta oculta `.trash` de cada share) em vez de sumirem. A senha é gerenciada
+por sops-nix (`secrets/samba.yaml`), aplicada sozinha a cada rebuild.
 
 Setup de chaves e montagem no cliente: ver `AGENTS.md` (seção Segredos).
 

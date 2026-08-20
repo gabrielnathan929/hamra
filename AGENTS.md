@@ -96,6 +96,10 @@ campos obrigatórios preenchidos; WayVNC só com Hyprland ou Sway.
 
 O toggle `hamra.programs.optionals.services.samba` transforma o host em NAS SMB
 (3 shares: `shared`, `games`, `backups`). Pastas criadas via `systemd.tmpfiles.rules`.
+Os shares têm **lixeira automática** (VFS `recycle`): arquivos apagados via SMB
+vão para a pasta oculta `.trash` de cada share, guardando a estrutura e versões.
+Limitações: não protege contra `rm` direto no servidor; é para-choque contra
+acidente, não backup. Guia: seção 9 de `docs/nas-iniciantes.md`.
 
 A senha Samba é gerenciada pelo **sops-nix**: segredo em `secrets/samba.yaml`
 (criptografado) aplicado automaticamente pelo `system.activationScripts.sync-samba-password`

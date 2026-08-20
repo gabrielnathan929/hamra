@@ -209,7 +209,7 @@ Finder → Ir → Conectar ao servidor → `smb://IP-DO-NAS/shared`
 | `Faltam ferramentas: ...` | Você não está no ambiente | Rode `nix develop` e tente de novo |
 | `no matching creation rules found` | Um arquivo em local errado foi criptografado | Manualmente raro; rode o assistente de novo — ele grava o rascunho na pasta certa |
 | `sops metadata not found` | O sops achou o arquivo "meio criptografado" | Rode novamente; se persistir, `rm secrets/samba.yaml && ./scripts/setup-nas.sh --reset-senha` |
-| `Não achei <ip> ... shared` ao montar | Samba fora do ar ou IP errado | `sudo systemctl status smbd` no NAS; confira o IP |
+| `Não achei <ip> ... shared` ao montar | Samba fora do ar ou IP errado | `sudo systemctl status samba-smbd.service` no NAS; confira o IP |
 | Senha não aceita ao montar | Credencial desatualizada | Repita a seção 6 (ou seção 4 se trocou a senha) |
 | Rebuild falha | Alguma validação do NixOS rejeitou a config | Leia o erro; o assistente aponta o comando para refazer |
 | Esqueci a senha | — | Seção 3 deste guia |
@@ -228,3 +228,30 @@ Finder → Ir → Conectar ao servidor → `smb://IP-DO-NAS/shared`
 - `~/.config/sops/age/keys.txt` — é a "senha-mestra" dos segredos.
 - `/etc/ssh/ssh_host_ed25519_key` (arquivo privado — o `.pub` é ok).
 - Senhas em texto claro, em qualquer arquivo.
+
+---
+
+## 9. A lixeira do NAS (anti-apagão)
+
+Apagar um arquivo/pasta **pelo compartilhamento** (Windows, Mac, Linux) não
+apaga de verdade: o Samba move tudo para uma **lixeira** dentro do próprio
+compartilhamento, na pasta oculta `.trash` (`/data/shared/.trash`,
+`/data/games/.trash`, `/data/backups/.trash`).
+
+- **Como ver:** no Windows habilite "Itens ocultos"; no Linux, `ls -a`
+  na pasta montada. As pastas preservam a origem (`keeptree`) e a data.
+- **Duplicado:** se você apagar um nome que já está na lixeira, ele guarda
+  as **duas versões** (sufixo com a data) — nada se perde por sobrescrever.
+- **Recuperar:** é só mover o arquivo de volta para a pasta original.
+- **Esvaziar:** apague o que quiser de dentro de `.trash` (ocupa espaço —
+  limpe de vez em quando).
+
+Limitações honestas:
+
+- Protege contra apagar **via rede (SMB)** — inclusive o Shift+Delete do
+  Windows. Um `rm` direto no servidor **apaga de verdade**: não fique
+  rodando `rm` na máquina que tem o NAS.
+- Arquivos temporários (`.tmp`, `~$`... do Office) saem **sem** passar pela
+  lixeira (para não entulhar).
+- A lixeira vive no mesmo disco — é um para-choque contra **acidente**,
+  não um backup. Para cópia real, veja a seção sobre backups.
