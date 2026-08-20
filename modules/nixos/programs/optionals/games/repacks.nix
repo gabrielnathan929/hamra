@@ -20,7 +20,6 @@
     par2cmdline
     unzip
     zip
-    rclone
   ];
 in {
   options.hamra.programs.optionals.games.repacks = mkOption {

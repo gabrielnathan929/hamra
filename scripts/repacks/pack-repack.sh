@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # omarchy:summary=Empacota repack para backup a prova de corrupcao (par2 + checksum)
 # omarchy:group=custom
 # omarchy:hidden=true
@@ -30,9 +30,8 @@ REDUNDANCIA_PEQUENOS="${REPACK_REDUNDANCIA_PEQUENOS:-5}"
 
 # Detecta o par2 em vários lugares (este PC e outros PCs comuns)
 par2_bin() {
-  if command -v par2 >/dev/null 2>&1; then echo "par2"; return; fi
-  for p in "/.local/bin/par2" /usr/bin/par2 /usr/local/bin/par2; do
-    [ -x "" ] && { echo ""; return; }
+  for p in "$HOME/.local/bin/par2" /usr/bin/par2 /usr/local/bin/par2; do
+    [ -x "$p" ] && { echo "$p"; return; }
   done
   echo "ERRO: par2 nao encontrado. Compile em ~/.local ou instale par2cmdline." >&2
   exit 1
@@ -41,7 +40,7 @@ PAR2="$(par2_bin)"
 
 # Se nenhum argumento: procura repacks na ORIGEM
 if [ $# -lt 1 ]; then
-  mapfile -t REPACKS < <(find "$ORIGEM" -maxdepth 1 -type d -name "*[Dd][Oo][Dd][Ii]*" 2>/dev/null)
+  mapfile -t REPACKS < <(find "$ORIGEM" -maxdepth 1 -type d \( -iname "*dodi*" -o -iname "*fitgirl*" \) 2>/dev/null)
   if [ ${#REPACKS[@]} -eq 0 ]; then
     echo "Nenhum repack encontrado em $ORIGEM"
     echo "Passe o caminho: $0 /caminho/do/repack"
@@ -97,4 +96,4 @@ echo "Backup pronto: $DIR"
 echo "Total protegido: $(du -sh "$DIR" | cut -f1)"
 echo
 echo "Agora suba a PASTA para o Drive/OneDrive (nao zip, veja README.md)."
-echo "No outro PC, rode: verify-repack \"$DIR\""
+echo "No outro PC, rode: ~/Instaladores/scripts/verify-repack.sh \"$DIR\""

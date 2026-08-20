@@ -31,7 +31,7 @@ processar. Tambem aceita um caminho direto:
 pack-repack "/caminho/do/repack"
 ```
 
-Ele move a pasta para `~/Instaladores`, gera o checksum e os `.par2` por
+Ele move a pasta para `$REPACK_DST` (`~/Installers` por padrão), gera o checksum e os `.par2` por
 arquivo. Em outro PC, rode `verify-repack` na pasta. Pronto, pode subir.
 
 ### Paths padrao (nao precisa decorar caminho)
@@ -39,9 +39,16 @@ arquivo. Em outro PC, rode `verify-repack` na pasta. Pronto, pode subir.
 | Variavel | Padrao | O que controla |
 |---|---|---|
 | `REPACK_SRC` | `~/Downloads` | onde procurar repacks |
-| `REPACK_DST` | `~/Instaladores` | onde guardar o backup |
+| `REPACK_DST` | `~/Installers` | onde guardar o backup |
 | `REPACK_REDUNDANCIA` | `2` | % de recuperacao (arquivos grandes) |
 | `REPACK_REDUNDANCIA_PEQUENOS` | `5` | % de recuperacao (arquivos < 1GB) |
+
+Para usar outras pastas, defina a variavel na frente:
+
+```bash
+REPACK_DST=~/MeusRepacks pack-repack
+REPACK_SRC=~/Downloads REPACK_DST=~/Installers pack-repack
+```
 
 ---
 
@@ -81,7 +88,7 @@ Depois e so sincronizar (subir e baixar sao espelhos, pasta real):
 
 ```bash
 # subir
-rclone copy ~/Instaladores onedrive:Repacks --progress --checksum
+rclone copy ~/Installers onedrive:Repacks --progress --checksum
 
 # baixar (em outro PC, sem este toggle: sudo pacman -S rclone)
 rclone copy onedrive:Repacks ~/Repacks --progress --checksum
@@ -112,7 +119,7 @@ Baixe a pasta da nuvem e:
 restore-repack "pasta-baixada"
 ```
 
-Sem argumentos ele procura em `~/Instaladores` e `~/Downloads`. O script:
+Sem argumentos ele procura em `$REPACK_DST` (`~/Installers`) e `$REPACK_SRC` (`~/Downloads`). O script:
 1. Verifica o checksum de cada arquivo
 2. Se algo corrompeu, **repara sozinho** com os `.par2`
 3. Avisa quando esta pronto
@@ -132,9 +139,9 @@ Com o toggle `repacks` ativo no NixOS, tudo vem junto. Em outros sistemas:
 
 | Ferramenta | Onde |
 |---|---|
-| `par2` | NixOS: toggle (par2cmdline). Arch: `sudo pacman -S par2cmdline`. Debian/Ubuntu: `sudo apt install par2` |
+| `par2` | NixOS: toggle `repacks` (par2cmdline). Arch: `sudo pacman -S par2cmdline`. Debian/Ubuntu: `sudo apt install par2` |
 | `sha256sum` | Ja existe em todo Linux (coreutils) |
-| `rclone` | NixOS: toggle. Outros: `sudo pacman -S rclone` (Arch) |
+| `rclone` | NixOS: toggle `rclone` (`hamra.programs.optionals.backup.rclone`). Outros: `sudo pacman -S rclone` (Arch) |
 | `wine` | Para instalar os repacks de Windows no Linux |
 
 ---

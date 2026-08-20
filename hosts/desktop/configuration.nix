@@ -72,6 +72,8 @@ in {
           samba = true;
         };
 
+        backup.rclone = true;
+
         games = {
           steam = false;
           pcsx2 = false;

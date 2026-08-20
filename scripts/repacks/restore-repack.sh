@@ -5,7 +5,7 @@
 # restore-repack.sh - Restaura/verifica um repack baixado da nuvem.
 #
 # Uso:
-#   restore-repack.sh                    # procura repacks em ~/Instaladores e ~/Downloads
+#   restore-repack.sh                    # procura repacks em ~/Installers e ~/Downloads
 #   restore-repack.sh "pasta-do-repack"  # verifica a pasta indicada
 #
 # O que ele faz:
@@ -26,7 +26,7 @@ par2_bin() {
 PAR2="$(par2_bin)"
 
 if [ $# -lt 1 ]; then
-  DIRS=("$HOME/Instaladores"/*/ "$HOME/Downloads"/*/)
+  DIRS=("$HOME/Installers"/*/ "$HOME/Downloads"/*/)
   for D in "${DIRS[@]}"; do
     if [ -f "$D/checksums.sha256" ]; then
       DIR="$D"

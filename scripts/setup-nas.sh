@@ -746,7 +746,7 @@ FORCE_RESET=0
 case "${1:-}" in
   -h|--ajuda|help) ajuda; exit 0 ;;
   --check) detect_repo; check_env; exit 0 ;;
-  --mostrar-senha) show_password; exit 0 ;;
+  --mostrar-senha) require_tools; show_password; exit 0 ;;
   --reset-senha) FORCE_RESET=1 ;;
 esac
 
