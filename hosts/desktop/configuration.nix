@@ -78,6 +78,7 @@ in {
           heroic = false;
           lutris = false;
           hydralauncher = false;
+          repacks = true;
         };
 
         media = {

@@ -37,5 +37,9 @@ in {
     nix-deploy-vm = "nix run .#deploy-vm";
     nix-build = "nix run .#build-desktop";
     nix-build-vm = "nix run .#build-vm";
+
+    repack-backup = "pack-repack";
+    repack-restore = "restore-repack";
+    repair-zip = "repair-zip";
   };
 }
