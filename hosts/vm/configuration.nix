@@ -67,7 +67,10 @@ in {
           obs = false;
         };
 
-        services.wayvnc = false;
+        services = {
+          wayvnc = false;
+          samba = true;
+        };
 
         games = {
           steam = false;

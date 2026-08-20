@@ -38,6 +38,11 @@
       url = "github:oxcl/nix-flake-helium-browser";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -60,7 +65,13 @@
           inputs.home-manager.nixosModules.home-manager
           inputs.silent-sddm.nixosModules.default
           inputs.spicetify-nix.nixosModules.spicetify
+          inputs.sops-nix.nixosModules.sops
           {nixpkgs.overlays = [inputs.helium.overlays.default];}
+          {
+            home-manager.sharedModules = [
+              inputs.sops-nix.homeManagerModules.sops
+            ];
+          }
         ];
       };
   in {

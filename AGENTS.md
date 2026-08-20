@@ -92,6 +92,36 @@ Validações em `core/assertions.nix`: bootloader, GPU, firmware, áudio, deskto
 display manager dentro dos ranges; tema existente na lista; locale com `.UTF-8`;
 campos obrigatórios preenchidos; WayVNC só com Hyprland ou Sway.
 
+### NAS / Samba
+
+O toggle `hamra.programs.optionals.services.samba` transforma o host em NAS SMB
+(3 shares: `shared`, `games`, `backups`). Pastas criadas via `systemd.tmpfiles.rules`.
+
+A senha Samba é gerenciada pelo **sops-nix**: segredo em `secrets/samba.yaml`
+(criptografado) aplicado automaticamente pelo `system.activationScripts.sync-samba-password`
+(o script usa `stringAfter ["setupSecrets"]` para rodar depois do sops-nix).
+Setup de chaves e uso no cliente: ver `README.md`/seção NAS.
+
+### Novo PC / novo usuário (assistente para leigos)
+
+Para replicar o NAS em QUALQUER PC sem conhecer criptografia/NixOS, existe o
+`scripts/setup-nas.sh` (instalado como comando `setup-nas` pelo toggle
+`core/scripts/setup-nas`). Ele cria a estrutura do host, gera/registra chaves
+no `.sops.yaml`, cria a senha própria do usuário em `secrets/samba.yaml`
+(criptografada) e aplica o rebuild — explicando cada passo e como resolver
+erros. Modos: `--check`, `--mostrar-senha`, `--reset-senha`, `--ajuda`.
+Guia completo: `docs/nas-iniciantes.md`.
+
+### Segredos (sops-nix)
+
+- Segredos ficam **criptografados** em `secrets/*.yaml` no repositório.
+- Chaves (edição + decriptação por host) ficam no `.sops.yaml` na raiz.
+- Chave de edição: `~/.config/sops/age/keys.txt` (gerada com `age-keygen`).
+- Chave de cada host: `cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age`
+- Novo host com segredo → adicionar pubkey no `.sops.yaml` + `nix develop --command sops updatekeys secrets/<arquivo>`.
+- Editar um segredo: `nix develop --command sops secrets/<arquivo>`.
+- Nunca commitar chaves privadas nem valores em claro.
+
 ---
 
 ## CI e qualidade

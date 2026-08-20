@@ -34,7 +34,7 @@ modules/
 │   │   ├── productivity/   #   obsidian, libreoffice
 │   │   ├── remote/         #   remmina, tigervnc
 │   │   ├── security/       #   bitwarden, ente-auth
-│   │   ├── services/       #   wayvnc
+│   │   ├── services/       #   wayvnc, samba (NAS)
 │   │   ├── utility/        #   localsend, obs-studio
 │   │   └── virtualisation/ #   boxes, virt-manager
 │   └── desktop/            # desktops (hyprland, sway, niri)
@@ -79,9 +79,19 @@ Todos os direitos pertencem aos seus respectivos autores.
 | [community-plugins](https://github.com/gabrielnathan929/community-plugins) | Fork com plugins extras para Noctalia: `myanimelist` |
 | [color_picker](https://github.com/oldirtty/color_picker) | Plugin seletor de cor para Noctalia |
 | [SilentSDDM](https://github.com/gabrielnathan929/SilentSDDM) | Fork do tema Silent SDDM |
+| [sops-nix](https://github.com/Mic92/sops-nix) | Gestão de segredos (samba, futuras credenciais) |
 
 Plugins Noctalia ativos: `wallhaven`, `mpvpaper`, `myanimelist`, `notes`,
 `timer`, `bongocat`, `translator`, `screen_recorder`, `color_picker`.
+
+## NAS / Samba
+
+Ative `hamra.programs.optionals.services.samba = true` no host e ele vira um NAS
+SMB com 3 shares (`shared`, `games`, `backups`), acesso por usuário/senha e
+firewall limitado à rede local. A senha é gerenciada por sops-nix
+(`secrets/samba.yaml`), aplicada sozinha a cada rebuild.
+
+Setup de chaves e montagem no cliente: ver `AGENTS.md` (seção Segredos).
 
 ## Agradecimentos
 
@@ -90,3 +100,15 @@ Plugins Noctalia ativos: `wallhaven`, `mpvpaper`, `myanimelist`, `notes`,
 - Desenvolvedores de todos os projetos listados acima.
 - Contribuidores que mantêm pacotes, documentação e infraestrutura do
   ecossistema Nix.
+
+### Novo PC? Não sabe nada de criptografia? Use o assistente
+
+```bash
+cd /etc/nixos
+nix develop
+./scripts/setup-nas.sh          # cria o host, chaves e a SUA senha do NAS
+```
+
+Ele faz todo o processo de segredos e registro de host explicando cada
+passo, e trata erros e senhas esquecidas (`--mostrar-senha`, `--reset-senha`,
+`--check`). Guia completo para leigos: `docs/nas-iniciantes.md`.
