@@ -9,6 +9,6 @@ in {
   };
 
   config.environment.systemPackages = mkIf cfg [
-    pkgs.clamp
+    pkgs.cliamp
   ];
 }
