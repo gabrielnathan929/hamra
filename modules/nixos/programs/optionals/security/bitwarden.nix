@@ -28,10 +28,10 @@ in {
         bitwarden-desktop =
           (prev.bitwarden-desktop.override {
             # Electron seguro (41 não é EOL). Se o app quebrar, use electron_39-bin e descomente o permit acima
-            electron_39 = final.electron_41-bin;
+            electron_43 = final.electron_43-bin;
           }).overrideAttrs (old: {
-            # o nixpkgs trava o build se o major do electron != do package.json (39);
-            # com o 41 seguro precisamos pular essa checagem
+            # o nixpkgs trava o build se o major do electron != do package.json (43);
+            # com o 43 seguro precisamos pular essa checagem
             preBuild = ''
               echo "export const compilerCommand = ['dart-sass'];" > node_modules/sass-embedded/dist/lib/src/compiler-path.js
               patchShebangs apps/desktop/node_modules
