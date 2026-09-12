@@ -1,0 +1,20 @@
+_: ''
+  hl.curve("snappy", { type = "bezier", points = { {0.05, 0.9}, {0.1, 1.0} } })
+  hl.curve("quick", { type = "bezier", points = { {0.15, 0.0}, {0.1, 1.0} } })
+  hl.curve("linearSnap", { type = "bezier", points = { {0.0, 0.0}, {1.0, 1.0} } })
+
+  hl.animation({ leaf = "global", enabled = true, speed = 8, bezier = "default" })
+  hl.animation({ leaf = "windows", enabled = true, speed = 3, bezier = "snappy" })
+  hl.animation({ leaf = "windowsIn", enabled = true, speed = 2.5, bezier = "snappy", style = "popin 87%" })
+  hl.animation({ leaf = "windowsOut", enabled = true, speed = 1.2, bezier = "linearSnap", style = "popin 87%" })
+  hl.animation({ leaf = "fade", enabled = true, speed = 2, bezier = "quick" })
+  hl.animation({ leaf = "fadeIn", enabled = true, speed = 1.2, bezier = "quick" })
+  hl.animation({ leaf = "fadeOut", enabled = true, speed = 1.2, bezier = "quick" })
+  hl.animation({ leaf = "layers", enabled = true, speed = 3, bezier = "snappy" })
+  hl.animation({ leaf = "layersIn", enabled = true, speed = 2.5, bezier = "snappy", style = "fade" })
+  hl.animation({ leaf = "layersOut", enabled = true, speed = 1.5, bezier = "linearSnap", style = "fade" })
+  hl.animation({ leaf = "workspaces", enabled = true, speed = 1.5, bezier = "quick", style = "slidefade 20%" })
+  hl.animation({ leaf = "workspacesIn", enabled = true, speed = 1.5, bezier = "quick", style = "slidefade 20%" })
+  hl.animation({ leaf = "workspacesOut", enabled = true, speed = 1.5, bezier = "quick", style = "slidefade 20%" })
+  hl.animation({ leaf = "border", enabled = true, speed = 5, bezier = "snappy" })
+''

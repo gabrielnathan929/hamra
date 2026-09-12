@@ -1,0 +1,157 @@
+# Hamra — Regras do Projeto
+
+Hamra é uma **biblioteca de configuração** NixOS + Home Manager. Cada programa é um
+"livro na prateleira": um arquivo autocontido que declara sua opção booleana e sua
+implementação. Para usar, basta ativar o toggle em `hosts/<host>/configuration.nix`.
+
+---
+
+## Regras
+
+### Camadas: NixOS vs Home
+
+Define o que entra em cada camada:
+
+| Camada | O que colocar | Exemplos |
+|---|---|---|
+| **NixOS** (`modules/nixos/programs/{core,optionals}/`) | Toggle modules de programas — instalação de pacote, daemon systemd, firewall, grupo de usuário, permissões de hardware | `core/desktop/grim`, `optionals/games/steam`, `optionals/noctalia/gpu-screen-recorder` |
+| **Home** (`modules/home/programs/`) | Apenas lógicas de configuração declarativa HM (`programs.foo`), config de shell/terminal/editor | zsh, foot, starship, aliases, neovim |
+
+➡ Toda instalação de pacote vai no NixOS. Home é só para config.
+
+### Core vs Opcional
+
+Toggle modules são categorizados em dois tiers:
+
+| Tier | `default` | Critério |
+|---|---|---|
+| **Core** (infraestrutura) | `true` | Dependência de scripts, chamado em keybinds, utilitário recorrente do desktop, parte da base do ambiente |
+| **Opcional** (escolha pessoal) | `false` | Não quebra nada se desligado — jogos, IDEs, players de mídia, ferramentas de segurança |
+
+Programas core podem ser desligados explicitamente por quem quiser um ambiente mais enxuto.
+
+### Toggle module (NixOS)
+
+Um arquivo por programa. Declara opção + implementação juntas. O `scanPaths` do
+`default.nix` da categoria descobre automaticamente.
+
+```nix
+{config, lib, pkgs, ...}: let
+  cfg = config.hamra.programs.optionals.games.steam;
+  inherit (lib) mkOption mkIf types;
+in {
+  options.hamra.programs.optionals.games.steam = mkOption {
+    type = types.bool;
+    default = false;
+    description = "Enable Steam.";
+  };
+
+  config.programs.steam = mkIf cfg {
+    enable = true;
+  };
+}
+```
+
+- Core: `options.hamra.programs.core.<categoria>.<nome>`
+- Opcional: `options.hamra.programs.optionals.<categoria>.<nome>`
+- Usuário (Home Manager): `options.hamra.home.programs.<categoria>.<nome>`
+- Nomes com hífen precisam de aspas: `"docker-compose"`
+
+### Nada de estrutura de pastas no código
+
+Não confie em caminhos fixos. Use `scanPaths` para auto-import sempre que possível.
+Se um módulo precisa importar outro, use caminho relativo ao arquivo atual.
+
+### Portal XDG
+
+Cada desktop define seu próprio portal no `compositor.nix`. O módulo `services/xdg/`
+não existe mais — cada desktop é auto-suficiente.
+
+- Hyprland → `xdg-desktop-portal-hyprland`
+- Sway → `xdg-desktop-portal-wlr`
+- Niri → `xdg-desktop-portal-gtk`
+
+### Hardware
+
+Opções de hardware (GPU, firmware, bluetooth, touchpad, brightness) são
+declaradas em módulos específicos, não num `options.nix` central.
+
+### Tema
+
+Cada tema define wallpaper + profile icon para Noctalia e Silent SDDM.
+O toggle `hamra.theme.name` troca tudo automaticamente.
+
+### Navegador padrão
+
+`$BROWSER` aponta para `pkgs.helium` por padrão (definido em `envs/env.nix`).
+Para trocar num host: `hamra.env.browser = pkgs.firefox;`
+
+### Assertions em tempo de build
+
+Validações em `core/assertions.nix`: bootloader, GPU, firmware, áudio, desktop e
+display manager dentro dos ranges; tema existente na lista; locale com `.UTF-8`;
+campos obrigatórios preenchidos; WayVNC só com Hyprland ou Sway.
+
+### NAS / Samba
+
+O toggle `hamra.programs.optionals.services.samba` transforma o host em NAS SMB
+(3 shares: `shared`, `games`, `backups`). Pastas criadas via `systemd.tmpfiles.rules`.
+Os shares têm **lixeira automática** (VFS `recycle`): arquivos apagados via SMB
+vão para a pasta oculta `.trash` de cada share, guardando a estrutura e versões.
+Limitações: não protege contra `rm` direto no servidor; é para-choque contra
+acidente, não backup. Guia: seção 9 de `docs/nas-iniciantes.md`.
+
+A senha Samba é gerenciada pelo **sops-nix**: segredo em `secrets/samba.yaml`
+(criptografado) aplicado automaticamente pelo `system.activationScripts.sync-samba-password`
+(o script usa `stringAfter ["setupSecrets"]` para rodar depois do sops-nix).
+Setup de chaves e uso no cliente: ver `README.md`/seção NAS.
+
+### Novo PC / novo usuário (assistente para leigos)
+
+Para replicar o NAS em QUALQUER PC sem conhecer criptografia/NixOS, existe o
+`scripts/setup-nas.sh` (instalado como comando `setup-nas` pelo toggle
+`core/scripts/setup-nas`). Ele cria a estrutura do host, gera/registra chaves
+no `.sops.yaml`, cria a senha própria do usuário em `secrets/samba.yaml`
+(criptografada) e aplica o rebuild — explicando cada passo e como resolver
+erros. Modos: `--check`, `--mostrar-senha`, `--reset-senha`, `--ajuda`.
+Guia completo: `docs/nas-iniciantes.md`.
+
+### Segredos (sops-nix)
+
+- Segredos ficam **criptografados** em `secrets/*.yaml` no repositório.
+- Chaves (edição + decriptação por host) ficam no `.sops.yaml` na raiz.
+- Chave de edição: `~/.config/sops/age/keys.txt` (gerada com `age-keygen`).
+- Chave de cada host: `cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age`
+- Novo host com segredo → adicionar pubkey no `.sops.yaml` + `nix develop --command sops updatekeys secrets/<arquivo>`.
+- Editar um segredo: `nix develop --command sops secrets/<arquivo>`.
+- Nunca commitar chaves privadas nem valores em claro.
+
+---
+
+## CI e qualidade
+
+O repositório tem três checks no GitHub Actions:
+
+| Check | O que faz | Como evitar falha |
+|---|---|---|
+| Formatação | `alejandra --check .` | `nix fmt` antes de commitar |
+| Avaliação | `nix flake check` | `nix flake check` localmente |
+| Lint | `statix` + `deadnix` | `nix develop --command statix check . && nix develop --command deadnix .` |
+
+### Dicas
+
+1. **`nix fmt`** antes de todo commit
+2. **Agrupe chaves repetidas:** prefira `boot = { initrd.availableKernelModules = [...]; kernelModules = [...]; };` a duas linhas soltas
+3. **`hardware-configuration.nix`:** pode reestruturar (agrupar chaves), mas não mude UUIDs/dispositivos
+4. **Argumentos vazios:** use `_:` em vez de `{ }:` quando a função não usa argumentos
+5. **`inherit`:** prefira `inherit (nixpkgs) lib;` em vez de `lib = nixpkgs.lib;`
+
+### Comandos úteis
+
+| Comando | O que faz |
+|---|---|
+| `nix fmt` | Formata todos os `.nix` com alejandra |
+| `nix develop` | Entra no devShell com ferramentas |
+| `nix flake check` | Avalia a flake completa |
+| `nix develop --command statix check .` | Roda o linter |
+| `nix develop --command deadnix .` | Verifica código morto |
