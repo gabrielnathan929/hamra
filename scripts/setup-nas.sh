@@ -529,9 +529,9 @@ if re.search(r'mkHost\s+"%s"' % name, text):
 lines = text.splitlines()
 if not lines or lines[-1].strip() != "}":
     print("AVISO: flake/hosts.nix terminou de forma inesperada — adicione manualmente:")
-    print("  %s = mkHost \"%s\";" % (name, name))
+    print("  \"%s\" = mkHost \"%s\";" % (name, name))
     sys.exit(0)
-lines.insert(len(lines) - 1, "  %s = mkHost \"%s\";" % (name, name))
+lines.insert(len(lines) - 1, "  \"%s\" = mkHost \"%s\";" % (name, name))
 open(path, "w").write("\n".join(lines) + "\n")
 print("host %s registrado em flake/hosts.nix" % name)
 PYEOF

@@ -13,10 +13,7 @@
     "uefi"
     "bios"
   ];
-  validAudio = [
-    "pipewire"
-    "pulseaudio"
-  ];
+  validAudio = ["pipewire"];
   validBootloaders = [
     "systemd-boot"
     "grub"

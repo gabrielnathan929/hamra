@@ -42,7 +42,7 @@ hamra.programs.core.<subcategoria>.<nome> = false;
 hamra.home.programs.<categoria>.<nome> = true;
 ```
 
-**Core** abrange infraestrutura do desktop e utilitários básicos: terminal-tools, desktop (GTK, XDG, screenshot), media, monitoring, nix-tools, scripts de setup. Todos com `default = true` — dispensam declaração no host a menos que se queira desativá-los.
+**Core** abrange infraestrutura do desktop e utilitários básicos: terminal-tools, desktop (GTK, XDG, screenshot), media, monitoring, nix-tools, noctalia, scripts de setup. A maioria com `default = true` — dispensam declaração no host a menos que se queira desativá-los. Exceções com `default = false`: `development.git`, `development.opencode` e `terminal-tools.yazi`.
 
 ## Ambiente
 
