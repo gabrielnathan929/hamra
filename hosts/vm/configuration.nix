@@ -70,7 +70,6 @@ in {
 
         services = {
           wayvnc = false;
-          samba = true;
         };
 
         games = {

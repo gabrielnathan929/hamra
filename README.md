@@ -19,14 +19,18 @@ modules/
 ├── nixos/                  # sistema
 │   ├── core/               # infraestrutura base — default = true
 │   │   ├── desktop/        #   tema GTK, XDG, screenshot, clipboard, OCR
+│   │   ├── development/    #   git, opencode
 │   │   ├── media/          #   visualizador de imagem, vídeo, PDF
 │   │   ├── monitoring/     #   btop, fastfetch
 │   │   ├── nix-tools/      #   nom, nix-search
+│   │   ├── noctalia/       #   gpu-screen-recorder, hyprpicker
 │   │   ├── scripts/        #   setup-gpg, setup-ssh, flatpak
 │   │   └── terminal-tools/ #   curl, eza, fzf, gum, jq, tmux, tree
 │   ├── programs/           # opt-in — default = false
 │   │   ├── audio/          #   spotify, spicetify
+│   │   ├── backup/         #   rclone
 │   │   ├── browsers/       #   helium, chromium, firefox, google-chrome
+│   │   ├── communication/  #   discord
 │   │   ├── development/    #   git, docker, gcc, ripgrep
 │   │   ├── games/          #   steam, pcsx2, heroic
 │   │   ├── ides/           #   vscode, intellij, pycharm
@@ -37,14 +41,14 @@ modules/
 │   │   ├── services/       #   wayvnc, samba (NAS)
 │   │   ├── utility/        #   localsend, obs-studio
 │   │   └── virtualisation/ #   boxes, virt-manager
-│   └── desktop/            # desktops (hyprland, sway, niri)
+│   └── desktops/           # desktops (hyprland, sway, niri)
 └── home/                   # Home Manager — config de usuário
     ├── programs/
     │   ├── editors/        #   neovim (plugins, extraConfig)
     │   ├── shell/          #   zsh, starship, aliases
     │   ├── terminals/      #   foot, kitty, alacritty
     │   └── utils/          #   fastfetch (config)
-    └── scripts/            #   scripts de usuário
+    └── desktops/           #   hyprland, niri, sway (noctalia)
 ```
 
 ## Toggles

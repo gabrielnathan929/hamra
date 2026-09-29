@@ -82,7 +82,6 @@ in {
           lutris = false;
           hydralauncher = false;
           moonlight-qt = true;
-          repacks = true;
         };
 
         media = {

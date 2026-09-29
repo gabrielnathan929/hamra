@@ -7,6 +7,7 @@
   env = config.hamra.env;
 
   binName = name: pkg: pkg.meta.mainProgram or pkg.pname or name;
+  sessionVars = builtins.mapAttrs binName env;
 in {
   options.hamra.env = {
     editor = lib.mkOption {
@@ -32,7 +33,12 @@ in {
   };
 
   config = {
-    environment.sessionVariables = builtins.mapAttrs binName env;
+    environment.sessionVariables = sessionVars // {
+      EDITOR = sessionVars.editor;
+      BROWSER = sessionVars.browser;
+      TERMINAL = sessionVars.terminal;
+      FILE_MANAGER = sessionVars.filemanager;
+    };
     environment.systemPackages = builtins.attrValues env;
 
     programs.git = {
