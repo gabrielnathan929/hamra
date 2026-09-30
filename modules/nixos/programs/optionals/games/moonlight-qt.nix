@@ -1,4 +1,9 @@
-{config, lib, pkgs, ...}: let
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
   cfg = config.hamra.programs.optionals.games.moonlight-qt;
   inherit (lib) mkOption mkIf types;
 in {
@@ -7,4 +12,6 @@ in {
     default = false;
     description = "Enable Moonlight-QT game streaming client.";
   };
+
+  config.environment.systemPackages = mkIf cfg (with pkgs; [moonlight-qt]);
 }
