@@ -45,11 +45,18 @@
       mainProgram = "hamra-build-${host}";
     };
   };
+
+  # Novos hosts entram aqui (ou viram app automaticamente)
+  hosts = ["desktop" "vm" "gnome" "plasma"];
+
+  mkApps = fn: prefix:
+    builtins.listToAttrs (map (h: {
+        name = "${prefix}-${h}";
+        value = fn h;
+      })
+      hosts);
 in {
-  ${system} = {
-    deploy-desktop = mkDeployApp "desktop";
-    deploy-vm = mkDeployApp "vm";
-    build-desktop = mkBuildApp "desktop";
-    build-vm = mkBuildApp "vm";
-  };
+  ${system} =
+    mkApps mkDeployApp "deploy"
+    // mkApps mkBuildApp "build";
 }
