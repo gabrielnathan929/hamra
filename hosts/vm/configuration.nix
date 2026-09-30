@@ -17,23 +17,6 @@ _: {
 
     desktop.default = "sway";
 
-    programs = {
-      core.noctalia = {
-        "gpu-screen-recorder" = true;
-        evtest = true;
-        mpvpaper = true;
-        hyprpicker = true;
-        "translate-shell" = true;
-      };
-
-      optionals = {
-        gui = {
-          vesktop = true;
-          vscode = true;
-        };
-
-        games.moonlight-qt = true;
-      };
-    };
+    programs.optionals.services.wayvnc = true;
   };
 }

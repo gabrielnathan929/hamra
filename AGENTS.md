@@ -8,16 +8,39 @@ implementação. Para usar, basta ativar o toggle em `hosts/<host>/configuration
 
 ## Regras
 
+### Sem comentários no código
+
+Não use comentários em `.nix`, scripts e configs. O código deve se explicar sozinho:
+nomes de arquivos, nomes de opções e `description` do `mkOption` cumprem esse papel.
+Documentação pertence aos `.md` (`README.md`, `SETUP.md`, `docs/`, este arquivo).
+
 ### Camadas: NixOS vs Home
 
 Define o que entra em cada camada:
 
 | Camada | O que colocar | Exemplos |
 |---|---|---|
-| **NixOS** (`modules/nixos/programs/{core,optionals}/`) | Toggle modules de programas — instalação de pacote, daemon systemd, firewall, grupo de usuário, permissões de hardware | `core/desktop/grim`, `optionals/games/steam`, `optionals/noctalia/gpu-screen-recorder` |
+| **NixOS** (`modules/nixos/programs/{core,optionals}/`) | Toggle modules de programas — instalação de pacote, daemon systemd, firewall, grupo de usuário, permissões de hardware | `core/cli/grim`, `optionals/games/steam`, `core/noctalia/gpu-screen-recorder` |
 | **Home** (`modules/home/programs/`) | Apenas lógicas de configuração declarativa HM (`programs.foo`), config de shell/terminal/editor | zsh, foot, starship, aliases, neovim |
 
 ➡ Toda instalação de pacote vai no NixOS. Home é só para config.
+
+### Categorias por forma do app
+
+A categoria descreve **como o app se apresenta**, não o domínio de uso:
+
+| Pasta | Critério | Exemplos |
+|---|---|---|
+| `gui/` | Abre janela | navegadores, vscode, discord, bitwarden, obsidian, kodi, nautilus |
+| `tui/` | Interface dentro do terminal | btop, lazygit, yazi, opencode, codex, antigravity |
+| `cli/` | Linha de comando / toolchain | git, ripgrep, fd, jq, gcc, python3, rclone |
+| `services/` | Daemon / integração do sistema | samba, docker, appimage, wayvnc, xdg, gtk |
+| `media/` | Player e criação de mídia | mpv, spotify, spicetify, obs |
+| `games/` | Jogos e launchers | steam, pcsx2, heroic, moonlight-qt |
+
+Mantidas por especificidade: `core/noctalia/` (integração com o shell Noctalia) e
+`core/scripts/` (scripts próprios do repo). Não crie subcategoria para 1 arquivo;
+não crie gaveta genérica tipo "utility".
 
 ### Core vs Opcional
 
@@ -25,10 +48,21 @@ Toggle modules são categorizados em dois tiers:
 
 | Tier | `default` | Critério |
 |---|---|---|
-| **Core** (infraestrutura) | `true` | Dependência de scripts, chamado em keybinds, utilitário recorrente do desktop, parte da base do ambiente |
-| **Opcional** (escolha pessoal) | `false` | Não quebra nada se desligado — jogos, IDEs, players de mídia, ferramentas de segurança |
+| **Core** (infraestrutura) | `true` | Dependência de scripts, chamado em keybinds, utilitário recorrente do desktop, parte da base do ambiente. Exceções com `false`: `cli/git`, `gui/thunar` |
+| **Opcional** (escolha pessoal) | `false` | Não quebra nada se desligado — agentes de IA, jogos, IDEs, players de mídia, ferramentas de segurança |
 
 Programas core podem ser desligados explicitamente por quem quiser um ambiente mais enxuto.
+
+### Perfil comum dos hosts (`hosts/common/`)
+
+Todo host importa `hosts/common` e declara apenas **deltas** (o que difere do padrão).
+O common define env padrão e os optionals de uso pessoal — todos como `true`,
+envolvidos em `lib.mkDefault` para qualquer host poder sobrescrever sem conflito.
+
+- Toggle novo em uso em todo host → adicione `= true` no common.
+- Host não quer algo do common → declare `= false` no `configuration.nix` dele
+  (ex.: `wayvnc = false` em gnome/plasma, pois a assertion exige Hyprland/Sway).
+- Host quer algo fora do common → declare `= true` nele.
 
 ### Toggle module (NixOS)
 
@@ -56,6 +90,8 @@ in {
 - Opcional: `options.hamra.programs.optionals.<categoria>.<nome>`
 - Usuário (Home Manager): `options.hamra.home.programs.<categoria>.<nome>`
 - Nomes com hífen precisam de aspas: `"docker-compose"`
+- O caminho da opção deve bater com a localização do arquivo:
+  `optionals/tui/yazi.nix` → `optionals.tui.yazi`
 
 ### Nada de estrutura de pastas no código
 
@@ -64,8 +100,8 @@ Se um módulo precisa importar outro, use caminho relativo ao arquivo atual.
 
 ### Portal XDG
 
-Cada desktop define seu próprio portal no `compositor.nix`. O módulo `services/xdg/`
-não existe mais — cada desktop é auto-suficiente.
+Cada desktop define seu próprio portal no `compositor.nix` — cada desktop é
+auto-suficiente. O toggle `core/services/xdg` cuida só de user dirs, MIME e gvfs.
 
 - Hyprland → `xdg-desktop-portal-hyprland`
 - Sway → `xdg-desktop-portal-wlr`
@@ -79,12 +115,13 @@ declaradas em módulos específicos, não num `options.nix` central.
 ### Tema
 
 Cada tema define wallpaper + profile icon para Noctalia e Silent SDDM.
-O toggle `hamra.theme.name` troca tudo automaticamente.
+O toggle `hamra.theme.name` troca tudo automaticamente. Tema default: `resident-evil`.
 
 ### Navegador padrão
 
-`$BROWSER` aponta para `pkgs.helium` por padrão (definido em `envs/env.nix`).
-Para trocar num host: `hamra.env.browser = pkgs.firefox;`
+O perfil comum define `browser = pkgs.chromium` (o default do módulo em
+`envs/env.nix` é `pkgs.helium`). Para trocar num host:
+`hamra.env.browser = pkgs.firefox;`
 
 ### Assertions em tempo de build
 
@@ -113,7 +150,8 @@ Para replicar o NAS em QUALQUER PC sem conhecer criptografia/NixOS, existe o
 `core/scripts/setup-nas`). Ele cria a estrutura do host, gera/registra chaves
 no `.sops.yaml`, cria a senha própria do usuário em `secrets/samba.yaml`
 (criptografada) e aplica o rebuild — explicando cada passo e como resolver
-erros. Modos: `--check`, `--mostrar-senha`, `--reset-senha`, `--ajuda`.
+erros. O `configuration.nix` gerado herda do `hosts/common`. Modos: `--check`,
+`--mostrar-senha`, `--reset-senha`, `--ajuda`.
 Guia completo: `docs/nas-iniciantes.md`.
 
 ### Segredos (sops-nix)

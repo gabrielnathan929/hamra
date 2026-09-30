@@ -46,7 +46,6 @@
     };
   };
 
-  # Novos hosts entram aqui (ou viram app automaticamente)
   hosts = ["desktop" "vm" "gnome" "plasma"];
 
   mkApps = fn: prefix:

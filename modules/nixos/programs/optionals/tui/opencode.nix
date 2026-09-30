@@ -4,10 +4,10 @@
   pkgs,
   ...
 }: let
-  cfg = config.hamra.programs.core.tui.opencode;
+  cfg = config.hamra.programs.optionals.tui.opencode;
   inherit (lib) mkOption mkIf types;
 in {
-  options.hamra.programs.core.tui.opencode = mkOption {
+  options.hamra.programs.optionals.tui.opencode = mkOption {
     type = types.bool;
     default = false;
     description = "Enable opencode (AI coding assistant).";

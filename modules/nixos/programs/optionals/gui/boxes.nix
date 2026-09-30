@@ -19,9 +19,9 @@ in {
     virtualisation.libvirtd = {
       enable = true;
       qemu = {
-        package = pkgs.qemu;
-        runAsRoot = false;
-        swtpm.enable = true;
+        package = lib.mkDefault pkgs.qemu;
+        runAsRoot = lib.mkDefault false;
+        swtpm.enable = lib.mkDefault true;
       };
     };
 

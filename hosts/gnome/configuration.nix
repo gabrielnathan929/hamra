@@ -17,13 +17,6 @@ _: {
 
     desktop.default = "gnome";
 
-    programs.optionals = {
-      gui = {
-        vesktop = true;
-        vscode = false; # common ativa; aqui não queremos
-      };
-
-      services.samba = true;
-    };
+    programs.optionals.services.wayvnc = false;
   };
 }

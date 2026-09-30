@@ -370,7 +370,6 @@ _: {
     };
     desktop.default = "__DESKTOP__";
 
-    # Este host e um NAS (Samba ativado).
     programs.optionals.services.samba = true;
   };
 }

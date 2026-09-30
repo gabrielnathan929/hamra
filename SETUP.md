@@ -27,46 +27,89 @@ mkdir hosts/novo-host
 sudo nixos-generate-config --show-hardware-config > hosts/novo-host/hardware-configuration.nix
 ```
 
-Depois de gerar o hardware config, registre o host em `flake/hosts.nix` e crie o `configuration.nix` baseando-se em um existente.
+Registre o host em `flake/hosts.nix` e crie um `configuration.nix` no formato
+enxuto (identidade + deltas):
+
+```nix
+_: {
+  imports = [
+    ./hardware-configuration.nix
+    ../common
+    ../../modules/nixos/core
+    ../../modules/nixos/programs
+    ../../modules/nixos/desktops
+  ];
+
+  hamra = {
+    networking.hostname = "novo-host";
+
+    hardware = {
+      gpu = "intel";
+      firmware = "uefi";
+    };
+
+    desktop.default = "hyprland";
+  };
+}
+```
+
+O host herda tudo de `hosts/common/` (env padrão + optionals de uso pessoal).
+Para desligar algo do common: `hamra.programs.optionals.<categoria>.<nome> = false;`.
+Para acrescentar algo fora do common: `= true;` no host.
 
 ## Toggles
 
 ```nix
-# sistema (opt-in)
-hamra.programs.<categoria>.<nome> = true;
+# sistema (opt-in) — padrão do usuário vive em hosts/common/
+hamra.programs.optionals.<categoria>.<nome> = true;
 
-# sistema (core — desligar)
-hamra.programs.core.<subcategoria>.<nome> = false;
+# sistema (core — desligar algo da base)
+hamra.programs.core.<categoria>.<nome> = false;
 
 # usuário (Home Manager)
 hamra.home.programs.<categoria>.<nome> = true;
 ```
 
-**Core** abrange infraestrutura do desktop e utilitários básicos: terminal-tools, desktop (GTK, XDG, screenshot), media, monitoring, nix-tools, noctalia, scripts de setup. A maioria com `default = true` — dispensam declaração no host a menos que se queira desativá-los. Exceções com `default = false`: `development.git`, `development.opencode` e `terminal-tools.yazi`.
+**Core** (`modules/nixos/programs/core/`) é a infraestrutura base, com
+`default = true` — dispensa declaração. Categorias por forma do app:
+`cli/` (grim, jq, eza...), `gui/` (mpv, zathura, thunar*), `tui/` (btop, fzf,
+tmux...), `services/` (xdg, gtk), `noctalia/` e `scripts/` (*thunar e git são
+as únicas exceções com `default = true` após esta mudança: git `true`; thunar
+permanece `false`).
+
+**Optionals** (`modules/nixos/programs/optionals/`) são `default = false` e
+ativados pelo `hosts/common/`: `gui/` (navegadores, IDEs, comunicação,
+segurança), `tui/` (lazygit, opencode, codex, antigravity, yazi), `cli/`
+(toolchains), `services/` (samba, docker, appimage, vnc), `media/` (spotify,
+obs, kodi), `games/` e `packaging/`.
 
 ## Ambiente
 
 ```nix
 hamra.env = {
   editor    = pkgs.neovim;
-  browser   = pkgs.helium;
+  browser   = pkgs.chromium;
   terminal  = pkgs.foot;
-  filemanager = pkgs.thunar;
+  filemanager = pkgs.nautilus;
 };
 ```
 
-Define as variáveis de ambiente por host. Os pacotes são instalados automaticamente e expostos como `$EDITOR`, `$BROWSER`, etc.
+O common já define esse padrão; hosts podem sobrescrever campo a campo. Os
+pacotes são instalados automaticamente e expostos como `$EDITOR`, `$BROWSER`, etc.
 
 ## Validações
 
-Assertions em tempo de build em `modules/nixos/core/assertions.nix` previnem combinações inválidas: WayVNC com Niri, tema inexistente, locale sem `.UTF-8` ou campos obrigatórios vazios.
+Assertions em tempo de build em `modules/nixos/core/assertions.nix` previnem
+combinações inválidas: WayVNC só com Hyprland/Sway (por isso gnome e plasma
+declaram `wayvnc = false`), tema inexistente, locale sem `.UTF-8` ou campos
+obrigatórios vazios.
 
 ## Comandos
 
 ```bash
 nix run .#deploy-desktop    # check + switch
 nix run .#build-desktop     # só build
-nix run .#deploy-vm
+nix run .#deploy-vm         # idem para vm, gnome e plasma
 nix run .#build-vm
 nix develop                 # dev shell (alejandra, statix, deadnix)
 nix fmt                     # formata tudo

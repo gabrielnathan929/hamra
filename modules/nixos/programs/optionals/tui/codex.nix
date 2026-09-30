@@ -4,10 +4,10 @@
   pkgs,
   ...
 }: let
-  cfg = config.hamra.programs.core.tui.codex;
+  cfg = config.hamra.programs.optionals.tui.codex;
   inherit (lib) mkOption mkIf types;
 in {
-  options.hamra.programs.core.tui.codex = mkOption {
+  options.hamra.programs.optionals.tui.codex = mkOption {
     type = types.bool;
     default = false;
     description = "Enable Codex CLI (OpenAI coding agent).";

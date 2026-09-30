@@ -1,17 +1,3 @@
-# Perfil comum a todos os hosts.
-# Cada host importa este módulo e declara apenas os DELTAS.
-#
-# Regra do arquivo: só entram aqui toggles = true que vale para
-# TODO host. O que está omisso usa o default do próprio módulo
-# (false em optionals; default do tier em core).
-#
-# Categorias por forma do app:
-#   core/optionals + gui/      apps de janela (navegadores, IDEs, comunicação, segurança)
-#   core/optionals + tui/      interfaces em terminal (btop, lazygit, yazi, opencode...)
-#   core/optionals + cli/      ferramentas de linha de comando e toolchains (git, ripgrep, gcc...)
-#   core/optionals + services/ daemons e integrações (samba, docker, flatpak, xdg...)
-#   optionals + media/         players e criação de mídia (mpv, kodi, obs, spotify...)
-#   optionals + games/         jogos
 {
   config,
   pkgs,
@@ -33,22 +19,90 @@ in {
 
     mobile.android = false;
 
-    programs = {
-      core = {
-        cli.git = true;
-        tui.opencode = true;
+    programs.optionals = {
+      gui = {
+        android-studio = true;
+        bitwarden = true;
+        boxes = true;
+        brmodelo = true;
+        bruno = true;
+        chromium = true;
+        camunda-modeler = true;
+        dbeaver = true;
+        discord = true;
+        drawio = true;
+        ente-auth = true;
+        firefox = true;
+        google-chrome = true;
+        helium = true;
+        insomnia = true;
+        intellij = true;
+        localsend = true;
+        mongodb-compass = true;
+        nautilus = true;
+        netbeans = true;
+        obsidian = true;
+        office = true;
+        postman = true;
+        pycharm = true;
+        remmina = true;
+        keepassxc = true;
+        vesktop = true;
+        virt-manager = true;
+        vscode = true;
       };
 
-      optionals = {
-        gui = {
-          vscode = true;
-          discord = true;
-          remmina = true;
-          keepassxc = true;
-          "ente-auth" = true;
-        };
+      tui = {
+        antigravity = true;
+        clamp = true;
+        codex = true;
+        lazydocker = true;
+        lazygit = true;
+        opencode = true;
+        yazi = true;
+      };
 
-        tui.clamp = true;
+      cli = {
+        gcc = true;
+        gnumake = true;
+        go = true;
+        jdk = true;
+        nodejs = true;
+        python3 = true;
+        rclone = true;
+        ripgrep = true;
+      };
+
+      media = {
+        kodi = true;
+        obs = true;
+        qbittorrent = true;
+        spicetify = true;
+        spotify = true;
+        spotube = true;
+      };
+
+      services = {
+        appimage = true;
+        docker = true;
+        "docker-compose" = true;
+        samba = true;
+        wayvnc = true;
+        tigervnc = true;
+      };
+
+      games = {
+        heroic = true;
+        hydralauncher = true;
+        lutris = true;
+        moonlight-qt = true;
+        pcsx2 = true;
+        steam = true;
+      };
+
+      packaging = {
+        flatpak = true;
+        gnome-software = true;
       };
     };
   };

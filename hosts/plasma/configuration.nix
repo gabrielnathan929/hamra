@@ -15,15 +15,8 @@ _: {
       firmware = "uefi";
     };
 
-    desktop.default = "hyprland";
+    desktop.default = "plasma";
 
-    programs.optionals = {
-      gui = {
-        vesktop = true;
-        vscode = false; # common ativa; aqui não queremos
-      };
-
-      services.samba = true;
-    };
+    programs.optionals.services.wayvnc = false;
   };
 }

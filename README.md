@@ -6,42 +6,45 @@ O `configuration.nix` cresce rápido e vira uma parede de texto. Hamra resolve
 isso com um módulo por programa: cada um declara sua própria opção `bool` e
 implementação. O scan automático descobre os arquivos — sem imports manuais.
 
+Cada host importa o **perfil comum** (`hosts/common/`) e declara apenas os
+deltas: o que ele tem de diferente do padrão.
+
 Toggle modules se dividem em dois tiers:
 
 - **`core/`** — infraestrutura do desktop e utilitários básicos. `default = true`.
   Dispensa declaração no host a menos que queira desligar.
-- **`programs/`** — opt-in. `default = false`. Só ativam com declaração explícita.
+- **`optionals/`** — opt-in. `default = false`. Só ativam com declaração explícita
+  (o comum fica no `hosts/common/`).
 
 ## Estrutura
 
 ```
+hosts/
+├── common/                 # perfil compartilhado: env padrão + optionals em uso
+├── desktop/                # host: identidade (hostname, gpu, desktop) + deltas
+├── vm/
+├── gnome/
+└── plasma/
+
 modules/
+├── lib/                    # scanPaths (auto-import)
 ├── nixos/                  # sistema
 │   ├── core/               # infraestrutura base — default = true
-│   │   ├── desktop/        #   tema GTK, XDG, screenshot, clipboard, OCR
-│   │   ├── development/    #   git, opencode
-│   │   ├── media/          #   visualizador de imagem, vídeo, PDF
-│   │   ├── monitoring/     #   btop, fastfetch
-│   │   ├── nix-tools/      #   nom, nix-search
-│   │   ├── noctalia/       #   gpu-screen-recorder, hyprpicker
-│   │   ├── scripts/        #   setup-gpg, setup-ssh, flatpak
-│   │   └── terminal-tools/ #   curl, eza, fzf, gum, jq, tmux, tree
+│   │   ├── cli/            #   grim, slurp, wl-clipboard, jq, eza, fd...
+│   │   ├── gui/            #   mpv, imv, zathura, thunar
+│   │   ├── tui/            #   btop, fzf, tmux, yazi, gum, ncdu
+│   │   ├── services/       #   xdg, gtk
+│   │   ├── noctalia/       #   integração com o shell Noctalia
+│   │   └── scripts/        #   setup-gpg, setup-ssh, setup-nas, flatpak
 │   ├── programs/           # opt-in — default = false
-│   │   ├── audio/          #   spotify, spicetify
-│   │   ├── backup/         #   rclone
-│   │   ├── browsers/       #   helium, chromium, firefox, google-chrome
-│   │   ├── communication/  #   discord
-│   │   ├── development/    #   git, docker, gcc, ripgrep
-│   │   ├── games/          #   steam, pcsx2, heroic
-│   │   ├── ides/           #   vscode, intellij, pycharm
-│   │   ├── packaging/      #   flatpak, gnome-software
-│   │   ├── productivity/   #   obsidian, libreoffice
-│   │   ├── remote/         #   remmina, tigervnc
-│   │   ├── security/       #   bitwarden, ente-auth
-│   │   ├── services/       #   wayvnc, samba (NAS)
-│   │   ├── utility/        #   localsend, obs-studio
-│   │   └── virtualisation/ #   boxes, virt-manager
-│   └── desktops/           # desktops (hyprland, sway, niri)
+│   │   ├── cli/            #   ripgrep, gcc, python3, rclone...
+│   │   ├── gui/            #   navegadores, IDEs, comunicação, segurança
+│   │   ├── tui/            #   lazygit, lazydocker, opencode, codex, antigravity
+│   │   ├── services/       #   samba (NAS), docker, appimage, wayvnc, tigervnc
+│   │   ├── media/          #   spotify, spicetify, obs, kodi
+│   │   ├── games/          #   steam, pcsx2, heroic, moonlight-qt
+│   │   └── packaging/      #   flatpak, gnome-software
+│   └── desktops/           # desktops (hyprland, sway, niri, gnome, plasma)
 └── home/                   # Home Manager — config de usuário
     ├── programs/
     │   ├── editors/        #   neovim (plugins, extraConfig)
@@ -51,14 +54,18 @@ modules/
     └── desktops/           #   hyprland, niri, sway (noctalia)
 ```
 
+Categorias descrevem a **forma do app** (como ele se apresenta), não o domínio:
+`gui/` abre janela, `tui/` vive no terminal, `cli/` é linha de comando,
+`services/` é daemon/integração, `media/` é player/criação, `games/` é jogo.
+
 ## Toggles
 
 ```nix
-# sistema (opt-in)
-hamra.programs.<categoria>.<nome> = true;
+# sistema (opt-in) — o padrão do usuário vive em hosts/common/
+hamra.programs.optionals.<categoria>.<nome> = true;
 
-# sistema (core — desligar)
-hamra.programs.core.<subcategoria>.<nome> = false;
+# sistema (core — desligar algo da base)
+hamra.programs.core.<categoria>.<nome> = false;
 
 # usuário (Home Manager)
 hamra.home.programs.<categoria>.<nome> = true;

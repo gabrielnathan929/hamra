@@ -8,7 +8,7 @@
 in {
   options.hamra.programs.core.cli.git = mkOption {
     type = types.bool;
-    default = false;
+    default = true;
     description = "Enable Git with GPG signing.";
   };
 
