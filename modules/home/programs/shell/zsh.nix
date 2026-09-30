@@ -12,20 +12,26 @@ in {
     description = "Enable Zsh configuration.";
   };
 
-  config.programs.zsh = mkIf cfg {
-    enable = true;
-    enableCompletion = true;
-    autosuggestion.enable = true;
-    syntaxHighlighting.enable = true;
-    history = {
-      size = 10000;
-      path = "$HOME/.zsh_history";
-      ignoreAllDups = true;
-      ignorePatterns = [
-        "rm *"
-        "pkill *"
-        "cp *"
-      ];
+  config = {
+    home.sessionPath = [
+      "$HOME/.npm-global/bin"
+    ];
+
+    programs.zsh = mkIf cfg {
+      enable = true;
+      enableCompletion = true;
+      autosuggestion.enable = true;
+      syntaxHighlighting.enable = true;
+      history = {
+        size = 10000;
+        path = "$HOME/.zsh_history";
+        ignoreAllDups = true;
+        ignorePatterns = [
+          "rm *"
+          "pkill *"
+          "cp *"
+        ];
+      };
     };
   };
 }
