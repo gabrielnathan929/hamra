@@ -33,12 +33,14 @@ in {
   };
 
   config = {
-    environment.sessionVariables = sessionVars // {
-      EDITOR = sessionVars.editor;
-      BROWSER = sessionVars.browser;
-      TERMINAL = sessionVars.terminal;
-      FILE_MANAGER = sessionVars.filemanager;
-    };
+    environment.sessionVariables =
+      sessionVars
+      // {
+        EDITOR = sessionVars.editor;
+        BROWSER = sessionVars.browser;
+        TERMINAL = sessionVars.terminal;
+        FILE_MANAGER = sessionVars.filemanager;
+      };
     environment.systemPackages = builtins.attrValues env;
 
     programs.git = {

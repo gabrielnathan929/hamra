@@ -1,8 +1,4 @@
-{
-  config,
-  lib,
-  ...
-}: {
+{lib, ...}: {
   options.hamra.desktop.default = lib.mkOption {
     type = lib.types.str;
     default = "hyprland";
