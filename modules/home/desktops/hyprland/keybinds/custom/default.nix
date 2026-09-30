@@ -1,15 +1,14 @@
 {
-  config,
   lib,
   env,
   ...
 }: let
-  envsPart = import ./envs.nix {inherit config lib env;};
+  envsPart = import ./envs.nix {inherit lib env;};
   windowsPart = import ./windows.nix {};
   focusPart = import ./focus.nix {};
   workspacesPart = import ./workspaces.nix {};
   mousePart = import ./mouse.nix {};
-  scriptsPart = import ./scripts.nix {inherit config lib env;};
+  scriptsPart = import ./scripts.nix {inherit lib env;};
 in ''
   ${envsPart}
   ${windowsPart}

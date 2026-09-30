@@ -1,10 +1,9 @@
 {
-  config,
   lib,
   env,
   ...
 }: let
-  customPart = import ./custom {inherit config lib env;};
+  customPart = import ./custom {inherit lib env;};
   surfacesPart = import ./surfaces {};
   systemPart = import ./system {};
   shellPart = import ./shell {};
