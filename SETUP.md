@@ -1,34 +1,72 @@
 # Setup
 
-Como configurar o Hamra em uma nova máquina.
+Como instalar o NixOS e subir o Hamra em uma máquina — e como os módulos se
+comportam por baixo dos panos.
 
-## Instalação do zero
+## 1. Instalar o NixOS
 
-```bash
-# backup da configuração atual
-sudo cp -r /etc/nixos /etc/nixos.bak
+O Hamra **substitui** o `configuration.nix` gerado pela instalação, mas o
+`hardware-configuration.nix` (discos, UUIDs, mounts) vem da máquina e é
+preservado. Escolha um dos caminhos:
 
-# clonar o repositório
-sudo rm -rf /etc/nixos && sudo mkdir /etc/nixos
-nix-shell -p git
-sudo git clone https://github.com/gabrielnathan929/hamra .
-sudo cp /etc/nixos.bak/hardware-configuration.nix hosts/desktop/hardware-configuration.nix
+### ISO gráfica
 
-# aplicar
-sudo nixos-rebuild switch --flake .#desktop
-```
-
-O `hardware-configuration.nix` é específico de cada máquina e deve ser preservado.
-
-## Novo host
+1. Baixe a ISO gráfica do NixOS, grave no pendrive e boote.
+2. Rode o instalador (Calamares) com qualquer desktop — o desktop final é o
+   do Hamra, não o da instalação.
+3. Ao terminar, **não reboot ainda**: monte o disco instalado e copie o
+   `hardware-configuration.nix` gerado:
 
 ```bash
-mkdir hosts/novo-host
-sudo nixos-generate-config --show-hardware-config > hosts/novo-host/hardware-configuration.nix
+mount /dev/disk/by-label/nixos /mnt   # ajuste o label
+cp /mnt/etc/nixos/hardware-configuration.nix /tmp/
 ```
 
-Registre o host em `flake/hosts.nix` e crie um `configuration.nix` no formato
-enxuto (identidade + deltas):
+### ISO minimal
+
+1. Baixe a ISO minimal, boote e entre como `nixos` (sem senha).
+2. Particione (exemplo UEFI simples):
+
+```bash
+sudo -i
+partitioned=/dev/vda   # ajuste
+sgdisk --zap-all $partitioned
+sgdisk -n 1:0:+1G -t 1:ef00 -n 2:0:0 -t 2:8300 $partitioned
+mkfs.fat -F32 -n BOOT ${partitioned}1
+mkfs.ext4 -L nixos ${partitioned}2
+mount /dev/disk/by-label/nixos /mnt
+mkdir -p /mnt/boot && mount /dev/disk/by-label/BOOT /mnt/boot
+nixos-generate-config --root /mnt
+```
+
+3. Instale o sistema base e copie o hardware config gerado:
+
+```bash
+cp /mnt/etc/nixos/hardware-configuration.nix /tmp/
+nixos-install    # pede senha do root; reboot ao terminar
+```
+
+A diferença prática: a ISO gráfica faz o particionamento para você; a minimal
+te dá controle total (criptografia LUKS, btrfs, swap — o que você configurar
+vira o `hardware-configuration.nix`). O Hamra funciona igual nos dois casos.
+
+## 2. Subir o Hamra
+
+Após o reboot (ou no chroot da instalação):
+
+```bash
+sudo rm -rf /etc/nixos && sudo mkdir /etc/nixos && sudo chown $(whoami): /etc/nixos
+git clone https://github.com/gabrielnathan929/hamra /etc/nixos
+cd /etc/nixos
+
+cp /tmp/hardware-configuration.nix hosts/<host>/hardware-configuration.nix
+nixos-rebuild switch --flake .#<host>
+```
+
+O `hardware-configuration.nix` é a identidade física da máquina: pode
+reestruturar (agrupar chaves), mas nunca mude UUIDs nem dispositivos.
+
+## 3. Anatomia de um host
 
 ```nix
 _: {
@@ -41,77 +79,103 @@ _: {
   ];
 
   hamra = {
-    networking.hostname = "novo-host";
+    networking.hostname = "vm";
 
     hardware = {
-      gpu = "intel";
+      gpu = "virtio";
       firmware = "uefi";
     };
 
-    desktop.default = "hyprland";
+    desktop.default = "sway";
+
+    programs.optionals.services.wayvnc = true;
   };
 }
 ```
 
-O host herda tudo de `hosts/common/` (env padrão + optionals de uso pessoal).
-Para desligar algo do common: `hamra.programs.optionals.<categoria>.<nome> = false;`.
-Para acrescentar algo fora do common: `= true;` no host.
+- `../common` — perfil compartilhado: env padrão + todos os optionals de uso
+  pessoal como `true` (sob `mkDefault`).
+- Os outros três imports trazem a árvore inteira de módulos — sempre.
+- O corpo do host é **identidade** (hostname, GPU, firmware, desktop) +
+  **deltas** (exceções ao common, como `wayvnc = false` em gnome/plasma).
 
-## Toggles
+## 4. Comportamento dos módulos
 
-```nix
-# sistema (opt-in) — padrão do usuário vive em hosts/common/
-hamra.programs.optionals.<categoria>.<nome> = true;
+### Auto-descoberta (scanPaths)
 
-# sistema (core — desligar algo da base)
-hamra.programs.core.<categoria>.<nome> = false;
+Cada pasta tem um `default.nix` que importa subpastas e arquivos `.nix`
+vizinhos. A árvore inteira é **importada sempre** — importar não é ativar.
+Importante: se uma pasta nova for criada sem `default.nix`, o eval quebra;
+se um arquivo novo aparecer, é descoberto sozinho.
 
-# usuário (Home Manager)
-hamra.home.programs.<categoria>.<nome> = true;
-```
-
-**Core** (`modules/nixos/programs/core/`) é a infraestrutura base, com
-`default = true` — dispensa declaração. Categorias por forma do app:
-`cli/` (grim, jq, eza...), `gui/` (mpv, zathura, thunar*), `tui/` (btop, fzf,
-tmux...), `services/` (xdg, gtk), `noctalia/` e `scripts/` (*thunar e git são
-as únicas exceções com `default = true` após esta mudança: git `true`; thunar
-permanece `false`).
-
-**Optionals** (`modules/nixos/programs/optionals/`) são `default = false` e
-ativados pelo `hosts/common/`: `gui/` (navegadores, IDEs, comunicação,
-segurança), `tui/` (lazygit, opencode, codex, antigravity, yazi), `cli/`
-(toolchains), `services/` (samba, docker, appimage, vnc), `media/` (spotify,
-obs, kodi), `games/` e `packaging/`.
-
-## Ambiente
+### Toggle = opção + implementação
 
 ```nix
-hamra.env = {
-  editor    = pkgs.neovim;
-  browser   = pkgs.chromium;
-  terminal  = pkgs.foot;
-  filemanager = pkgs.nautilus;
+options.hamra.programs.optionals.tui.yazi = mkOption {
+  type = types.bool;
+  default = false;
+  ...
 };
+
+config.environment.systemPackages = mkIf cfg (with pkgs; [yazi]);
 ```
 
-O common já define esse padrão; hosts podem sobrescrever campo a campo. Os
-pacotes são instalados automaticamente e expostos como `$EDITOR`, `$BROWSER`, etc.
+O `mkIf` guarda a **config**, não a declaração: toggle `false` não instala
+nada, mas a opção continua existindo para qualquer host declarar.
 
-## Validações
+### Tiers e defaults
 
-Assertions em tempo de build em `modules/nixos/core/assertions.nix` previnem
-combinações inválidas: WayVNC só com Hyprland/Sway (por isso gnome e plasma
-declaram `wayvnc = false`), tema inexistente, locale sem `.UTF-8` ou campos
-obrigatórios vazios.
+`core/` = `default = true` (base da máquina; desligue por toggle).
+`optionals/` = `default = false` (ativados no `hosts/common/`).
+Exceção histórica hoje: nenhum — o `git` virou `true`.
 
-## Comandos
+### Prioridades (por que `mkDefault` no common)
+
+Opção definida em dois lugares com valor plain = **erro de conflito**.
+Por isso o common envolve tudo em `lib.mkDefault` (prioridade 1000): o host
+pode declarar o mesmo caminho com valor plain (100) e vence sem barulho.
+Entre dois `mkDefault`, ainda há conflito — por isso `virt-manager` usa
+valores plain e `boxes` usa `mkDefault` nas opções compartilhadas do
+libvirtd, permitindo os dois ligados.
+
+### Caminho da opção = localização do arquivo
+
+`optionals/tui/yazi.nix` declara `optionals.tui.yazi`. A categoria do caminho
+é a pasta. Nomes com hífen levam aspas: `services."docker-compose"`.
+
+### Assertions
+
+`modules/nixos/core/assertions.nix` falha o **eval** (antes de buildar) em
+combinações inválidas — ex.: `wayvnc = true` fora de hyprland/sway, tema
+inexistente, locale sem `.UTF-8`. Erro cedo com mensagem explicando o motivo.
+
+### Passagem NixOS → Home Manager
+
+O host injeta `extraSpecialArgs` no Home Manager (`env`, `displays`,
+`keyboard`, `desktop`...). É assim que um módulo home (ex.: keybinds do
+Hyprland) usa o navegador/terminal escolhidos no módulo NixOS — fonte única
+de verdade.
+
+## 5. Novo host
 
 ```bash
-nix run .#deploy-desktop    # check + switch
-nix run .#build-desktop     # só build
-nix run .#deploy-vm         # idem para vm, gnome e plasma
-nix run .#build-vm
-nix develop                 # dev shell (alejandra, statix, deadnix)
-nix fmt                     # formata tudo
-nix flake check             # valida a flake
+mkdir hosts/novo-host
+sudo nixos-generate-config --show-hardware-config > hosts/novo-host/hardware-configuration.nix
 ```
+
+Registre em `flake/hosts.nix` (`novo-host = mkHost "novo-host";`) e escreva o
+`configuration.nix` no formato da seção 3. Existe também o assistente
+`./scripts/setup-nas.sh` para o fluxo de NAS (host + chaves sops + senha).
+
+## 6. Validação
+
+```bash
+nix fmt                     # alejandra
+nix flake check             # avalia os 4 hosts + assertions
+nix develop --command statix check .
+nix develop --command deadnix .
+nix run .#build-<host>      # build sem aplicar
+nix run .#deploy-<host>     # flake check + switch
+```
+
+O CI roda formatação, lint e build dos 4 hosts a cada push.
