@@ -56,10 +56,10 @@ modules/
 │   ├── core/               # base da máquina — default = true
 │   │   ├── cli/            #   grim, slurp, wl-clipboard, jq, eza, fd...
 │   │   ├── gui/            #   mpv, imv, zathura, thunar
-│   │   ├── tui/            #   btop, fzf, tmux, gum, ncdu
+│   │   ├── tui/            #   btop, fzf, tmux, ncdu
 │   │   ├── services/       #   xdg, gtk
 │   │   ├── noctalia/       #   integração com o shell Noctalia
-│   │   └── scripts/        #   setup-gpg, setup-ssh, setup-nas, flatpak
+│   │   └── scripts/        #   setup-nas
 │   ├── programs/           # opt-in — default = false
 │   │   ├── cli/            #   ripgrep, gcc, python3, rclone...
 │   │   ├── gui/            #   navegadores, IDEs, comunicação, segurança
@@ -86,6 +86,13 @@ hamra.programs.core.<categoria>.<nome> = false;
 # usuário (Home Manager)
 hamra.home.programs.<categoria>.<nome> = true;
 ```
+
+O painel **Hamra Control** do Noctalia (`Alt+Space`, ou `/hamra` no launcher)
+lista os toggles de sistema com o **estado real do eval** e escreve o delta no
+`configuration.nix` do host — sem catálogo central: o que existe é descoberto do
+próprio flake. O plugin também cobre instalação/remoção de apps, chaves
+SSH/GPG, flake update e tarefas de sistema; vive no
+[community-plugins](https://github.com/gabrielnathan929/community-plugins).
 
 Instalação passo a passo (ISO gráfica ou minimal), anatomia de um host e o
 comportamento interno dos módulos: [`SETUP.md`](SETUP.md).
@@ -125,13 +132,14 @@ Todos os direitos pertencem aos seus respectivos autores.
 | [Papirus](https://github.com/PapirusDevelopmentTeam/papirus-icon-theme) | Conjunto de ícones |
 | [Bibata](https://github.com/ful1e5/Bibata_Cursor) | Tema de cursor |
 | [official-plugins](https://github.com/gabrielnathan929/official-plugins) | Fork com plugins oficiais ajustados: `wallhaven`, `mpvpaper` |
-| [community-plugins](https://github.com/gabrielnathan929/community-plugins) | Fork com plugins extras para Noctalia: `myanimelist` |
+| [community-plugins](https://github.com/gabrielnathan929/community-plugins) | Fork com plugins extras para Noctalia: `myanimelist`, `hamra-control` |
 | [color_picker](https://github.com/oldirtty/color_picker) | Plugin seletor de cor para Noctalia |
 | [SilentSDDM](https://github.com/gabrielnathan929/SilentSDDM) | Fork do tema Silent SDDM |
 | [sops-nix](https://github.com/Mic92/sops-nix) | Gestão de segredos |
 
-Plugins Noctalia ativos: `wallhaven`, `mpvpaper`, `myanimelist`, `notes`,
-`timer`, `bongocat`, `translator`, `screen_recorder`, `color_picker`.
+Plugins Noctalia ativos: `wallhaven`, `mpvpaper`, `myanimelist`,
+`hamra-control`, `notes`, `timer`, `bongocat`, `translator`, `screen_recorder`,
+`color_picker`.
 
 ## Agradecimentos
 
