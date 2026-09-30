@@ -7,8 +7,6 @@
   terminal = lib.getExe env.terminal;
 in ''
   // Scripts
-  Mod+Ctrl+Alt+g           { spawn-sh "${terminal} -e setup-gpg"; }
-  Mod+Ctrl+Alt+h           { spawn-sh "${terminal} -e setup-ssh"; }
-  // Mod+Alt+f                { spawn-sh "${terminal} -e flatpak-install"; }
-  // Mod+Ctrl+Alt+f           { spawn-sh "${terminal} -e flatpak-remove"; }
+  Alt+Space                { spawn-sh "noctalia msg panel-toggle gabrielnathan929/hamra-control:main"; }
+  Mod+Ctrl+Alt+m           { spawn-sh "${terminal} -e setup-nas"; }
 ''

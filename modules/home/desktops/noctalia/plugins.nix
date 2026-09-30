@@ -10,6 +10,7 @@ _: {
       "noctalia/screen_recorder"
       "oldirtty/color_picker"
       "gabrielnathan929/myanimelist"
+      "gabrielnathan929/hamra-control"
     ];
 
     source = [
