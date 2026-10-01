@@ -41,6 +41,7 @@ in {
         mongodb-compass = true;
         nautilus = true;
         netbeans = true;
+        notion = true;
         obsidian = true;
         office = true;
         postman = true;
