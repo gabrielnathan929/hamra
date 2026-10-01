@@ -13,12 +13,9 @@ in {
     description = "Enable OpenJDK 17 (Java).";
   };
 
-  config = lib.mkMerge [
-    (mkIf cfg {
-      environment.systemPackages = with pkgs; [jdk17];
-    })
-    (mkIf cfg {
-      environment.sessionVariables.JAVA_HOME = "${pkgs.jdk17}";
-    })
-  ];
+  config = mkIf cfg {
+    environment.systemPackages = with pkgs; [jdk17];
+
+    environment.sessionVariables.JAVA_HOME = "${pkgs.jdk17}";
+  };
 }

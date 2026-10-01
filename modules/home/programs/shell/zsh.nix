@@ -13,9 +13,10 @@ in {
   };
 
   config = {
-    home.sessionPath = [
-      "$HOME/.npm-global/bin"
-    ];
+    programs.zoxide = mkIf cfg {
+      enable = true;
+      enableZshIntegration = true;
+    };
 
     programs.zsh = mkIf cfg {
       enable = true;

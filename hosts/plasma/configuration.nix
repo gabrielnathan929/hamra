@@ -16,7 +16,5 @@ _: {
     };
 
     desktop.default = "plasma";
-
-    programs.optionals.services.wayvnc = false;
   };
 }

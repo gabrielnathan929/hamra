@@ -12,7 +12,7 @@ in {
       editor = pkgs.neovim;
       browser = pkgs.chromium;
       terminal = pkgs.foot;
-      filemanager = pkgs.nautilus;
+      filemanager = pkgs.thunar;
     };
 
     packages.extra = [];
@@ -23,7 +23,7 @@ in {
       gui = {
         android-studio = true;
         bitwarden = true;
-        boxes = true;
+        boxes = false;
         brmodelo = true;
         bruno = true;
         chromium = true;
@@ -32,8 +32,8 @@ in {
         discord = true;
         drawio = true;
         ente-auth = true;
-        firefox = true;
-        google-chrome = true;
+        firefox = false;
+        google-chrome = false;
         helium = true;
         insomnia = true;
         intellij = true;
@@ -46,24 +46,28 @@ in {
         postman = true;
         pycharm = true;
         remmina = true;
-        keepassxc = true;
+        keepassxc = false;
         vesktop = true;
         virt-manager = true;
         vscode = true;
+        wireshark = false;
       };
 
       tui = {
-        antigravity = true;
-        clamp = true;
-        codex = true;
+        cliamp = true;
         lazydocker = true;
         lazygit = true;
-        opencode = true;
         yazi = true;
       };
 
       cli = {
         gcc = true;
+        ffmpeg = true;
+        imagemagick = true;
+        inetutils = true;
+        mtr = true;
+        strace = true;
+        traceroute = true;
         gnumake = true;
         go = true;
         jdk = true;
@@ -79,7 +83,6 @@ in {
         qbittorrent = true;
         spicetify = true;
         spotify = true;
-        spotube = true;
       };
 
       services = {
@@ -87,15 +90,15 @@ in {
         docker = true;
         "docker-compose" = true;
         samba = true;
-        wayvnc = true;
-        tigervnc = true;
+        wayvnc = false;
+        tigervnc = false;
       };
 
       games = {
         heroic = true;
         hydralauncher = true;
         lutris = true;
-        moonlight-qt = true;
+        moonlight-qt = false;
         pcsx2 = true;
         steam = true;
       };

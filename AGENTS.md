@@ -32,7 +32,7 @@ A categoria descreve **como o app se apresenta**, não o domínio de uso:
 | Pasta | Critério | Exemplos |
 |---|---|---|
 | `gui/` | Abre janela | navegadores, vscode, discord, bitwarden, obsidian, kodi, nautilus |
-| `tui/` | Interface dentro do terminal | btop, lazygit, yazi, opencode, codex, antigravity |
+| `tui/` | Interface dentro do terminal | btop, lazygit, yazi, lazydocker, cliamp |
 | `cli/` | Linha de comando / toolchain | git, ripgrep, fd, jq, gcc, python3, rclone |
 | `services/` | Daemon / integração do sistema | samba, docker, appimage, wayvnc, xdg, gtk |
 | `media/` | Player e criação de mídia | mpv, spotify, spicetify, obs |
@@ -52,6 +52,17 @@ Toggle modules são categorizados em dois tiers:
 | **Opcional** (escolha pessoal) | `false` | Não quebra nada se desligado — agentes de IA, jogos, IDEs, players de mídia, ferramentas de segurança |
 
 Programas core podem ser desligados explicitamente por quem quiser um ambiente mais enxuto.
+
+### mise vs Nix
+
+O usuário mantém ferramentas de dev em `latest` via **mise** (`core/cli/mise`)
+e pode ter a mesma ferramenta instalada por toggle Nix ao mesmo tempo — não é
+duplicata proibida, os contextos são diferentes. Precedência de PATH: no
+shell interativo o hook do mise (`mise activate` via `enableZshIntegration`)
+mantém os shims na frente, então `mise use -g` sempre vence o store do Nix;
+fora do shell (daemons, desktop entries, serviços) só existe a versão Nix.
+Se um host não quiser a versão mise de alguma ferramenta, basta não instalar
+via mise — o toggle Nix serve como base/fallback.
 
 ### Perfil comum dos hosts (`hosts/common/`)
 

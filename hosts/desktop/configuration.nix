@@ -16,7 +16,5 @@ _: {
     };
 
     desktop.default = "hyprland";
-
-    programs.optionals.gui.notion = true;
   };
 }

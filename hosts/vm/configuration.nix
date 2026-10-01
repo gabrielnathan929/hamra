@@ -16,8 +16,5 @@ _: {
     };
 
     desktop.default = "sway";
-
-    programs.optionals.services.wayvnc = true;
-    programs.optionals.gui.notion = true;
   };
 }

@@ -63,7 +63,7 @@ modules/
 │   ├── programs/           # opt-in — default = false
 │   │   ├── cli/            #   ripgrep, gcc, python3, rclone...
 │   │   ├── gui/            #   navegadores, IDEs, comunicação, segurança
-│   │   ├── tui/            #   lazygit, lazydocker, opencode, codex, antigravity, yazi
+│   │   ├── tui/            #   lazygit, lazydocker, cliamp, yazi
 │   │   ├── services/       #   samba (NAS), docker, appimage, wayvnc, tigervnc
 │   │   ├── media/          #   spotify, spicetify, obs, kodi
 │   │   ├── games/          #   steam, pcsx2, heroic, moonlight-qt
