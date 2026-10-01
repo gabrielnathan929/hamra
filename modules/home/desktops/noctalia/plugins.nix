@@ -10,7 +10,7 @@ _: {
       "noctalia/screen_recorder"
       "oldirtty/color_picker"
       "gabrielnathan929/myanimelist"
-      "gabrielnathan929/hamra-control"
+      "gabrielnathan929/nixdeck"
     ];
 
     source = [

@@ -87,7 +87,7 @@ hamra.programs.core.<categoria>.<nome> = false;
 hamra.home.programs.<categoria>.<nome> = true;
 ```
 
-O painel **Hamra Control** do Noctalia (`Alt+Space`, ou `/hamra` no launcher)
+O painel **NixDeck** do Noctalia (`Alt+Space`, ou `/nixdeck` no launcher)
 lista os toggles de sistema com o **estado real do eval** e escreve o delta no
 `configuration.nix` do host — sem catálogo central: o que existe é descoberto do
 próprio flake. O plugin também cobre instalação/remoção de apps, chaves
@@ -132,13 +132,13 @@ Todos os direitos pertencem aos seus respectivos autores.
 | [Papirus](https://github.com/PapirusDevelopmentTeam/papirus-icon-theme) | Conjunto de ícones |
 | [Bibata](https://github.com/ful1e5/Bibata_Cursor) | Tema de cursor |
 | [official-plugins](https://github.com/gabrielnathan929/official-plugins) | Fork com plugins oficiais ajustados: `wallhaven`, `mpvpaper` |
-| [community-plugins](https://github.com/gabrielnathan929/community-plugins) | Fork com plugins extras para Noctalia: `myanimelist`, `hamra-control` |
+| [community-plugins](https://github.com/gabrielnathan929/community-plugins) | Fork com plugins extras para Noctalia: `myanimelist`, `nixdeck` |
 | [color_picker](https://github.com/oldirtty/color_picker) | Plugin seletor de cor para Noctalia |
 | [SilentSDDM](https://github.com/gabrielnathan929/SilentSDDM) | Fork do tema Silent SDDM |
 | [sops-nix](https://github.com/Mic92/sops-nix) | Gestão de segredos |
 
 Plugins Noctalia ativos: `wallhaven`, `mpvpaper`, `myanimelist`,
-`hamra-control`, `notes`, `timer`, `bongocat`, `translator`, `screen_recorder`,
+`nixdeck`, `notes`, `timer`, `bongocat`, `translator`, `screen_recorder`,
 `color_picker`.
 
 ## Agradecimentos
