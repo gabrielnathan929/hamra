@@ -122,5 +122,20 @@ in {
         + "\"hyprland\" ou \"sway\" (atual: \"${cfg.desktop.default}\"). "
         + "Niri não suporta headless output para WayVNC.";
     }
+
+    {
+      assertion = cfg.flatpak.apps == [] || cfg.programs.optionals.packaging.flatpak;
+      message = "hamra.flatpak.apps requer hamra.programs.optionals.packaging.flatpak = true.";
+    }
+
+    {
+      assertion = cfg.mise.tools == {} || cfg.programs.core.cli.mise;
+      message = "hamra.mise.tools requer hamra.programs.core.cli.mise = true.";
+    }
+
+    {
+      assertion = lib.all (app: app.icon == null || app.iconHash != null) (lib.attrValues cfg.webapps);
+      message = "hamra.webapps.<nome>.icon requer hamra.webapps.<nome>.iconHash (sha256-...).";
+    }
   ];
 }

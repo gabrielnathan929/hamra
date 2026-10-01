@@ -17,6 +17,7 @@
     ./fonts.nix
     ./theme
     ./packages.nix
+    ./webapps.nix
   ];
 
   nix.settings = {

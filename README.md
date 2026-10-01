@@ -59,7 +59,7 @@ modules/
 │   │   ├── tui/            #   btop, fzf, tmux, ncdu
 │   │   ├── services/       #   xdg, gtk
 │   │   ├── noctalia/       #   integração com o shell Noctalia
-│   │   └── scripts/        #   setup-nas
+│   │   └── scripts/        #   setup-nas, hamra-apps
 │   ├── programs/           # opt-in — default = false
 │   │   ├── cli/            #   ripgrep, gcc, python3, rclone...
 │   │   ├── gui/            #   navegadores, IDEs, comunicação, segurança
@@ -97,6 +97,44 @@ SSH/GPG, flake update e tarefas de sistema; vive no
 Instalação passo a passo (ISO gráfica ou minimal), anatomia de um host e o
 comportamento interno dos módulos: [`SETUP.md`](SETUP.md).
 Regras de contribuição: [`AGENTS.md`](AGENTS.md).
+
+### Apps por fonte
+
+O comando `hamra-apps` (core, `core/scripts/apps.nix`) lista o que está
+instalado em cada camada (Nix, mise, Flatpak, web apps) com a versão, marca o
+que foi declarado mas ainda não instalado e consulta as versões disponíveis no
+registro do mise:
+
+```bash
+hamra-apps              # lista agrupada por fonte (Nix, mise, Flatpak, web)
+hamra-apps <termo>      # filtra por nome (ignora maiúsculas)
+hamra-apps -v <tool>    # últimas versões do tool disponíveis no mise
+```
+
+As camadas além do Nix também se declaram em Nix (perfil comum):
+
+```nix
+hamra = {
+  mise.tools = {
+    node = "lts";
+    python = ["3.12" "3.13"];
+  };
+  flatpak.apps = ["com.discordapp.Discord" "org.videolan.VLC"];
+  webapps.notion = {
+    url = "https://www.notion.so";
+    desktopName = "Notion";
+  };
+};
+```
+
+- `hamra.mise.tools` escreve `~/.config/mise/config.toml` via Home Manager.
+  No primeiro rebuild com tools declaradas, o config imperativo existente é
+  movido para backup pela ativação — migre antes o que quiser preservar.
+- `hamra.flatpak.apps` instala os IDs do Flathub no serviço systemd
+  `hamra-flatpak`, pulando o que já existe (instalação system ou user).
+- `hamra.webapps.<nome>` gera wrapper + desktop entry (ícone opcional via
+  `icon` + `iconHash`) que abrem o site em janela própria no navegador padrão.
+  O `notion.nix` é só um toggle por cima desse mecanismo.
 
 ## Desenvolvimento
 

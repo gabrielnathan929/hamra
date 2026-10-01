@@ -64,6 +64,31 @@ fora do shell (daemons, desktop entries, serviços) só existe a versão Nix.
 Se um host não quiser a versão mise de alguma ferramenta, basta não instalar
 via mise — o toggle Nix serve como base/fallback.
 
+### Apps por fonte (Nix, mise, flatpak, webapps)
+
+O comando **`hamra-apps`** (toggle `core/scripts/apps`, default `true`) lista o que
+está instalado e o que pode ser instalado, com a fonte de cada item:
+
+- `hamra-apps` — tudo; `hamra-apps -v go` — filtrar por nome; `hamra-apps --help`
+- Instalados via Nix: pacotes do NixOS + `home.packages` do Home Manager (lidos do
+  manifest `/etc/hamra/apps.json`, gerado no build)
+- Disponíveis via mise: `mise ls --json` + o catálogo declarado em `hamra.mise.tools`
+- Flatpak: `flatpak list` (system e user) + os declarados em `hamra.flatpak.apps`
+
+Apps podem ser pré-setados no Nix (pode ser usado junto do modo imperativo):
+
+| Opção | O que faz | Formato |
+|---|---|---|
+| `hamra.mise.tools` | tools do mise (via HM `globalConfig`) | `{ go = "latest"; node = ["lts" "22"]; }` |
+| `hamra.flatpak.apps` | instala via oneshot `hamra-flatpak` na ativação | `[ "app.dvd.DVDStyler" ]` |
+| `hamra.webapps` | gera wrapper + `.desktop` de app web | `{ notion = { url = "..."; desktopName = "Notion"; }; }` |
+
+As três opções exigem o módulo correspondente ligado (assertion em build);
+`hamra.webapps.<nome>.icon` exige `iconHash`. O toggle `optionals/gui/notion` é um
+thin wrapper sobre `hamra.webapps.notion`. `hamra.mise.tools` escreve o
+`globalConfig` do HM — quem usa `~/.config/mise/config.toml` imperativo deve
+declarar as tools lá, não em Nix.
+
 ### Perfil comum dos hosts (`hosts/common/`)
 
 Todo host importa `hosts/common` e declara apenas **deltas** (o que difere do padrão).
