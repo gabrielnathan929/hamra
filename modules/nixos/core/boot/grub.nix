@@ -29,7 +29,7 @@ in {
         useOSProber = boot.grub.useOSProber;
         configurationLimit = gc.maxGenerations;
       };
-      timeout = lib.mkDefault 10;
+      timeout = lib.mkIf (boot.loader == "grub") (lib.mkDefault 10);
     };
   };
 }

@@ -26,7 +26,7 @@ in {
         editor = boot.systemd.editor;
         configurationLimit = gc.maxGenerations;
       };
-      timeout = lib.mkDefault 5;
+      timeout = lib.mkIf (boot.loader == "systemd-boot") (lib.mkDefault 5);
       efi.canTouchEfiVariables = hardware.firmware == "uefi";
     };
   };
