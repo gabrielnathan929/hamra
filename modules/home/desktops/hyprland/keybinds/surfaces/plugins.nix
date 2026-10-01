@@ -1,6 +1,6 @@
 _: ''
   -- Plugins
-  hl.bind("ALT+SPACE", hl.dsp.exec_cmd("noctalia msg panel-toggle gabrielnathan929/nixdeck:main"))
+  hl.bind("ALT+SPACE", hl.dsp.exec_cmd("noctalia msg panel-toggle gabrielnathan929/hamra-control:main"))
   hl.bind("ALT+B", hl.dsp.exec_cmd("noctalia msg plugin noctalia/bongocat:cat focused toggle"))
   hl.bind("ALT+E", hl.dsp.exec_cmd("noctalia msg panel-toggle launcher '/emo '"))
   hl.bind("ALT+N", hl.dsp.exec_cmd("noctalia msg panel-toggle noctalia/notes:panel"))
