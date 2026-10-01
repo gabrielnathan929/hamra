@@ -2,28 +2,28 @@
   options.hamra.theme = {
     name = lib.mkOption {
       type = lib.types.str;
-      default = "resident-evil";
+      default = "dragon-ball";
       description = "Tema do Hamra.";
     };
 
     wallpaper = lib.mkOption {
       type = lib.types.path;
       internal = true;
-      default = ./resident-evil/wallpapers/resident-evil-01.jpg;
+      default = ./dragon-ball/wallpapers/dragon-ball-01.jpg;
       description = "Caminho do wallpaper ativo, definido pelo tema.";
     };
 
     profileIcon = lib.mkOption {
       type = lib.types.path;
       internal = true;
-      default = ./resident-evil/icons/resident-evil-profile-1.jpg;
+      default = ./dragon-ball/icons/dragon-ball-profile-1.jpg;
       description = "Caminho do avatar de perfil ativo, definido pelo tema.";
     };
 
     videosDir = lib.mkOption {
       type = lib.types.path;
       internal = true;
-      default = ./resident-evil/videos;
+      default = ./dragon-ball/videos;
       description = "Diretório de vídeos do tema ativo, definido pelo tema.";
     };
   };
