@@ -89,6 +89,13 @@ in {
     }
 
     {
+      assertion = builtins.pathExists cfg.theme.profileIcon;
+      message =
+        "hamra.theme.profileIcon não existe: ${toString cfg.theme.profileIcon} "
+        + "(tema \"${cfg.theme.name}\"). Verifique o arquivo referenciado no módulo do tema.";
+    }
+
+    {
       assertion = lib.hasSuffix ".UTF-8" cfg.locale;
       message =
         "hamra.locale = \"${cfg.locale}\" deve terminar com \".UTF-8\" "

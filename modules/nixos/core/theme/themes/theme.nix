@@ -16,7 +16,7 @@
     profileIcon = lib.mkOption {
       type = lib.types.path;
       internal = true;
-      default = ./dragon-ball/icons/dragon-ball-profile-1.jpg;
+      default = ./dragon-ball/icons/dragon-ball-profile.jpg;
       description = "Caminho do avatar de perfil ativo, definido pelo tema.";
     };
 
