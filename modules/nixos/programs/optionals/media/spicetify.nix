@@ -16,6 +16,8 @@ in {
   };
 
   config = mkIf cfg {
+    environment.systemPackages = [config.programs.spicetify.spicetifyPackage];
+
     programs.spicetify = {
       enable = true;
       enabledCustomApps = [spicePkgs.apps.marketplace];

@@ -17,6 +17,13 @@ in {
     environment.systemPackages = with pkgs; [
       papirus-icon-theme
       bibata-cursors
+      glib
+      gsettings-desktop-schemas
+    ];
+
+    systemd.tmpfiles.rules = [
+      "L+ /usr/share/icons/Papirus-Dark - - - - ${pkgs.papirus-icon-theme}/share/icons/Papirus-Dark"
+      "L+ /usr/share/icons/Papirus-Light - - - - ${pkgs.papirus-icon-theme}/share/icons/Papirus-Light"
     ];
 
     environment.sessionVariables = {

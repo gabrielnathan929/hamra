@@ -48,7 +48,7 @@ in {
         pycharm = true;
         remmina = true;
         keepassxc = false;
-        vesktop = true;
+        vesktop = false;
         virt-manager = true;
         vscode = true;
         wireshark = false;

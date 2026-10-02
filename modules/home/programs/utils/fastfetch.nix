@@ -188,4 +188,6 @@ in {
       ];
     };
   };
+
+  config.xdg.configFile."fastfetch/config.jsonc".force = true;
 }
