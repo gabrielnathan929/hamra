@@ -1,12 +1,17 @@
 _: {
   programs.noctalia.settings.plugins = {
     enabled = [
-      "noctalia/notes"
-      "noctalia/timer"
+      "noctalia/bitwarden"
       "noctalia/bongocat"
       "noctalia/mpvpaper"
-      "noctalia/wallhaven"
+      "noctalia/notes"
+      "noctalia/timer"
       "noctalia/translator"
+      "noctalia/kaomoji"
+      "noctalia/umbriel-companion"
+      "noctalia/wallhaven"
+      "noctalia/wallpaper_depth"
+      "noctalia/world_clock"
       "noctalia/screen_recorder"
       "oldirtty/color_picker"
       "gabrielnathan929/myanimelist"

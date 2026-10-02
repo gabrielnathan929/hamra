@@ -23,6 +23,9 @@ in {
 
       shell = {
         ui_scale = 1.0;
+        keyboard_layout.custom_labels = {
+          "English (US)" = "PT";
+        };
       };
 
       wallpaper = {
