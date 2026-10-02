@@ -9,6 +9,7 @@ _: ''
   bindsym Alt+t exec $ipc panel-toggle launcher '/tr '
   bindsym Alt+v exec $ipc panel-toggle noctalia/mpvpaper:picker
   bindsym Alt+w exec $ipc panel-toggle noctalia/wallhaven:browser
+  bindsym $mod+Alt+b exec $ipc panel-toggle launcher '/bw '
   bindsym Alt+Print exec $ipc plugin noctalia/screen_recorder:service all toggle
   bindsym $mod+Alt+Print exec $ipc panel-toggle oldirtty/color_picker:panel
   bindsym $mod+Ctrl+Alt+Print exec $ipc plugin noctalia/screen_recorder:service all replay-save

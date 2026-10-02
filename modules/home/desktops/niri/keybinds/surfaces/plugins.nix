@@ -9,6 +9,7 @@ _: ''
   Alt+T { spawn-sh "noctalia msg panel-toggle launcher '/tr '"; }
   Alt+V { spawn-sh "noctalia msg panel-toggle noctalia/mpvpaper:picker"; }
   Alt+W { spawn-sh "noctalia msg panel-toggle noctalia/wallhaven:browser"; }
+  Mod+Alt+B { spawn-sh "noctalia msg panel-toggle launcher '/bw '"; }
   Alt+Print { spawn-sh "noctalia msg plugin noctalia/screen_recorder:service all toggle"; }
   Mod+Alt+Print { spawn-sh "noctalia msg panel-toggle oldirtty/color_picker:panel"; }
   Mod+Ctrl+Alt+Print { spawn-sh "noctalia msg plugin noctalia/screen_recorder:service all replay-save"; }
