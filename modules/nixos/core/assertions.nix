@@ -136,6 +136,11 @@ in {
     }
 
     {
+      assertion = !cfg.programs.optionals.packaging.gearlever || cfg.programs.optionals.services.appimage;
+      message = "hamra.programs.optionals.packaging.gearlever requer hamra.programs.optionals.services.appimage = true.";
+    }
+
+    {
       assertion =
         (cfg.mise.tools == {} && cfg.mise.env == {} && cfg.mise.settings == {})
         || cfg.programs.core.cli.mise;

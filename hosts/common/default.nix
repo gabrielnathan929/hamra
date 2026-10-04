@@ -65,6 +65,7 @@ in {
           postman = true;
           pycharm = true;
           remmina = true;
+          upscayl = true;
           keepassxc = false;
           vesktop = false;
           virt-manager = true;
@@ -124,6 +125,7 @@ in {
 
         packaging = {
           flatpak = true;
+          gearlever = true;
           gnome-software = true;
         };
       };
