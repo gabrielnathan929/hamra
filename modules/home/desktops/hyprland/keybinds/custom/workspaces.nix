@@ -1,6 +1,6 @@
 {pkgs, ...}: let
-  next = import ../scripts/workspace-next.nix {};
-  prev = import ../scripts/workspace-prev.nix {};
+  next = import ../scripts/workspace-next.nix {inherit pkgs;};
+  prev = import ../scripts/workspace-prev.nix {inherit pkgs;};
   layoutToggle = import ../scripts/layout-toggle.nix {inherit pkgs;};
 in ''
   hl.bind("SUPER+TAB", hl.dsp.exec_cmd([[
