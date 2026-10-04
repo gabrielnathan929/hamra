@@ -2,9 +2,9 @@ _: ''
   Mod+Q                   { close-window; }
   Mod+F                   { toggle-window-floating; }
   Mod+O                   { toggle-window-floating; }
-  Mod+J                   { maximize-column; }
+  Mod+J                   { consume-or-expel-column-left; }
   Mod+Shift+F             { fullscreen-window; }
-  Alt+F                   { fullscreen-window; }
+  Alt+F                   { maximize-column; }
   Mod+G                   { toggle-column-tabbed-display; }
 
   Mod+Ctrl+Left           { set-column-width "-10%";  }

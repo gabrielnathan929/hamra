@@ -49,7 +49,7 @@
   }
   {
     key = "SUPER + J";
-    action = "Toggle split layout";
+    action = "Toggle split orientation (stacked / side by side)";
   }
   {
     key = "SUPER + P";

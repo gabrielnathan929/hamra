@@ -49,7 +49,7 @@
   }
   {
     key = "SUPER + J";
-    action = "Maximize column";
+    action = "Stack window with column to the left (toggle)";
   }
   {
     key = "SUPER + SHIFT + F";
@@ -57,7 +57,7 @@
   }
   {
     key = "ALT + F";
-    action = "Full screen";
+    action = "Full width (maximize column)";
   }
   {
     key = "SUPER + G";
