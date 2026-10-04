@@ -1,5 +1,5 @@
 {pkgs, ...}: let
-  fullscreen = import ../scripts/fullscreen.nix {inherit pkgs;};
+  splitToggle = import ../scripts/split-toggle.nix {inherit pkgs;};
 in ''
   hl.bind(
     "SUPER+Q",
@@ -7,7 +7,7 @@ in ''
   )
   hl.bind(
     "SUPER+J",
-    hl.dsp.layout("togglesplit")
+    hl.dsp.exec_cmd("${splitToggle}")
   )
   hl.bind(
     "SUPER+P",
@@ -23,11 +23,11 @@ in ''
   )
   hl.bind(
     "SUPER+SHIFT+F",
-    hl.dsp.exec_cmd("${fullscreen} fullscreen")
+    hl.dsp.window.fullscreen({ mode = "fullscreen" })
   )
   hl.bind(
     "ALT+F",
-    hl.dsp.exec_cmd("${fullscreen} maximized")
+    hl.dsp.window.fullscreen({ mode = "maximized" })
   )
 
   local resizeSteps = {
