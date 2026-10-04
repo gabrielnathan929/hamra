@@ -403,4 +403,12 @@
     key = "SUPER + K";
     action = "Keybinds panel";
   }
+  {
+    key = "SUPER + CTRL + K";
+    action = "Herdr keybinds menu";
+  }
+  {
+    key = "SUPER + ALT + K";
+    action = "Tmux keybinds menu";
+  }
 ]
