@@ -1,0 +1,21 @@
+keys:
+  # Chave de edição (máquina onde você roda `sops secrets/...`)
+  - &user age1sq570spnk7jm72zzyqa9h264pxulx0xqu8m2hj0ka3u27ca3uycsk3xfhu
+  # Chaves de decriptação por host (derivadas da chave SSH de cada máquina).
+  # Para obter a chave de um host, execute nele (uma vez):
+  #   cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age
+  # Depois descomente a linha correspondente e cole o resultado no lugar do `age1...`.
+  - &host-desktop age1uw4uek9vywsw0x23hrx65pcdgqp4tmaf8pcfal54k2zct79azecq4s5qm5
+  # - &host-vm age1...
+  # - &host-gnome age1...
+  # - &host-plasma age1...
+
+creation_rules:
+  - path_regex: secrets/.+\.yaml$
+    key_groups:
+      - age:
+          - *user
+          - *host-desktop
+          # - *host-vm
+          # - *host-gnome
+          # - *host-plasma
