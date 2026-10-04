@@ -40,7 +40,6 @@ in {
       optionals = {
         gui = {
           android-studio = true;
-          appimagepool = true;
           bitwarden = true;
           boxes = false;
           brmodelo = true;
@@ -66,6 +65,7 @@ in {
           postman = true;
           pycharm = true;
           remmina = true;
+          upscayl = true;
           keepassxc = false;
           vesktop = false;
           virt-manager = true;
@@ -125,6 +125,7 @@ in {
 
         packaging = {
           flatpak = true;
+          gearlever = true;
           gnome-software = true;
         };
       };

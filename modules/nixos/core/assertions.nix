@@ -136,8 +136,8 @@ in {
     }
 
     {
-      assertion = !cfg.programs.optionals.gui.appimagepool || cfg.programs.optionals.packaging.flatpak;
-      message = "hamra.programs.optionals.gui.appimagepool requer hamra.programs.optionals.packaging.flatpak = true.";
+      assertion = !cfg.programs.optionals.packaging.gearlever || cfg.programs.optionals.services.appimage;
+      message = "hamra.programs.optionals.packaging.gearlever requer hamra.programs.optionals.services.appimage = true.";
     }
 
     {
