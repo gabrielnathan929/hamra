@@ -143,6 +143,11 @@ vale para toda máquina, ou no host. Pacote avulso sem módulo:
 | `nix develop` | shell com statix, deadnix, sops, age, ssh-to-age |
 | `nix run .#build-<host>` | build sem aplicar (salva em `./result`) |
 | `nix run .#deploy-<host>` | `nix flake check` + `nixos-rebuild switch` |
+| `hamra-keybinds [contexto]` | atalhos do WM ativo, `tmux`, `herdr` ou `all` |
+
+No desktop, `SUPER+K` abre os atalhos do compositor em busca interativa;
+`SUPER+CTRL+K` e `SUPER+ALT+K` trazem os menus do Herdr e do Tmux. Dentro do
+tmux, `Prefix + ?` abre o mesmo painel num popup.
 
 Hosts registrados: `desktop`, `vm`, `gnome`, `plasma`. O CI roda formatação,
 lint (`statix` + `deadnix`), avaliação e build de todos os hosts a cada push.
