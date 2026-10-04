@@ -65,11 +65,11 @@
   }
   {
     key = "ALT + TAB";
-    action = "Cycle windows on workspace";
+    action = "Window switcher (workspace windows)";
   }
   {
     key = "ALT + SHIFT + TAB";
-    action = "Cycle windows on workspace (back)";
+    action = "Window switcher (workspace windows)";
   }
   {
     key = "SUPER + W";

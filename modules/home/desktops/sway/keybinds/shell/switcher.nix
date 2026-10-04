@@ -1,7 +1,5 @@
-{pkgs, ...}: let
-  altTab = import ../scripts/alt-tab.nix {inherit pkgs;};
-in ''
-  bindsym Alt+Tab             exec ${altTab} next
-  bindsym Alt+Shift+Tab       exec ${altTab} prev
-  bindsym $mod+w              exec $ipc window-switcher
+_: ''
+  bindsym Alt+Tab             exec $ipc window-switcher hold
+  bindsym Alt+Shift+Tab       exec $ipc window-switcher hold
+  bindsym $mod+w              exec $ipc window-switcher hold
 ''
