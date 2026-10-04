@@ -136,11 +136,6 @@ in {
     }
 
     {
-      assertion = !cfg.programs.optionals.gui.appimagepool || cfg.programs.optionals.packaging.flatpak;
-      message = "hamra.programs.optionals.gui.appimagepool requer hamra.programs.optionals.packaging.flatpak = true.";
-    }
-
-    {
       assertion =
         (cfg.mise.tools == {} && cfg.mise.env == {} && cfg.mise.settings == {})
         || cfg.programs.core.cli.mise;

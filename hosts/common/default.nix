@@ -40,7 +40,6 @@ in {
       optionals = {
         gui = {
           android-studio = true;
-          appimagepool = true;
           bitwarden = true;
           boxes = false;
           brmodelo = true;
