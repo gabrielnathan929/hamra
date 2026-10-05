@@ -142,6 +142,19 @@ in {
 
     {
       assertion =
+        !cfg.programs.optionals.media."davinci-resolve"
+        || builtins.elem cfg.hardware.gpu [
+          "intel"
+          "amd"
+          "nvidia"
+        ];
+      message =
+        "hamra.programs.optionals.media.davinci-resolve requer GPU real (intel, amd ou nvidia) com OpenCL; "
+        + "virtio não suporta (atual: \"${cfg.hardware.gpu}\"). Desligue o toggle neste host.";
+    }
+
+    {
+      assertion =
         (cfg.mise.tools == {} && cfg.mise.env == {} && cfg.mise.settings == {})
         || cfg.programs.core.cli.mise;
       message = "hamra.mise.{tools,env,settings} requer hamra.programs.core.cli.mise = true.";

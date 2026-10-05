@@ -96,11 +96,13 @@ in {
         };
 
         media = {
+          "davinci-resolve" = false;
           kodi = true;
           obs = true;
           qbittorrent = true;
           spicetify = true;
           spotify = true;
+          spotube = true;
         };
 
         services = {
