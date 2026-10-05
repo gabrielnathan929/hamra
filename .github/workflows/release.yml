@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
+      - run: |
+          last=$(git tag --list 'v*' --sort=-v:refname | head -1)
+
+          if [ -z "$last" ]; then
+            next="v0.1.0"
+          else
+            major=$(cut -d. -f1 <<< "$last")
+            major=${major#v}
+            minor=$(cut -d. -f2 <<< "$last")
+            next="v$major.$((minor + 1)).0"
+          fi
+
+          gh release create "$next" --generate-notes --target "$GITHUB_SHA" --title "$next"
+        env:
+          GH_TOKEN: ${{ github.token }}

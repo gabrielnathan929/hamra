@@ -68,6 +68,9 @@
           inputs.sops-nix.nixosModules.sops
           {nixpkgs.overlays = [inputs.helium.overlays.default];}
           {
+            system.configurationRevision = self.rev or self.dirtyRev or null;
+          }
+          {
             home-manager.sharedModules = [
               inputs.sops-nix.homeManagerModules.sops
             ];
