@@ -49,7 +49,7 @@
   }
   {
     key = "SUPER + J";
-    action = "Toggle split layout";
+    action = "Toggle split orientation (stacked / side by side)";
   }
   {
     key = "SUPER + P";
@@ -73,11 +73,11 @@
   }
   {
     key = "ALT + TAB";
-    action = "Cycle windows on workspace";
+    action = "Window switcher (workspace windows)";
   }
   {
     key = "ALT + SHIFT + TAB";
-    action = "Cycle windows on workspace (back)";
+    action = "Window switcher (workspace windows)";
   }
   {
     key = "SUPER + Left/Right/Up/Down";
@@ -462,5 +462,13 @@
   {
     key = "SUPER + K";
     action = "Keybinds panel";
+  }
+  {
+    key = "SUPER + CTRL + K";
+    action = "Herdr keybinds menu";
+  }
+  {
+    key = "SUPER + ALT + K";
+    action = "Tmux keybinds menu";
   }
 ]

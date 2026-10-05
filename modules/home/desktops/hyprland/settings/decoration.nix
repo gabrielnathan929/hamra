@@ -18,5 +18,17 @@ _: ''
         vibrancy = 0.1696,
       },
     },
+
+    group = {
+      groupbar = {
+        font_size           = 10,
+        height              = 18,
+        render_titles       = true,
+        font_weight_active   = "bold",
+        font_weight_inactive = "normal",
+        text_color           = 0xffffffff,
+        text_color_inactive  = 0xff888888,
+      },
+    },
   })
 ''

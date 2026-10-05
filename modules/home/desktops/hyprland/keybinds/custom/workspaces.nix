@@ -1,22 +1,86 @@
-{pkgs, ...}: let
-  next = import ../scripts/workspace-next.nix {};
-  prev = import ../scripts/workspace-prev.nix {};
-  layoutToggle = import ../scripts/layout-toggle.nix {inherit pkgs;};
-in ''
-  hl.bind("SUPER+TAB", hl.dsp.exec_cmd([[
-    ${next}
-  ]]))
-  hl.bind("SUPER+SHIFT+TAB", hl.dsp.exec_cmd([[
-    ${prev}
-  ]]))
+_: ''
+  local function leave_special()
+    if hl.get_active_special_workspace() ~= nil then
+      hl.dispatch(hl.dsp.workspace.toggle_special("scratchpad"))
+    end
+  end
+
+  local function workspace_cycle(direction)
+    leave_special()
+
+    local active = hl.get_active_workspace()
+    local current = active and active.id or nil
+    local candidates = {}
+
+    for _, ws in ipairs(hl.get_workspaces()) do
+      if ws.id ~= nil and not ws.special and ws.windows > 0 and ws.id ~= current then
+        candidates[#candidates + 1] = ws.id
+      end
+    end
+
+    if #candidates == 0 then
+      return
+    end
+
+    table.sort(candidates)
+
+    local pick = nil
+
+    if direction == "prev" then
+      for index = #candidates, 1, -1 do
+        if current == nil or candidates[index] < current then
+          pick = candidates[index]
+          break
+        end
+      end
+      if pick == nil then
+        pick = candidates[#candidates]
+      end
+    else
+      for _, id in ipairs(candidates) do
+        if current == nil or id > current then
+          pick = id
+          break
+        end
+      end
+      if pick == nil then
+        pick = candidates[1]
+      end
+    end
+
+    hl.dispatch(hl.dsp.focus({ workspace = tostring(pick) }))
+  end
+
+  local function layout_toggle()
+    local active = hl.get_active_workspace()
+    if active == nil or active.id == nil then
+      return
+    end
+
+    local new = "dwindle"
+    if active.tiled_layout == "dwindle" then
+      new = "scrolling"
+    end
+
+    local state_dir = (os.getenv("XDG_STATE_HOME") or os.getenv("HOME") .. "/.local/state") .. "/hamra/workspace-layouts"
+    os.execute("mkdir -p '" .. state_dir .. "'")
+
+    local file = io.open(state_dir .. "/" .. tostring(active.id), "w")
+    if file then
+      file:write(new)
+      file:close()
+    end
+
+    hl.workspace_rule({ workspace = tostring(active.id), layout = new })
+  end
+
+  hl.bind("SUPER+TAB", function() workspace_cycle("next") end)
+  hl.bind("SUPER+SHIFT+TAB", function() workspace_cycle("prev") end)
   hl.bind(
     "SUPER+CTRL+TAB",
     hl.dsp.focus({ workspace = "previous" })
   )
-  hl.bind(
-    "SUPER+L",
-    hl.dsp.exec_cmd("${layoutToggle}")
-  )
+  hl.bind("SUPER+L", layout_toggle)
 
   for workspace = 1, 10 do
     local key = "code:" .. tostring(workspace + 9)

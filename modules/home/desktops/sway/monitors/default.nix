@@ -15,11 +15,8 @@
     ]
   );
 in ''
-  # Monitores
   ${allOutputs}
 
-  # Workspaces persistentes
   ${workspacesPart}
 
-  # Custom
 ''

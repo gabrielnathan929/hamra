@@ -1,4 +1,4 @@
 _: ''
-  Alt+Tab                 { focus-window-down-or-column-right; }
-  Alt+Shift+Tab           { focus-window-up-or-column-left; }
+  Alt+Tab                 { spawn-sh "noctalia msg window-switcher hold"; }
+  Alt+Shift+Tab           { spawn-sh "noctalia msg window-switcher hold"; }
 ''

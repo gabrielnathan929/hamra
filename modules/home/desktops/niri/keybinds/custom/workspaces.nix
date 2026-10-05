@@ -1,9 +1,8 @@
 {pkgs, ...}: let
-  next = import ../scripts/workspace-next.nix {inherit pkgs;};
-  prev = import ../scripts/workspace-prev.nix {inherit pkgs;};
+  cycle = import ../scripts/workspace-cycle.nix {inherit pkgs;};
 in ''
-  Mod+Tab                 { spawn-sh "${next}"; }
-  Mod+Shift+Tab           { spawn-sh "${prev}"; }
+  Mod+Tab                 { spawn-sh "${cycle} next"; }
+  Mod+Shift+Tab           { spawn-sh "${cycle} prev"; }
 
   Mod+1                   { focus-workspace 1; }
   Mod+2                   { focus-workspace 2; }

@@ -136,8 +136,21 @@ in {
     }
 
     {
-      assertion = !cfg.programs.optionals.gui.appimagepool || cfg.programs.optionals.packaging.flatpak;
-      message = "hamra.programs.optionals.gui.appimagepool requer hamra.programs.optionals.packaging.flatpak = true.";
+      assertion = !cfg.programs.optionals.packaging.gearlever || cfg.programs.optionals.services.appimage;
+      message = "hamra.programs.optionals.packaging.gearlever requer hamra.programs.optionals.services.appimage = true.";
+    }
+
+    {
+      assertion =
+        !cfg.programs.optionals.media."davinci-resolve"
+        || builtins.elem cfg.hardware.gpu [
+          "intel"
+          "amd"
+          "nvidia"
+        ];
+      message =
+        "hamra.programs.optionals.media.davinci-resolve requer GPU real (intel, amd ou nvidia) com OpenCL; "
+        + "virtio não suporta (atual: \"${cfg.hardware.gpu}\"). Desligue o toggle neste host.";
     }
 
     {

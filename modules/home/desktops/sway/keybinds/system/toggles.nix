@@ -1,5 +1,4 @@
 _: ''
-  # Toggles
   bindsym XF86WLAN                exec $ipc wifi-toggle
   bindsym XF86RFKill              exec $ipc wifi-toggle
   bindsym $mod+Ctrl+w          exec $ipc wifi-toggle

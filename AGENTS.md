@@ -36,7 +36,7 @@ A categoria descreve **como o app se apresenta**, não o domínio de uso:
 | `cli/` | Linha de comando / toolchain | git, ripgrep, fd, jq, gcc, python3, rclone |
 | `services/` | Daemon / integração do sistema | samba, docker, appimage, wayvnc, xdg, gtk |
 | `media/` | Player e criação de mídia | mpv, spotify, spicetify, obs |
-| `games/` | Jogos e launchers | steam, pcsx2, heroic, moonlight-qt |
+| `games/` | Jogos e launchers | steam, pcsx2, heroic, lutris |
 
 Mantidas por especificidade: `core/noctalia/` (integração com o shell Noctalia) e
 `core/scripts/` (scripts próprios do repo). Não crie subcategoria para 1 arquivo;

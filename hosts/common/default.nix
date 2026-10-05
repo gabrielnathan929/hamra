@@ -32,15 +32,12 @@ in {
 
     mobile.android = false;
 
-    mise.tools.herdr = "latest";
-
     programs = {
       core.gui.thunar = true;
 
       optionals = {
         gui = {
           android-studio = true;
-          appimagepool = true;
           bitwarden = true;
           boxes = false;
           brmodelo = true;
@@ -66,6 +63,7 @@ in {
           postman = true;
           pycharm = true;
           remmina = true;
+          upscayl = true;
           keepassxc = false;
           vesktop = false;
           virt-manager = true;
@@ -98,6 +96,7 @@ in {
         };
 
         media = {
+          "davinci-resolve" = false;
           kodi = true;
           obs = true;
           qbittorrent = true;
@@ -118,13 +117,13 @@ in {
           heroic = true;
           hydralauncher = true;
           lutris = true;
-          moonlight-qt = false;
           pcsx2 = true;
           steam = true;
         };
 
         packaging = {
           flatpak = true;
+          gearlever = true;
           gnome-software = true;
         };
       };

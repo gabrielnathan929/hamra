@@ -20,7 +20,6 @@ in ''
   blur_radius 3
   blur_passes 1
 
-  # Cursor
   seat "*" {
     xcursor_theme Bibata-Modern-Classic 24
   }

@@ -11,7 +11,6 @@
   shellPart = import ./shell {};
   mediaPart = import ./media {};
 in ''
-  // Noctalia v5
   binds {
     ${customPart}
 

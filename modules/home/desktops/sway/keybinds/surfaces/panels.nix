@@ -1,5 +1,4 @@
 _: ''
-  # Panels
   bindsym $mod+comma          exec $ipc settings-toggle
   bindsym $mod+d              exec $ipc panel-toggle launcher
   bindsym $mod+Escape         exec $ipc panel-toggle session

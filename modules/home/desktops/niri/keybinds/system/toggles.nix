@@ -1,5 +1,4 @@
 _: ''
-  // Toggles
   XF86WLAN                { spawn-sh "noctalia msg wifi-toggle"; }
   XF86RFKill              { spawn-sh "noctalia msg wifi-toggle"; }
   Mod+Ctrl+W              { spawn-sh "noctalia msg wifi-toggle"; }

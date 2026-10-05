@@ -49,7 +49,7 @@
   }
   {
     key = "SUPER + J";
-    action = "Maximize column";
+    action = "Stack window with column to the left (toggle)";
   }
   {
     key = "SUPER + SHIFT + F";
@@ -57,7 +57,7 @@
   }
   {
     key = "ALT + F";
-    action = "Full screen";
+    action = "Full width (maximize column)";
   }
   {
     key = "SUPER + G";
@@ -65,11 +65,11 @@
   }
   {
     key = "ALT + TAB";
-    action = "Cycle windows on workspace";
+    action = "Window switcher (workspace windows)";
   }
   {
     key = "ALT + SHIFT + TAB";
-    action = "Cycle windows on workspace (back)";
+    action = "Window switcher (workspace windows)";
   }
   {
     key = "SUPER + W";
@@ -414,5 +414,13 @@
   {
     key = "SUPER + K";
     action = "Keybinds panel";
+  }
+  {
+    key = "SUPER + CTRL + K";
+    action = "Herdr keybinds menu";
+  }
+  {
+    key = "SUPER + ALT + K";
+    action = "Tmux keybinds menu";
   }
 ]

@@ -1,7 +1,10 @@
-{pkgs, ...}: let
-  altTab = import ../scripts/alt-tab.nix {inherit pkgs;};
-in ''
-  hl.bind("ALT+TAB", hl.dsp.exec_cmd("${altTab} next"))
-  hl.bind("ALT+SHIFT+TAB", hl.dsp.exec_cmd("${altTab} prev"))
-  hl.bind("SUPER+W", hl.dsp.exec_cmd("noctalia msg window-switcher"))
+_: ''
+  local function window_switcher()
+    leave_special()
+    hl.exec_cmd("noctalia msg window-switcher hold")
+  end
+
+  hl.bind("ALT+TAB", window_switcher)
+  hl.bind("ALT+SHIFT+TAB", window_switcher)
+  hl.bind("SUPER+W", window_switcher)
 ''

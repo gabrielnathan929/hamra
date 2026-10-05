@@ -1,14 +1,25 @@
-{pkgs, ...}: let
-  fullscreen = import ../scripts/fullscreen.nix {inherit pkgs;};
-in ''
+_: ''
+  local function split_toggle()
+    local active = hl.get_active_workspace()
+    if active == nil then
+      return
+    end
+
+    if active.tiled_layout == "scrolling" then
+      local result = hl.dispatch(hl.dsp.layout("consume_or_expel next"))
+      if type(result) ~= "table" or result.ok ~= true then
+        hl.dispatch(hl.dsp.layout("consume_or_expel prev"))
+      end
+    else
+      hl.dispatch(hl.dsp.layout("togglesplit"))
+    end
+  end
+
   hl.bind(
     "SUPER+Q",
     hl.dsp.window.close()
   )
-  hl.bind(
-    "SUPER+J",
-    hl.dsp.layout("togglesplit")
-  )
+  hl.bind("SUPER+J", split_toggle)
   hl.bind(
     "SUPER+P",
     hl.dsp.window.pseudo()
@@ -23,11 +34,11 @@ in ''
   )
   hl.bind(
     "SUPER+SHIFT+F",
-    hl.dsp.exec_cmd("${fullscreen} fullscreen")
+    hl.dsp.window.fullscreen({ mode = "fullscreen" })
   )
   hl.bind(
     "ALT+F",
-    hl.dsp.exec_cmd("${fullscreen} maximized")
+    hl.dsp.window.fullscreen({ mode = "maximized" })
   )
 
   local resizeSteps = {
