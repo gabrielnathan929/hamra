@@ -46,7 +46,7 @@
     };
   };
 
-  hosts = ["desktop" "vm" "gnome" "plasma"];
+  hosts = builtins.attrNames self.nixosConfigurations;
 
   mkApps = fn: prefix:
     builtins.listToAttrs (map (h: {
