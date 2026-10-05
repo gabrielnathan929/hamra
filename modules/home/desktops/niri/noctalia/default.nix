@@ -1,5 +1,4 @@
 _: ''
-  // Noctalia v5
   debug {
     honor-xdg-activation-with-invalid-serial
   }

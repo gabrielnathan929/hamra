@@ -1,5 +1,4 @@
 _: ''
-  // Session
   Alt+L                   { spawn-sh "noctalia msg session lock"; }
   Mod+Shift+L             { spawn-sh "noctalia msg session lock-and-suspend"; }
   Mod+Ctrl+Alt+L          { spawn-sh "noctalia msg session logout"; }

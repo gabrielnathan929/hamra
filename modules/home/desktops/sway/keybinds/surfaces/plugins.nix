@@ -1,5 +1,4 @@
 _: ''
-  # Plugins
   bindsym Alt+space exec $ipc panel-toggle gabrielnathan929/hamra-control:main
   bindsym Alt+b exec $ipc plugin noctalia/bongocat:cat focused toggle
   bindsym Alt+e exec $ipc panel-toggle launcher '/emo '

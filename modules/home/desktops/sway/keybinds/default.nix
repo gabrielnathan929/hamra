@@ -11,7 +11,6 @@
   shellPart = import ./shell {inherit pkgs;};
   mediaPart = import ./media {};
 in ''
-  # Noctalia v5
   set $ipc noctalia msg
 
   ${customPart}

@@ -15,7 +15,6 @@ _: ''
     }
   }
 
-  // Niri blur (26.04+)
   window-rule {
     background-effect {
       blur true
