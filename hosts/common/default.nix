@@ -32,8 +32,6 @@ in {
 
     mobile.android = false;
 
-    mise.tools.herdr = "latest";
-
     programs = {
       core.gui.thunar = true;
 

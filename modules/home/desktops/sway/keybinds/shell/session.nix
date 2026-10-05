@@ -1,5 +1,4 @@
 _: ''
-  # Session
   bindsym Alt+l               exec $ipc session lock
   bindsym $mod+Shift+l        exec $ipc session lock-and-suspend
   bindsym $mod+Ctrl+Alt+l     exec $ipc session logout

@@ -18,8 +18,6 @@
     ]
   );
 in ''
-      // Monitores
   ${allOutputs}
 
-      // Custom
 ''

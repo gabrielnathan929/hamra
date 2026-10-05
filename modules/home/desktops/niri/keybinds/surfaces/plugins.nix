@@ -1,5 +1,4 @@
 _: ''
-  // Plugins
   Alt+Space { spawn-sh "noctalia msg panel-toggle gabrielnathan929/hamra-control:main"; }
   Alt+B { spawn-sh "noctalia msg plugin noctalia/bongocat:cat focused toggle"; }
   Alt+E { spawn-sh "noctalia msg panel-toggle launcher '/emo '"; }
