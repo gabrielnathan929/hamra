@@ -1,7 +1,10 @@
-{pkgs, ...}: let
-  windowSwitcher = import ../scripts/window-switcher.nix {inherit pkgs;};
-in ''
-  hl.bind("ALT+TAB", hl.dsp.exec_cmd("${windowSwitcher}"))
-  hl.bind("ALT+SHIFT+TAB", hl.dsp.exec_cmd("${windowSwitcher}"))
-  hl.bind("SUPER+W", hl.dsp.exec_cmd("${windowSwitcher}"))
+_: ''
+  local function window_switcher()
+    leave_special()
+    hl.exec_cmd("noctalia msg window-switcher hold")
+  end
+
+  hl.bind("ALT+TAB", window_switcher)
+  hl.bind("ALT+SHIFT+TAB", window_switcher)
+  hl.bind("SUPER+W", window_switcher)
 ''

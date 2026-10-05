@@ -1,15 +1,10 @@
 {pkgs, ...}: let
-  next = import ../scripts/workspace-next.nix {inherit pkgs;};
-  prev = import ../scripts/workspace-prev.nix {inherit pkgs;};
+  cycle = import ../scripts/workspace-cycle.nix {inherit pkgs;};
 in ''
-  # Active workspace navigation (skip empty)
-  bindsym $mod+Tab           exec ${next}
-  bindsym $mod+Shift+Tab     exec ${prev}
+  bindsym $mod+Tab           exec ${cycle} next
+  bindsym $mod+Shift+Tab     exec ${cycle} prev
   bindsym $mod+Ctrl+Tab      workspace back_and_forth
 
-  # Window cycle (ALT+TAB assigned to window-switcher via shell.nix)
-
-  # Workspaces 1-10
   bindsym $mod+1             workspace number 1
   bindsym $mod+2             workspace number 2
   bindsym $mod+3             workspace number 3
@@ -43,12 +38,6 @@ in ''
   bindsym $mod+Shift+Alt+9   move container to workspace number 9
   bindsym $mod+Shift+Alt+0   move container to workspace number 10
 
-  # Scratchpad (Sway has native scratchpad support)
   bindsym $mod+S            scratchpad show
   bindsym $mod+Alt+S        move scratchpad
-
-  # NOTE: Sway does not have Hyprland-style groups. All group-specific Hyprland
-  # binds not ported (SUPER+G toggle, SUPER+ALT+G out_of_group,
-  # SUPER+ALT+TAB group nav, SUPER+ALT+mouse group scroll, SUPER+ALT+1-5
-  # group index, SUPER+ALT+ARROW into_group direction, etc.)
 ''
