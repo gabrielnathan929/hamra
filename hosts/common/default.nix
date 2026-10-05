@@ -102,7 +102,6 @@ in {
           qbittorrent = true;
           spicetify = true;
           spotify = true;
-          spotube = true;
         };
 
         services = {
@@ -118,7 +117,6 @@ in {
           heroic = true;
           hydralauncher = true;
           lutris = true;
-          moonlight-qt = false;
           pcsx2 = true;
           steam = true;
         };
