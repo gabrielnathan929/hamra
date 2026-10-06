@@ -125,6 +125,7 @@ in {
           flatpak = true;
           gearlever = true;
           gnome-software = true;
+          nix-software-center = true;
         };
       };
     };
