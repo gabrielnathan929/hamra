@@ -61,6 +61,8 @@ jobs:
     needs: [check, discover]
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    env:
+      CACHIX_TOKEN: ${{ secrets.CACHIX_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
@@ -69,3 +71,9 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
       - run: nix build .#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel
+      - name: Push closures to cachix
+        if: env.CACHIX_TOKEN != ''
+        uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866
+        with:
+          name: hamra
+          authToken: ${{ env.CACHIX_TOKEN }}
