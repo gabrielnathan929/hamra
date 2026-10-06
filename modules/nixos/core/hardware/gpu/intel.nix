@@ -5,6 +5,8 @@
   ...
 }:
 lib.mkIf (config.hamra.hardware.gpu == "intel") {
+  services.thermald.enable = lib.mkDefault true;
+
   hardware.graphics = {
     enable32Bit = true;
     extraPackages = with pkgs; [
