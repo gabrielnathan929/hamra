@@ -6,7 +6,6 @@
   displays,
   env,
   wayvnc,
-  wallpaperPath,
   ...
 }: let
   monitorsPart = import ./monitors {inherit displays lib;};
