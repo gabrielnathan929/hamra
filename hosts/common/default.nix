@@ -115,9 +115,13 @@ in {
         };
 
         games = {
+          gamemode = true;
+          gamepad = true;
+          gamescope = true;
           heroic = true;
           hydralauncher = true;
           lutris = true;
+          mangohud = true;
           pcsx2 = true;
           steam = true;
         };
