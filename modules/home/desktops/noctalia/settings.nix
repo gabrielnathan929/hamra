@@ -2,9 +2,7 @@
   config,
   wallpaperPath,
   ...
-}: let
-  homeDir = config.home.homeDirectory;
-in {
+}: {
   home.file = {
     "noctalia/captures/.keep".text = "";
     "noctalia/records/.keep".text = "";

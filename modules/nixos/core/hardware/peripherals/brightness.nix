@@ -11,7 +11,6 @@ in
       brightnessctl
     ];
 
-    # Permite aos usuários do grupo video controlarem o brilho
     services.udev.extraRules = ''
       ACTION=="add", SUBSYSTEM=="backlight", RUN+="${pkgs.coreutils}/bin/chmod a+w /sys/class/backlight/%k/brightness"
     '';
