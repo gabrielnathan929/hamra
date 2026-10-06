@@ -90,6 +90,7 @@ in {
           go = true;
           jdk = true;
           nodejs = true;
+          powertop = true;
           python3 = true;
           rclone = true;
           ripgrep = true;
