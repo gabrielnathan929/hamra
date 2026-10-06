@@ -18,5 +18,6 @@ _: {
     desktop.default = "sway";
 
     programs.optionals.media."davinci-resolve" = false;
+    programs.optionals.services.wayvnc = false;
   };
 }

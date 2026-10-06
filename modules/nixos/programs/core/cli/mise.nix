@@ -10,6 +10,8 @@
   settings = config.hamra.mise.settings;
   inherit (lib) mkOption mkIf types;
   userName = config.hamra.users.userName;
+  userHome = config.users.users.${userName}.home;
+  toolsHash = builtins.hashString "sha256" (builtins.toJSON tools);
 
   miseValue = types.oneOf [
     types.str
@@ -39,7 +41,7 @@ in {
           python = ["3.12" "3.13"];
           "github:herdrdev/herdr" = "latest";
         };
-        description = "Declare mise tools globally (~/.config/mise/config.toml).";
+        description = "Declare mise tools globally (~/.config/mise/config.toml); hamra-mise-install installs them on activation.";
       };
 
       env = mkOption {
@@ -73,5 +75,22 @@ in {
       // lib.optionalAttrs (globalConfig != {}) {
         inherit globalConfig;
       };
+
+    systemd.services.hamra-mise-install = mkIf (tools != {}) {
+      description = "Install declared mise tools (hamra.mise.tools)";
+      wantedBy = ["multi-user.target"];
+      wants = ["network-online.target"];
+      after = ["network-online.target"];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        User = userName;
+        Environment = [
+          "HOME=${userHome}"
+          "HAMRA_MISE_TOOLS_HASH=${toolsHash}"
+        ];
+        ExecStart = "${pkgs.mise}/bin/mise install";
+      };
+    };
   };
 }

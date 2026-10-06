@@ -16,5 +16,6 @@ _: {
     };
 
     desktop.default = "gnome";
+    programs.optionals.services.wayvnc = false;
   };
 }

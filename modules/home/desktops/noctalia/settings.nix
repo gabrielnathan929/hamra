@@ -21,9 +21,6 @@
 
       shell = {
         ui_scale = 1.0;
-        keyboard_layout.custom_labels = {
-          "English (US)" = "PT";
-        };
         window_switcher.current_workspace_only = true;
       };
 

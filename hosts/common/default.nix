@@ -24,9 +24,10 @@ in {
         gh = "latest";
         go = "latest";
         java = "latest";
+        opencode = "latest";
         "github:herdrdev/herdr" = "latest";
+        "github:google-antigravity/antigravity-cli" = "latest";
       };
-      env._.path = ["~/.opencode/bin"];
       settings.github_attestations = false;
     };
 
@@ -110,7 +111,7 @@ in {
           docker = true;
           "docker-compose" = true;
           samba = true;
-          wayvnc = false;
+          wayvnc = true;
           tigervnc = false;
         };
 
