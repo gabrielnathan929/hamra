@@ -16,5 +16,7 @@ _: {
     };
 
     desktop.default = "sway";
+
+    programs.optionals.media."davinci-resolve" = false;
   };
 }

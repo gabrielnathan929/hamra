@@ -97,7 +97,7 @@ in {
         };
 
         media = {
-          "davinci-resolve" = false;
+          "davinci-resolve" = true;
           kodi = true;
           obs = true;
           qbittorrent = true;
