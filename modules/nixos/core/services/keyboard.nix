@@ -8,12 +8,12 @@ in {
   options.hamra.keyboard = {
     keymap = lib.mkOption {
       type = lib.types.str;
-      default = "us";
+      default = "br";
       description = "Layout do teclado (ex: us, br).";
     };
     xkbVariant = lib.mkOption {
       type = lib.types.str;
-      default = "intl";
+      default = "abnt2";
       description = "Variante do layout (ex: intl, dvorak, abnt2).";
     };
   };

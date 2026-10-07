@@ -110,8 +110,15 @@ envolvidos em `lib.mkDefault` para qualquer host poder sobrescrever sem conflito
 
 - Toggle novo em uso em todo host → adicione `= true` no common.
 - Host não quer algo do common → declare `= false` no `configuration.nix` dele
-  (ex.: `wayvnc = false` em gnome/plasma, pois a assertion exige Hyprland/Sway).
+  (ex.: um host com `desktop.default = "gnome"` precisa de `wayvnc = false`,
+  pois a assertion exige Hyprland/Sway).
 - Host quer algo fora do common → declare `= true` nele.
+- **Papel de host ≠ preferência pessoal:** `samba`, `wayvnc`, `tigervnc` dizem
+  *quem a máquina é* (NAS, VNC server), não *o que você gosta de usar*. Eles
+  ficam `false` no common (ou inexistentes lá) e ligam como delta só no host
+  que desempenha o papel (ex.: `samsung` é o NAS → `services.samba = true`
+  nele). Um host novo criado pelo `setup-nas.sh` NÃO deve virar NAS por
+  acidente ao importar o common.
 
 ### Toggle module (NixOS)
 
