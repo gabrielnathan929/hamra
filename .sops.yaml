@@ -6,6 +6,7 @@ keys:
   #   cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age
   # Depois descomente a linha correspondente e cole o resultado no lugar do `age1...`.
   - &host-samsung age1uw4uek9vywsw0x23hrx65pcdgqp4tmaf8pcfal54k2zct79azecq4s5qm5
+  - &user2 age1r323pqtxklkhn2pm9npneltwf97s0l20nhzmpla5znq2jj5rraksz0uwxc
   # - &host-acer age1...
   # - &host-vm age1...
 
@@ -15,5 +16,6 @@ creation_rules:
       - age:
           - *user
           - *host-samsung
+          - *user2
           # - *host-acer
           # - *host-vm
