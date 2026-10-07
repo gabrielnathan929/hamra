@@ -8,14 +8,13 @@ _: {
   ];
 
   hamra = {
-    networking.hostname = "gnome";
+    networking.hostname = "acer";
 
     hardware = {
       gpu = "intel";
       firmware = "uefi";
     };
 
-    desktop.default = "gnome";
-    programs.optionals.services.wayvnc = false;
+    desktop.default = "hyprland";
   };
 }

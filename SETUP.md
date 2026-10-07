@@ -33,7 +33,7 @@ Se o git não estiver instalado: `nix-shell -p git` antes do clone.
 Copie o host mais parecido e troque o hardware-configuration:
 
 ```bash
-cp -r hosts/desktop hosts/meu-pc
+cp -r hosts/samsung hosts/meu-pc
 cp /tmp/hardware-configuration.nix hosts/meu-pc/
 ```
 

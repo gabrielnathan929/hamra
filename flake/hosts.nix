@@ -1,6 +1,5 @@
 {mkHost}: {
-  desktop = mkHost "desktop";
+  acer = mkHost "acer";
+  samsung = mkHost "samsung";
   vm = mkHost "vm";
-  gnome = mkHost "gnome";
-  plasma = mkHost "plasma";
 }

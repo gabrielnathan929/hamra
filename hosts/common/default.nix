@@ -25,10 +25,19 @@ in {
         go = "latest";
         java = "latest";
         opencode = "latest";
+        python = "latest";
+
         "github:herdrdev/herdr" = "latest";
         "github:google-antigravity/antigravity-cli" = "latest";
       };
-      settings.github_attestations = false;
+
+      settings = {
+        github_attestations = false;
+
+        python = {
+          compile = false;
+        };
+      };
     };
 
     mobile.android = false;
@@ -110,7 +119,7 @@ in {
           appimage = true;
           docker = true;
           "docker-compose" = true;
-          samba = true;
+          samba = false;
           wayvnc = true;
           tigervnc = false;
         };

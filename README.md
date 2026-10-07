@@ -12,7 +12,7 @@ distro e não tenta configurar tudo: o que está aqui é o quanto me basta.
 Um host (`hosts/<nome>/configuration.nix`) descreve só a máquina e as
 exceções ao meu perfil comum, que vive em `hosts/common/` envolvido em
 `mkDefault` — qualquer host sobrescreve qualquer valor declarando de volta.
-O `desktop` inteiro é isto:
+O `samsung` inteiro é isto:
 
 ```nix
 _: {
@@ -25,7 +25,7 @@ _: {
   ];
 
   hamra = {
-    networking.hostname = "desktop";
+    networking.hostname = "samsung";
 
     hardware = {
       gpu = "intel";
@@ -149,7 +149,7 @@ No desktop, `SUPER+K` abre os atalhos do compositor em busca interativa;
 `SUPER+CTRL+K` e `SUPER+ALT+K` trazem os menus do Herdr e do Tmux. Dentro do
 tmux, `Prefix + ?` abre o mesmo painel num popup.
 
-Hosts registrados: `desktop`, `vm`, `gnome`, `plasma`. O CI roda formatação,
+Hosts registrados: `samsung`, `acer`, `vm`. O CI roda formatação,
 lint (`statix` + `deadnix`), avaliação e build de todos os hosts a cada push.
 
 ## Leitura
