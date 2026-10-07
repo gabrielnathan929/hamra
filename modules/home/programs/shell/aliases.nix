@@ -33,9 +33,9 @@ in {
     nix-switch = "sudo nixos-rebuild switch";
     nix-search = "nix-search";
 
-    nix-deploy = "nix run .#deploy-desktop";
+    nix-deploy = "nix run .#deploy-$(hostname)";
     nix-deploy-vm = "nix run .#deploy-vm";
-    nix-build = "nix run .#build-desktop";
+    nix-build = "nix run .#build-$(hostname)";
     nix-build-vm = "nix run .#build-vm";
   };
 }

@@ -8,13 +8,13 @@ _: {
   ];
 
   hamra = {
-    networking.hostname = "plasma";
+    networking.hostname = "acer";
 
     hardware = {
       gpu = "intel";
       firmware = "uefi";
     };
 
-    desktop.default = "plasma";
+    desktop.default = "hyprland";
   };
 }

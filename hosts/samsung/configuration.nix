@@ -8,13 +8,20 @@ _: {
   ];
 
   hamra = {
-    networking.hostname = "gnome";
+    networking.hostname = "samsung";
 
     hardware = {
       gpu = "intel";
       firmware = "uefi";
     };
 
-    desktop.default = "gnome";
+    keyboard = {
+      keymap = "us";
+      xkbVariant = "intl";
+    };
+
+    desktop.default = "hyprland";
+
+    programs.optionals.services.samba = true;
   };
 }

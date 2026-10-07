@@ -5,18 +5,19 @@
   ...
 }: let
   cfg = config.hamra.programs.core.cli.mise;
+
   tools = config.hamra.mise.tools;
   env = config.hamra.mise.env;
   settings = config.hamra.mise.settings;
-  inherit (lib) mkOption mkIf types;
-  userName = config.hamra.users.userName;
 
-  miseValue = types.oneOf [
-    types.str
-    types.bool
-    (types.listOf types.str)
-    (types.attrsOf miseValue)
-  ];
+  inherit (lib) mkOption mkIf types;
+
+  tomlFormat = pkgs.formats.toml {};
+
+  userName = config.hamra.users.userName;
+  userHome = config.users.users.${userName}.home;
+
+  toolsHash = builtins.hashString "sha256" (builtins.toJSON tools);
 
   globalConfig =
     lib.optionalAttrs (tools != {}) {inherit tools;}
@@ -32,38 +33,52 @@ in {
 
     mise = {
       tools = mkOption {
-        type = types.attrsOf miseValue;
+        inherit (tomlFormat) type;
         default = {};
         example = {
           node = "lts";
           python = ["3.12" "3.13"];
           "github:herdrdev/herdr" = "latest";
         };
-        description = "Declare mise tools globally (~/.config/mise/config.toml).";
+        description = ''
+          Declare mise tools globally (~/.config/mise/config.toml).
+          hamra-mise-install installs them on activation.
+        '';
       };
 
       env = mkOption {
-        type = types.attrsOf miseValue;
+        inherit (tomlFormat) type;
         default = {};
         example = {
-          _.path = ["~/.opencode/bin"];
+          "_.path" = ["~/.opencode/bin"];
         };
-        description = "Declare mise env globals (~/.config/mise/config.toml).";
+        description = ''
+          Declare mise environment configuration globally
+          (~/.config/mise/config.toml).
+        '';
       };
 
       settings = mkOption {
-        type = types.attrsOf miseValue;
+        inherit (tomlFormat) type;
         default = {};
         example = {
           github_attestations = false;
+
+          python = {
+            compile = false;
+          };
         };
-        description = "Declare mise settings (~/.config/mise/config.toml).";
+        description = ''
+          Declare mise settings globally (~/.config/mise/config.toml).
+        '';
       };
     };
   };
 
   config = mkIf cfg {
-    environment.systemPackages = [pkgs.mise];
+    environment.systemPackages = [
+      pkgs.mise
+    ];
 
     home-manager.users.${userName}.programs.mise =
       {
@@ -73,5 +88,34 @@ in {
       // lib.optionalAttrs (globalConfig != {}) {
         inherit globalConfig;
       };
+
+    systemd.services.hamra-mise-install = mkIf (tools != {}) {
+      description = "Install declared mise tools (hamra.mise.tools)";
+
+      wantedBy = ["multi-user.target"];
+
+      wants = [
+        "network-online.target"
+        "home-manager-${userName}.service"
+      ];
+
+      after = [
+        "network-online.target"
+        "home-manager-${userName}.service"
+      ];
+
+      restartTriggers = [toolsHash];
+
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+
+        User = userName;
+
+        Environment = ["HOME=${userHome}"];
+
+        ExecStart = "${pkgs.mise}/bin/mise install";
+      };
+    };
   };
 }
