@@ -5,7 +5,7 @@
 }: {
   options.hamra.hardware.gpu = lib.mkOption {
     type = lib.types.str;
-    default = "virtio";
+    default = "intel";
     description = "GPU principal (intel, nvidia, amd, virtio).";
   };
 
