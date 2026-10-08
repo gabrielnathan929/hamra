@@ -11,7 +11,7 @@ in {
   options.hamra.programs.core.gui.mpv = mkOption {
     type = types.bool;
     default = true;
-    description = "Enable mpv media player (video e áudio).";
+    description = "Enable mpv media player (video and audio).";
   };
 
   config = mkIf cfg {

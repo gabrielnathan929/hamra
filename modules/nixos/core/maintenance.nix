@@ -9,22 +9,22 @@ in {
     enable = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Habilitar garbage collection automático.";
+      description = "Enable automatic garbage collection.";
     };
     maxGenerations = lib.mkOption {
       type = lib.types.int;
       default = 20;
-      description = "Máximo de gerações mantidas.";
+      description = "Maximum number of generations kept.";
     };
     schedule = lib.mkOption {
       type = lib.types.str;
       default = "weekly";
-      description = "Frequência da limpeza (daily, weekly).";
+      description = "Cleanup frequency (daily, weekly).";
     };
     keepDays = lib.mkOption {
       type = lib.types.int;
       default = 30;
-      description = "Dias de retenção de gerações.";
+      description = "Days to retain generations.";
     };
   };
 

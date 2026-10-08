@@ -1,8 +1,8 @@
 {inputs, ...}: {
   imports = [
+    ./desktops
     ./keybinds.nix
     ./programs
-    ./desktops
     inputs.spicetify-nix.homeManagerModules.default
   ];
 

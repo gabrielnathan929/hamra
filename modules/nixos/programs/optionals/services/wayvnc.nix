@@ -77,8 +77,8 @@
     # Nomes headless declarados na config (ex: HEADLESS-1).
     WANTED_NAMES="${lib.concatStringsSep " " headlessNames}"
 
-    # Hyprland 0.55 ignora nomes explícitos na criação de headless e gera
-    # HEADLESS-N automaticamente. Detectamos o nome real gerado em runtime.
+    # Hyprland 0.55 ignores explicit names when creating headless outputs and
+    # generates HEADLESS-N automatically. We detect the real name at runtime.
     detect_hyprland_headless() {
       ${hyprctl} monitors all 2>/dev/null \
         | grep -oE 'HEADLESS-[0-9]+' \

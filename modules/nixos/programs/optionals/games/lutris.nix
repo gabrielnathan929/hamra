@@ -14,6 +14,6 @@ in {
   };
 
   config = mkIf cfg {
-    environment.systemPackages = with pkgs; [lutris winetricks wineWow64Packages.stable];
+    environment.systemPackages = with pkgs; [lutris wineWow64Packages.stable winetricks];
   };
 }

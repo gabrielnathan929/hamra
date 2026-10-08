@@ -13,22 +13,22 @@ in {
     editor = lib.mkOption {
       type = lib.types.package;
       default = pkgs.neovim;
-      description = "Editor padrão (\$EDITOR).";
+      description = "Default editor (\$EDITOR).";
     };
     browser = lib.mkOption {
       type = lib.types.package;
       default = pkgs.helium;
-      description = "Navegador padrão (\$BROWSER).";
+      description = "Default browser (\$BROWSER).";
     };
     terminal = lib.mkOption {
       type = lib.types.package;
       default = pkgs.foot;
-      description = "Terminal padrão (\$TERMINAL).";
+      description = "Default terminal (\$TERMINAL).";
     };
     filemanager = lib.mkOption {
       type = lib.types.package;
       default = pkgs.nautilus;
-      description = "Gerenciador de arquivos padrão (\$FILE_MANAGER).";
+      description = "Default file manager (\$FILE_MANAGER).";
     };
   };
 

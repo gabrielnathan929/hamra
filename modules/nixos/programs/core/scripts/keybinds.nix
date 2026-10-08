@@ -54,7 +54,7 @@
       }
 
       if [[ ! -f $manifest ]]; then
-        echo "hamra-keybinds: manifesto não encontrado: $manifest" >&2
+        echo "hamra-keybinds: manifest not found: $manifest" >&2
         exit 1
       fi
 

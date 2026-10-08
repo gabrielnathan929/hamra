@@ -43,13 +43,13 @@
         printf '\n'
         printf '%s\n' \
           '  hamra-apps            lista apps instalados por fonte (Nix, mise, Flatpak, web)' \
-          '  hamra-apps <termo>    filtra a lista por nome (ignora maiúsculas)' \
-          '  hamra-apps -v <tool>  mostra as versões disponíveis no registro do mise' \
+          '  hamra-apps <term>      filter the list by name (case-insensitive)' \
+          '  hamra-apps -v <tool>  show available versions in the mise registry' \
           '  hamra-apps -h         mostra esta ajuda'
       }
 
       if [[ ! -f $manifest ]]; then
-        echo "hamra-apps: manifesto não encontrado: $manifest" >&2
+        echo "hamra-apps: manifest not found: $manifest" >&2
         exit 1
       fi
 
@@ -78,7 +78,7 @@
 
       if [[ $mode == versions ]]; then
         if ! command -v mise >/dev/null 2>&1; then
-          echo "hamra-apps: mise não encontrado no PATH." >&2
+          echo "hamra-apps: mise not found in PATH." >&2
           exit 1
         fi
         installed=$(mise ls --json 2>/dev/null | jq -r '
@@ -88,13 +88,13 @@
           end
         ' 2>/dev/null | grep -F -- "$query"$'\t' | cut -f2 || true)
         versions=$(mise ls-remote "$query" 2>/dev/null | tail -n 25 || true)
-        printf '%s instalada: %s\n' "$query" "''${installed:-não instalada}"
+        printf '%s installed: %s\n' "$query" "''${installed:-not installed}"
         if [[ -z $versions ]]; then
-          echo "hamra-apps: nenhuma versão de \"$query\" no registro do mise." >&2
+          echo "hamra-apps: no versions of \"$query\" in the mise registry." >&2
           exit 1
         fi
         echo
-        echo "Últimas versões disponíveis:"
+        echo "Latest available versions:"
         printf '%s\n' "$versions"
         exit 0
       fi
@@ -123,7 +123,7 @@
           continue
         fi
         if ! printf '%s\n' "$installedNames" | grep -qFx -- "$tool"; then
-          miseRows+="$tool"$'\t'"$requested (declarada, não instalada)"$'\n'
+          miseRows+="$tool"$'\t'"$requested (declared, not installed)"$'\n'
         fi
       done <<< "$miseDeclared"
 

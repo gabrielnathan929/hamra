@@ -87,17 +87,17 @@ in {
       mode = "0400";
     };
 
-    # Mantém a senha Samba sincronizada com o segredo a cada rebuild/boot.
-    # Roda depois do setupSecrets do sops-nix (que popula /run/secrets).
+    # Keeps the Samba password in sync with the secret on every rebuild/boot.
+    # Runs after sops-nix setupSecrets (which populates /run/secrets).
     system.activationScripts.sync-samba-password = stringAfter ["setupSecrets"] ''
       ${pkgs.coreutils}/bin/mkdir -p /var/lib/samba/private
       secret="${config.sops.secrets."samba-password".path}"
       if [ ! -f "$secret" ]; then
-        echo "hamra/samba: segredo samba-password ausente em $secret" >&2
-        echo "A chave age deste host nao decripta secrets/samba.yaml." >&2
-        echo "Rode no host: cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age" >&2
-        echo "Registre a chave no .sops.yaml e rode: nix develop --command sops updatekeys secrets/samba.yaml" >&2
-        echo "Guia completo: docs/nas-iniciantes.md" >&2
+        echo "hamra/samba: samba-password secret missing at $secret" >&2
+        echo "This host age key cannot decrypt secrets/samba.yaml." >&2
+        echo "Run on the host: cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age" >&2
+        echo "Register the key in .sops.yaml and run: nix develop --command sops updatekeys secrets/samba.yaml" >&2
+        echo "Full guide: docs/nas-iniciantes.md" >&2
         exit 1
       fi
       ${pkgs.coreutils}/bin/printf '%s\n%s\n' \

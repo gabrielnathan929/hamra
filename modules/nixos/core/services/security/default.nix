@@ -1,8 +1,8 @@
 {...}: {
   imports = [
-    ./polkit.nix
-    ./sshd.nix
     ./gnupg.nix
     ./keyring.nix
+    ./polkit.nix
+    ./sshd.nix
   ];
 }

@@ -8,7 +8,7 @@ in {
   options.hamra.networking.hostname = lib.mkOption {
     type = lib.types.str;
     default = "nixos";
-    description = "Hostname da máquina.";
+    description = "Machine hostname.";
   };
 
   config.networking = {

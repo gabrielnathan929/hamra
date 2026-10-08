@@ -8,7 +8,7 @@ in {
   options.hamra.timezone = lib.mkOption {
     type = lib.types.str;
     default = "America/Sao_Paulo";
-    description = "Fuso horário.";
+    description = "Timezone.";
   };
 
   config.time.timeZone = lib.mkDefault timezone;

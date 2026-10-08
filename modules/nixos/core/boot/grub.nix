@@ -11,7 +11,7 @@ in {
       device = lib.mkOption {
         type = lib.types.str;
         default = "/dev/sda";
-        description = "Dispositivo para instalação do GRUB.";
+        description = "Device for GRUB installation.";
       };
       useOSProber = lib.mkOption {
         type = lib.types.bool;

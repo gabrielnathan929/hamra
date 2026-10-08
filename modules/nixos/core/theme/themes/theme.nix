@@ -24,7 +24,7 @@
       type = lib.types.path;
       internal = true;
       default = ./dragon-ball/videos;
-      description = "Diretório de vídeos do tema ativo, definido pelo tema.";
+      description = "Video directory of the active theme, defined by the theme.";
     };
   };
 }

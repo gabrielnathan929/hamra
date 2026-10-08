@@ -8,7 +8,7 @@ in {
   options.hamra.packages.extra = mkOption {
     type = types.listOf types.package;
     default = [];
-    description = "Pacotes avulsos instalados direto no sistema, sem módulo toggle. Use para instalações rápidas.";
+    description = "Loose packages installed directly on the system, without a toggle module. Use for quick installs.";
   };
 
   config.environment.systemPackages = mkIf (config.hamra.packages.extra != []) config.hamra.packages.extra;

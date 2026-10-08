@@ -2,7 +2,7 @@
   options.hamra.desktop.default = lib.mkOption {
     type = lib.types.str;
     default = "hyprland";
-    description = "Escolha o desktop padrão. Opções: hyprland, niri, sway, gnome, plasma.";
+    description = "Default desktop environment. Options: hyprland, niri, sway, gnome, plasma.";
   };
 
   options.hamra.displays = lib.mkOption {
@@ -73,10 +73,10 @@
   };
 
   imports = [
+    ./gnome
     ./hyprland
     ./niri
-    ./sway
-    ./gnome
     ./plasma
+    ./sway
   ];
 }

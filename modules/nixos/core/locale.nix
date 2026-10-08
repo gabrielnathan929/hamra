@@ -19,7 +19,7 @@ in {
   options.hamra.locale = lib.mkOption {
     type = lib.types.str;
     default = "pt_BR.UTF-8";
-    description = "Locale padrão.";
+    description = "Default locale.";
   };
 
   config.i18n = {

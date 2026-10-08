@@ -1,9 +1,9 @@
 {inputs, ...}: {
   imports = [
-    inputs.noctalia.homeModules.default
-    ./settings.nix
     ./plugins.nix
+    ./settings.nix
     ./templates.nix
     ./themes.nix
+    inputs.noctalia.homeModules.default
   ];
 }

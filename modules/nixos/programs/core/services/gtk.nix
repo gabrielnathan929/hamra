@@ -16,10 +16,10 @@ in {
 
   config = mkIf cfg {
     environment.systemPackages = with pkgs; [
-      papirus-icon-theme
       bibata-cursors
       glib
       gsettings-desktop-schemas
+      papirus-icon-theme
     ];
 
     systemd.tmpfiles.rules = [

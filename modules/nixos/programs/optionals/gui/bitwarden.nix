@@ -17,16 +17,16 @@ in {
     # 1. Instala o Bitwarden
     environment.systemPackages = [pkgs.bitwarden-desktop];
 
-    # 2. (Desnecessário com Electron seguro) Burlar a trava do Electron EOL
+    # 2. (Unnecessary with a secure Electron) Bypass the Electron EOL block
     # nixpkgs.config.permittedInsecurePackages = [
-    #   "electron-39.8.10" # IMPORTANTE: Altere para a versão exata que o Nix reclamar no seu terminal
+    #   "electron-39.8.10" # IMPORTANT: change to the exact version Nix complains about in your terminal
     # ];
 
-    # 3. Garante o uso de binários prontos + versão segura do Electron
+    # 3. Ensures prebuilt binaries + a secure Electron version
     nixpkgs.overlays = [
       (final: prev: {
         bitwarden-desktop = prev.bitwarden-desktop.override {
-          # Isso faz o Bitwarden usar o binário pré-compilado do Electron 43
+          # This makes Bitwarden use the prebuilt Electron 43 binary
           electron_43 = final.electron_43-bin;
         };
       })

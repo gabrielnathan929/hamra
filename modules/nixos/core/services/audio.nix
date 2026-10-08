@@ -8,7 +8,7 @@ in {
   options.hamra.audio.default = lib.mkOption {
     type = lib.types.str;
     default = "pipewire";
-    description = "Sistema de áudio padrão (pipewire).";
+    description = "Default audio system (pipewire).";
   };
 
   config = {

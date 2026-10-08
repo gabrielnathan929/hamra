@@ -16,7 +16,7 @@
       script=/etc/nixos/scripts/setup-nas.sh
     fi
     if [[ -z $script ]]; then
-      echo "setup-nas: não encontrei o repositório (procurei em \$HAMRA_REPO e /etc/nixos)." >&2
+      echo "setup-nas: repository not found (looked in \$HAMRA_REPO and /etc/nixos)." >&2
       echo "Aponte HAMRA_REPO para o checkout ou crie o symlink: sudo ln -s <checkout> /etc/nixos" >&2
       exit 1
     fi

@@ -8,7 +8,7 @@ in {
   options.hamra.printing = lib.mkOption {
     type = lib.types.bool;
     default = true;
-    description = "Habilitar suporte a impressão.";
+    description = "Enable printing support.";
   };
 
   config = lib.mkIf isEnabled {

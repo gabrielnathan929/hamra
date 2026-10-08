@@ -7,16 +7,16 @@
     ./assertions.nix
     ./boot
     ./envs
+    ./fonts.nix
     ./hardware
-    ./networking.nix
-    ./services
     ./locale.nix
     ./maintenance.nix
+    ./networking.nix
+    ./packages.nix
+    ./services
+    ./theme
     ./timezone.nix
     ./users.nix
-    ./fonts.nix
-    ./theme
-    ./packages.nix
     ./webapps.nix
   ];
 

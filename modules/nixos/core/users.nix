@@ -10,17 +10,17 @@ in {
     userName = lib.mkOption {
       type = lib.types.str;
       default = "gabrielnathan";
-      description = "Nome de usuário do sistema.";
+      description = "System username.";
     };
     fullName = lib.mkOption {
       type = lib.types.str;
       default = "Gabriel Nathan dos Santos Pires";
-      description = "Nome completo do usuário.";
+      description = "User full name.";
     };
     email = lib.mkOption {
       type = lib.types.str;
       default = "devgabrielnathan@gmail.com";
-      description = "Email do usuário.";
+      description = "User email.";
     };
   };
 

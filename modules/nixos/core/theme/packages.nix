@@ -8,7 +8,7 @@
 {pkgs, ...}: {
   environment.systemPackages = with pkgs; [
     adw-gtk3
-    papirus-icon-theme
     bibata-cursors
+    papirus-icon-theme
   ];
 }
