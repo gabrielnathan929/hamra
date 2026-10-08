@@ -91,9 +91,18 @@ in {
     # Roda depois do setupSecrets do sops-nix (que popula /run/secrets).
     system.activationScripts.sync-samba-password = stringAfter ["setupSecrets"] ''
       ${pkgs.coreutils}/bin/mkdir -p /var/lib/samba/private
+      secret="${config.sops.secrets."samba-password".path}"
+      if [ ! -f "$secret" ]; then
+        echo "hamra/samba: segredo samba-password ausente em $secret" >&2
+        echo "A chave age deste host nao decripta secrets/samba.yaml." >&2
+        echo "Rode no host: cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age" >&2
+        echo "Registre a chave no .sops.yaml e rode: nix develop --command sops updatekeys secrets/samba.yaml" >&2
+        echo "Guia completo: docs/nas-iniciantes.md" >&2
+        exit 1
+      fi
       ${pkgs.coreutils}/bin/printf '%s\n%s\n' \
-        "$(${pkgs.coreutils}/bin/cat ${config.sops.secrets."samba-password".path})" \
-        "$(${pkgs.coreutils}/bin/cat ${config.sops.secrets."samba-password".path})" \
+        "$(${pkgs.coreutils}/bin/cat "$secret")" \
+        "$(${pkgs.coreutils}/bin/cat "$secret")" \
         | ${pkgs.samba}/bin/smbpasswd -sa "${userName}"
     '';
   };
