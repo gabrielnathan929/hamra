@@ -56,15 +56,31 @@
     pname = "hamra-setup";
     version = "0.1";
     dontUnpack = true;
-    nativeBuildInputs = [pkgs.wrapGAppsHook4];
-    buildInputs = [pkgs.gtk4 pkgs.libadwaita pkgs.glib];
+    nativeBuildInputs = [pkgs.makeWrapper];
+    buildInputs = [pkgs.gtk4 pkgs.libadwaita pkgs.glib pkgs.gdk-pixbuf];
     pythonEnv = pkgs.python3.withPackages (ps: [ps.pygobject3]);
+    typelibPath = pkgs.lib.makeSearchPath "lib/girepository-1.0" [
+      pkgs.gtk4
+      pkgs.libadwaita
+      pkgs.glib
+      pkgs.gdk-pixbuf
+      pkgs.gobject-introspection
+    ];
+    schemasPath = pkgs.lib.makeSearchPath "share/gsettings-schemas" [
+      pkgs.gtk4
+      pkgs.libadwaita
+      pkgs.glib
+    ];
     installPhase = ''
       mkdir -p $out/bin $out/share/hamra-setup
       cp ${../scripts/hamra-setup.py} $out/share/hamra-setup/hamra-setup.py
       cp ${../scripts/hamra-init.py} $out/share/hamra-setup/hamra-init.py
       makeWrapper $pythonEnv/bin/python3 \
-        $out/bin/hamra-setup --add-flags "$out/share/hamra-setup/hamra-setup.py"
+        $out/bin/hamra-setup \
+        --set GI_TYPELIB_PATH "$typelibPath" \
+        --set GSETTINGS_SCHEMAS_PATH "$schemasPath" \
+        --set XDG_DATA_DIRS "${pkgs.gtk4}/share:${pkgs.libadwaita}/share:${pkgs.glib}/share" \
+        --add-flags "$out/share/hamra-setup/hamra-setup.py"
     '';
   };
 
