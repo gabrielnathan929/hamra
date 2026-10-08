@@ -4,9 +4,11 @@
 
 Resposta curta: o sistema ativo é o closure do último
 `nixos-rebuild switch --flake <checkout>#<host>`. O **repositório Git é a
-fonte de verdade**; `/etc/nixos` não tem papel especial (numa máquina já
-rodando Hamra ele nem precisa existir). Cada máquina aponta o rebuild para o
-seu checkout — nunca confie no default sem `--flake`.
+fonte de verdade**; `/etc/nixos` é apenas um symlink opcional apontando para
+o checkout — conveniência para `nixos-rebuild` sem `--flake` e para o
+assistente `setup-nas`, que esperam o caminho tradicional. O checkout vive no
+usuário, em qualquer caminho, e o rebuild feito pelo symlink preserva a
+revision (a detecção de git atravessa o link).
 
 A cadeia completa:
 

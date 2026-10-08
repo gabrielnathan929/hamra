@@ -16,8 +16,8 @@
       script=/etc/nixos/scripts/setup-nas.sh
     fi
     if [[ -z $script ]]; then
-      echo "setup-nas: não encontrei o repositório (procurei em /etc/nixos)." >&2
-      echo "Clone o repo e rode:  cd /etc/nixos && nix develop && ./scripts/setup-nas.sh" >&2
+      echo "setup-nas: não encontrei o repositório (procurei em \$HAMRA_REPO e /etc/nixos)." >&2
+      echo "Aponte HAMRA_REPO para o checkout ou crie o symlink: sudo ln -s <checkout> /etc/nixos" >&2
       exit 1
     fi
     exec bash "$script" "$@"

@@ -13,10 +13,11 @@ cada passo. Quando aparecer um erro, ele diz **o que fazer a seguir**.
 
 ## 1. De um só trago (o caminho feliz)
 
-Em um PC com NixOS e este repositório em `/etc/nixos`:
+Em um PC com NixOS, este repositório clonado numa pasta sua (ex.:
+`~/Projetos/hamra`) e o symlink `/etc/nixos` apontando para ela:
 
 ```bash
-cd /etc/nixos
+cd ~/Projetos/hamra
 nix develop              # prepara as ferramentas (1ª vez demora um pouco)
 ./scripts/setup-nas.sh   # o assistente guiado
 ```
@@ -41,18 +42,19 @@ Pronto. Qualquer outro PC pode acessar: mesmo script **naquele PC**.
 ### 2.1. Tenha o repositório na máquina
 
 ```bash
-sudo mkdir -p /etc/nixos
-sudo chown $(whoami):users /etc/nixos
-git clone <endereço-do-repositório> /etc/nixos
+git clone <endereço-do-repositório> ~/Projetos/hamra
+sudo ln -s ~/Projetos/hamra /etc/nixos
 ```
 
 > Troque `<endereço-do-repositório>` pelo link "Clone" do GitHub
-> (botão verde). Ex.: `https://github.com/seuusuario/hamra.git`.
+> (botão verde). Ex.: `https://github.com/seuusuario/hamra.git`. O clone pode
+> ficar em qualquer pasta do seu usuário — o symlink `/etc/nixos` é o que faz
+> as ferramentas encontrarem o repo; crie-o uma única vez.
 
 ### 2.2. Entre no ambiente de trabalho
 
 ```bash
-cd /etc/nixos
+cd ~/Projetos/hamra
 nix develop
 ```
 
@@ -141,7 +143,7 @@ Troca, criptografa de novo e sincroniza os PCs cadastrados. Depois
 execute em cada host do Samba:
 
 ```bash
-sudo nixos-rebuild switch --flake /etc/nixos#<host>
+sudo nixos-rebuild switch --flake ~/Projetos/hamra#<host>
 ```
 
 E atualize os clientes (arquivo `/etc/samba/cred-nas`, se usado).

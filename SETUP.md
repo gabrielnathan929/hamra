@@ -23,12 +23,24 @@ No primeiro boot, como o usuário criado na instalação:
 
 ```bash
 sudo cp /etc/nixos/hardware-configuration.nix /tmp/
-sudo rm -rf /etc/nixos && sudo mkdir /etc/nixos && sudo chown $(whoami): /etc/nixos
-git clone https://github.com/gabrielnathan929/hamra /etc/nixos
-cd /etc/nixos
+sudo mv /etc/nixos /etc/nixos.pre-hamra
+git clone https://github.com/gabrielnathan929/hamra ~/Projetos/hamra
+sudo ln -s ~/Projetos/hamra /etc/nixos
+cd ~/Projetos/hamra
 ```
 
 Se o git não estiver instalado: `nix-shell -p git` antes do clone.
+
+O checkout vive no seu usuário, em qualquer caminho — `~/Projetos/hamra`,
+`~/src/nixos`, `~/dev/hamra`, o que preferir. O symlink `/etc/nixos` aponta
+para ele e é só conveniência: `nixos-rebuild` sem `--flake` e o assistente
+`setup-nas` encontram o repo pelo caminho tradicional, e você edita tudo sem
+sudo. O rebuild preserva a revision do git mesmo quando feito pelo symlink.
+
+Se algo der errado antes do primeiro switch funcionar, restaura a
+configuração original do instalador com
+`sudo rm /etc/nixos && sudo mv /etc/nixos.pre-hamra /etc/nixos` — e apague o
+backup quando o Hamra estiver estável.
 
 Copie o host mais parecido e troque o hardware-configuration:
 
@@ -106,8 +118,13 @@ incrementais. Reboot para cair no desktop do Hamra.
 
 No dia a dia existem atalhos: `nix run .#deploy-<host>` (roda
 `nix flake check` antes do switch) e `nix run .#build-<host>` (build sem
-aplicar, resultado em `./result`). Eles só existem para os hosts listados
-em `flake/apps.nix` — adicione o seu lá se quiser os atalhos.
+aplicar, resultado em `./result`). Eles são gerados automaticamente para
+todo host registrado em `flake/hosts.nix`.
+
+Com o symlink `/etc/nixos` apontando para o checkout, os atalhos simples
+também funcionam: `nix-test` e `nix-switch` (nixos-rebuild sem `--flake`)
+usam `/etc/nixos#$(hostname)` — basta o hostname da máquina bater com o
+nome do host em `flake/hosts.nix`.
 
 ## Validar
 
