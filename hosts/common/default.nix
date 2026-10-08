@@ -1,150 +1,34 @@
+# Shared machine baseline — no personal values live here (they belong to
+# hosts/profiles/<owner>/). Forks pull updates to this layer without conflicts.
+#
+# Tier contract (option priority):
+#   module declaration defaults (1500) < hosts/common (hamraLib.mkBase, 1000)
+#   < hosts/profiles/<owner> (mkDefault, 900) < hosts/<machine> (plain, 100)
 {
   config,
-  pkgs,
-  lib,
   inputs,
+  lib,
   ...
 }: let
   hamraLib = import ../../modules/lib {inherit lib;};
 in {
-  hamra = lib.mkDefault {
-    env = {
-      editor = pkgs.neovim;
-      browser = pkgs.chromium;
-      terminal = pkgs.foot;
-      filemanager = pkgs.thunar;
-    };
-
-    packages.extra = [];
-
-    mise = {
-      tools = {
-        codex = "latest";
-        copilot = "latest";
-        gh = "latest";
-        go = "latest";
-        java = "latest";
-        opencode = "latest";
-        python = "latest";
-
-        "github:herdrdev/herdr" = "latest";
-        "github:google-antigravity/antigravity-cli" = "latest";
-      };
-
-      settings = {
-        github_attestations = false;
-
-        python = {
-          compile = false;
-        };
-      };
-    };
-
-    mobile.android = false;
-
-    programs = {
-      core.gui.thunar = true;
-
-      optionals = {
-        gui = {
-          android-studio = true;
-          bitwarden = true;
-          boxes = false;
-          brmodelo = true;
-          bruno = true;
-          chromium = true;
-          camunda-modeler = true;
-          dbeaver = true;
-          discord = true;
-          drawio = true;
-          ente-auth = true;
-          firefox = false;
-          google-chrome = false;
-          helium = true;
-          insomnia = true;
-          intellij = true;
-          localsend = true;
-          mongodb-compass = true;
-          nautilus = true;
-          netbeans = true;
-          notion = true;
-          obsidian = true;
-          office = true;
-          postman = true;
-          pycharm = true;
-          remmina = true;
-          upscayl = true;
-          keepassxc = false;
-          vesktop = false;
-          virt-manager = true;
-          vscode = true;
-          wireshark = false;
-        };
-
-        tui = {
-          cliamp = true;
-          lazydocker = true;
-          lazygit = true;
-          yazi = true;
-        };
-
-        cli = {
-          gcc = true;
-          ffmpeg = true;
-          imagemagick = true;
-          inetutils = true;
-          mtr = true;
-          strace = true;
-          traceroute = true;
-          gnumake = true;
-          go = true;
-          jdk = true;
-          nodejs = true;
-          powertop = true;
-          python3 = true;
-          rclone = true;
-          ripgrep = true;
-        };
-
-        media = {
-          "davinci-resolve" = true;
-          kodi = true;
-          obs = true;
-          qbittorrent = true;
-          spicetify = true;
-          spotify = true;
-        };
-
-        services = {
-          appimage = true;
-          docker = true;
-          "docker-compose" = true;
-          samba = false;
-          wayvnc = true;
-          tigervnc = false;
-        };
-
-        games = {
-          gamemode = true;
-          gamepad = true;
-          gamescope = true;
-          heroic = true;
-          hydralauncher = true;
-          lutris = true;
-          mangohud = true;
-          pcsx2 = true;
-          steam = true;
-        };
-
-        packaging = {
-          flatpak = true;
-          gearlever = true;
-          gnome-software = true;
-          nix-software-center = true;
-        };
-      };
-    };
-  };
+  imports = [
+    ./core/audio.nix
+    ./core/boot.nix
+    ./core/desktop.nix
+    ./core/display-manager.nix
+    ./core/displays.nix
+    ./core/envs/android.nix
+    ./core/hardware.nix
+    ./core/keyboard.nix
+    ./core/maintenance.nix
+    ./core/networking.nix
+    ./core/printing.nix
+    ./core/security.nix
+    ./programs/flatpak.nix
+    ./programs/packages.nix
+    ./programs/webapps.nix
+  ];
 
   programs.nix-ld.enable = true;
 
@@ -164,14 +48,6 @@ in {
     users.${config.hamra.users.userName} = {
       home.stateVersion = "26.05";
       imports = [../../modules/home];
-
-      hamra.home.programs = {
-        editors.neovim = true;
-        tui = {
-          tmux = true;
-          herdr = true;
-        };
-      };
     };
   };
 }

@@ -1,10 +1,11 @@
 _: {
   imports = [
-    ./hardware-configuration.nix
-    ../common
     ../../modules/nixos/core
-    ../../modules/nixos/programs
     ../../modules/nixos/desktops
+    ../../modules/nixos/programs
+    ../common
+    ../profiles/gabrielnathan
+    ./hardware-configuration.nix
   ];
 
   hamra = {

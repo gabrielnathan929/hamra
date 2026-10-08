@@ -1,10 +1,11 @@
 _: {
   imports = [
-    ./hardware-configuration.nix
-    ../common
     ../../modules/nixos/core
-    ../../modules/nixos/programs
     ../../modules/nixos/desktops
+    ../../modules/nixos/programs
+    ../common
+    ../profiles/gabrielnathan
+    ./hardware-configuration.nix
   ];
 
   hamra = {
@@ -17,7 +18,9 @@ _: {
 
     desktop.default = "sway";
 
-    programs.optionals.media."davinci-resolve" = false;
-    programs.optionals.services.wayvnc = false;
+    programs.optionals = {
+      media."davinci-resolve" = false;
+      services.wayvnc = false;
+    };
   };
 }
