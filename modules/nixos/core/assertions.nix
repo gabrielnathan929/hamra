@@ -3,29 +3,14 @@
   lib,
   ...
 }: let
-  validGPUs = [
-    "intel"
-    "nvidia"
-    "amd"
-    "virtio"
-  ];
-  validFirmware = [
-    "uefi"
-    "bios"
-  ];
-  validAudio = ["pipewire"];
-  validBootloaders = [
-    "systemd-boot"
-    "grub"
-  ];
-  validDesktops = [
-    "hyprland"
-    "niri"
-    "sway"
-    "gnome"
-    "plasma"
-  ];
-  validDisplayManagers = ["sddm"];
+  enums = import ../../lib/enums.nix;
+
+  validGPUs = enums.gpus;
+  validFirmware = enums.firmware;
+  validAudio = enums.audio;
+  validBootloaders = enums.bootloaders;
+  validDesktops = enums.desktops;
+  validDisplayManagers = enums.displayManagers;
 
   availableThemes = import ./theme/themes/themes-list.nix;
 
@@ -35,43 +20,43 @@ in {
     {
       assertion = builtins.elem cfg.boot.loader validBootloaders;
       message =
-        "hamra.boot.loader = \"${cfg.boot.loader}\" inválido. "
-        + "Valores válidos: ${builtins.toString validBootloaders}";
+        "hamra.boot.loader = \"${cfg.boot.loader}\" invalid. "
+        + "Valid values: ${builtins.toString validBootloaders}";
     }
 
     {
       assertion = builtins.elem cfg.hardware.gpu validGPUs;
       message =
-        "hamra.hardware.gpu = \"${cfg.hardware.gpu}\" inválido. "
-        + "Valores válidos: ${builtins.toString validGPUs}";
+        "hamra.hardware.gpu = \"${cfg.hardware.gpu}\" invalid. "
+        + "Valid values: ${builtins.toString validGPUs}";
     }
 
     {
       assertion = builtins.elem cfg.hardware.firmware validFirmware;
       message =
-        "hamra.hardware.firmware = \"${cfg.hardware.firmware}\" inválido. "
-        + "Valores válidos: ${builtins.toString validFirmware}";
+        "hamra.hardware.firmware = \"${cfg.hardware.firmware}\" invalid. "
+        + "Valid values: ${builtins.toString validFirmware}";
     }
 
     {
       assertion = builtins.elem cfg.audio.default validAudio;
       message =
-        "hamra.audio.default = \"${cfg.audio.default}\" inválido. "
-        + "Valores válidos: ${builtins.toString validAudio}";
+        "hamra.audio.default = \"${cfg.audio.default}\" invalid. "
+        + "Valid values: ${builtins.toString validAudio}";
     }
 
     {
       assertion = builtins.elem cfg.desktop.default validDesktops;
       message =
-        "hamra.desktop.default = \"${cfg.desktop.default}\" inválido. "
-        + "Valores válidos: ${builtins.toString validDesktops}";
+        "hamra.desktop.default = \"${cfg.desktop.default}\" invalid. "
+        + "Valid values: ${builtins.toString validDesktops}";
     }
 
     {
       assertion = builtins.elem cfg.displayManager.default validDisplayManagers;
       message =
-        "hamra.displayManager.default = \"${cfg.displayManager.default}\" inválido. "
-        + "Valores válidos: ${builtins.toString validDisplayManagers}";
+        "hamra.displayManager.default = \"${cfg.displayManager.default}\" invalid. "
+        + "Valid values: ${builtins.toString validDisplayManagers}";
     }
 
     {
@@ -84,15 +69,15 @@ in {
     {
       assertion = builtins.elem cfg.theme.name availableThemes;
       message =
-        "hamra.theme.name = \"${cfg.theme.name}\" inválido. "
-        + "Temas disponíveis: ${builtins.toString availableThemes}";
+        "hamra.theme.name = \"${cfg.theme.name}\" invalid. "
+        + "Available themes: ${builtins.toString availableThemes}";
     }
 
     {
       assertion = builtins.pathExists cfg.theme.profileIcon;
       message =
-        "hamra.theme.profileIcon não existe: ${toString cfg.theme.profileIcon} "
-        + "(tema \"${cfg.theme.name}\"). Verifique o arquivo referenciado no módulo do tema.";
+        "hamra.theme.profileIcon does not exist: ${toString cfg.theme.profileIcon} "
+        + "(theme \"${cfg.theme.name}\"). Check the file referenced by the theme module.";
     }
 
     {
@@ -104,17 +89,17 @@ in {
 
     {
       assertion = cfg.timezone != "";
-      message = "hamra.timezone não pode ser vazio " + "(ex: \"America/Sao_Paulo\", \"Europe/Lisbon\").";
+      message = "hamra.timezone cannot be empty " + "(e.g. \"America/Sao_Paulo\", \"Europe/Lisbon\").";
     }
 
     {
       assertion = cfg.networking.hostname != "";
-      message = "hamra.networking.hostname não pode ser vazio.";
+      message = "hamra.networking.hostname cannot be empty.";
     }
 
     {
       assertion = cfg.users.userName != "";
-      message = "hamra.users.userName não pode ser vazio.";
+      message = "hamra.users.userName cannot be empty.";
     }
 
     {
@@ -127,7 +112,7 @@ in {
       message =
         "hamra.programs.optionals.services.wayvnc = true requer hamra.desktop.default = "
         + "\"hyprland\" ou \"sway\" (atual: \"${cfg.desktop.default}\"). "
-        + "Niri não suporta headless output para WayVNC.";
+        + "Niri does not support headless output for WayVNC.";
     }
 
     {
@@ -150,7 +135,7 @@ in {
         ];
       message =
         "hamra.programs.optionals.media.davinci-resolve requer GPU real (intel, amd ou nvidia) com OpenCL; "
-        + "virtio não suporta (atual: \"${cfg.hardware.gpu}\"). Desligue o toggle neste host.";
+        + "virtio is not supported (current: \"${cfg.hardware.gpu}\"). Disable this toggle on this host.";
     }
 
     {

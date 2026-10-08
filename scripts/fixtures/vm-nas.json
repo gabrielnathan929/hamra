@@ -1,0 +1,14 @@
+{
+  "hostname": "test-vm",
+  "gpu": "virtio",
+  "firmware": "uefi",
+  "desktop": "sway",
+  "profile": "gabrielnathan",
+  "nas": true,
+  "vnc": false,
+  "keyboard": {
+    "keymap": "us",
+    "xkbVariant": "intl"
+  },
+  "disable": ["gui.firefox", "gui.wireshark", "services.appimage"]
+}

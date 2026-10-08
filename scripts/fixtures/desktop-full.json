@@ -1,0 +1,11 @@
+{
+  "hostname": "test-desktop",
+  "gpu": "intel",
+  "firmware": "uefi",
+  "desktop": "hyprland",
+  "profile": "gabrielnathan",
+  "nas": false,
+  "vnc": false,
+  "keyboard": null,
+  "disable": []
+}

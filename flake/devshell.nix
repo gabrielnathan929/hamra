@@ -19,13 +19,12 @@
       shellHook = ''
         echo "alejandra  -> nix fmt"
         echo "statix     -> linter"
-        echo "deadnix    -> codigo morto"
-        echo "sops       -> editar segredos (ex: sops secrets/samba.yaml)"
-        echo "setup-nas  -> ./scripts/setup-nas.sh (assistente do NAS)"
-        echo "nix run .#deploy-samsung -> valida + switch"
-        echo "nix run .#deploy-vm -> valida + switch"
-        echo "nix run .#build-samsung -> build sem aplicar"
-        echo "nix run .#build-vm -> build sem aplicar"
+        echo "deadnix    -> dead code"
+        echo "sops       -> edit secrets (e.g. sops secrets/samba.yaml)"
+        echo "setup-nas  -> ./scripts/setup-nas.sh (NAS wizard)"
+        echo "hamra-init -> nix run .#hamra-init (generate a new host)"
+        echo "deploy     -> nix run .#deploy-<host> (validate + switch)"
+        echo "build      -> nix run .#build-<host> (build without applying)"
       '';
     };
   };

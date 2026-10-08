@@ -48,6 +48,10 @@
 
   hosts = builtins.attrNames self.nixosConfigurations;
 
+  hamraInit = pkgs.writers.writePython3Bin "hamra-init" {
+    flakeIgnore = ["E501" "E265" "W503"];
+  } (builtins.readFile ../scripts/hamra-init.py);
+
   mkApps = fn: prefix:
     builtins.listToAttrs (map (h: {
         name = "${prefix}-${h}";
@@ -56,6 +60,16 @@
       hosts);
 in {
   ${system} =
-    mkApps mkDeployApp "deploy"
-    // mkApps mkBuildApp "build";
+    (mkApps mkDeployApp "deploy"
+      // mkApps mkBuildApp "build")
+    // {
+      hamra-init = {
+        type = "app";
+        program = "${hamraInit}/bin/hamra-init";
+        meta = {
+          description = "Generate and validate a new Hamra host";
+          mainProgram = "hamra-init";
+        };
+      };
+    };
 }

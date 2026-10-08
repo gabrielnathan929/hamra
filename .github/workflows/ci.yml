@@ -16,8 +16,37 @@ env:
     extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=
 
 jobs:
+  guard:
+    name: Personal layer guard
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
+      - name: Block hardware and personal option changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ALLOWED: ${{ contains(github.event.pull_request.labels.*.name, 'personal-layer') }}
+        run: |
+          files=$(git diff --name-only "$BASE_SHA"... "$HEAD_SHA")
+          personal=$(echo "$files" | grep -E '^hosts/[^/]+/(configuration|hardware-configuration)\.nix$|^hosts/profiles/' || true)
+          if [ -n "$personal" ] && [ "$ALLOWED" != 'true' ]; then
+            {
+              echo "This PR touches personal layers:"
+              echo "$personal"
+              echo ""
+              echo "Hardware and personal options never flow upstream — keep them in your fork"
+              echo "(see CONTRIBUTING.md, 'Fork contract'). A maintainer may still merge this by"
+              echo "adding the 'personal-layer' label."
+            } >&2
+            exit 1
+          fi
+
   format:
-    name: Formatação
+    name: Format
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -35,7 +64,7 @@ jobs:
       - run: nix develop --command sh -c "statix check . && deadnix ."
 
   check:
-    name: Avaliação
+    name: Evaluation
     needs: [format, lint]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -55,6 +84,16 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
       - id: hosts
         run: echo "hosts=$(nix eval --json .#nixosConfigurations --apply 'builtins.attrNames')" >> "$GITHUB_OUTPUT"
+
+  init-golden:
+    name: hamra-init golden
+    needs: [format]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
+      - run: nix develop --command python3 scripts/tests/test_golden.py
 
   build:
     name: Build ${{ matrix.host }}
