@@ -52,44 +52,10 @@
     flakeIgnore = ["E501" "E265" "W503"];
   } (builtins.readFile ../scripts/hamra-init.py);
 
-  hamraSetup = pkgs.stdenv.mkDerivation {
-    pname = "hamra-setup";
-    version = "0.1";
-    dontUnpack = true;
-    nativeBuildInputs = [pkgs.makeWrapper];
-    buildInputs = [pkgs.gtk4 pkgs.libadwaita pkgs.glib pkgs.gdk-pixbuf];
-    pythonEnv = pkgs.python3.withPackages (ps: [ps.pygobject3]);
-    typelibPath = pkgs.lib.makeSearchPath "lib/girepository-1.0" [
-      pkgs.gtk4
-      pkgs.libadwaita
-      pkgs.glib
-      pkgs.gdk-pixbuf
-      pkgs.gobject-introspection
-      pkgs.graphene
-      pkgs.pango
-      pkgs.harfbuzz
-      pkgs.cairo
-      pkgs.freetype
-      pkgs.fontconfig
-      pkgs.wayland
-    ];
-    schemasPath = pkgs.lib.makeSearchPath "share/gsettings-schemas" [
-      pkgs.gtk4
-      pkgs.libadwaita
-      pkgs.glib
-    ];
-    installPhase = ''
-      mkdir -p $out/bin $out/share/hamra-setup
-      cp ${../scripts/hamra-setup.py} $out/share/hamra-setup/hamra-setup.py
-      cp ${../scripts/hamra-init.py} $out/share/hamra-setup/hamra-init.py
-      makeWrapper $pythonEnv/bin/python3 \
-        $out/bin/hamra-setup \
-        --set GI_TYPELIB_PATH "$typelibPath" \
-        --set GSETTINGS_SCHEMAS_PATH "$schemasPath" \
-        --set XDG_DATA_DIRS "${pkgs.gtk4}/share:${pkgs.libadwaita}/share:${pkgs.glib}/share" \
-        --set GDK_PIXBUF_MODULE_FILE "${pkgs.gdk-pixbuf}/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache" \
-        --add-flags "$out/share/hamra-setup/hamra-setup.py"
-    '';
+  hamraSetup = pkgs.writeShellApplication {
+    name = "hamra-setup";
+    runtimeInputs = [pkgs.zenity pkgs.python3];
+    text = builtins.readFile ../scripts/hamra-setup.sh;
   };
 
   mkApps = fn: prefix:
