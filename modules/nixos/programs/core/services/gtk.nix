@@ -6,11 +6,12 @@
 }: let
   cfg = config.hamra.programs.core.services.gtk;
   inherit (lib) mkOption mkIf types;
+  userName = config.hamra.users.userName;
 in {
   options.hamra.programs.core.services.gtk = mkOption {
     type = types.bool;
     default = true;
-    description = "Configure GTK icon theme and settings for folder icons.";
+    description = "Configure GTK/Qt icon theme and settings for folder icons.";
   };
 
   config = mkIf cfg {
@@ -27,9 +28,31 @@ in {
       "L+ /usr/share/icons/Papirus-Light - - - - ${pkgs.papirus-icon-theme}/share/icons/Papirus-Light"
     ];
 
-    environment.sessionVariables = {
-      GTK_ICON_THEME = "Papirus";
-      GTK_CURSOR_THEME = "Bibata-Modern-Classic";
+    home-manager.users.${userName} = {
+      gtk = {
+        enable = true;
+
+        theme = {
+          name = "adw-gtk3-dark";
+          package = pkgs.adw-gtk3;
+        };
+
+        iconTheme = {
+          name = "Papirus-Dark";
+          package = pkgs.papirus-icon-theme;
+        };
+      };
+
+      qt = {
+        enable = true;
+
+        platformTheme.name = "qtct";
+
+        style.name = "kvantum";
+
+        qt5ctSettings.Appearance.icon_theme = "Papirus-Dark";
+        qt6ctSettings.Appearance.icon_theme = "Papirus-Dark";
+      };
     };
   };
 }
