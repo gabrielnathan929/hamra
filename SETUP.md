@@ -25,12 +25,18 @@ On the first boot, as the user created during installation:
 nix-shell -p git
 git clone https://github.com/gabrielnathan929/hamra ~/Projetos/hamra
 cd ~/Projetos/hamra
+nix --extra-experimental-features "nix-command flakes" run .#hamra-setup
+```
+
+Or, if you prefer the terminal:
+
+```bash
 nix --extra-experimental-features "nix-command flakes" run .#hamra-init
 ```
 
 The bootstrap flag is only needed for that single launch — a fresh NixOS
-ships without flakes, and the wizard needs them to run. Everything else is
-automated: the wizard enables flakes for your user, and with typed
+ships without flakes, and the installer needs them to run. Everything else is
+automated: the installer enables flakes for your user, and with typed
 confirmation backs up the installer's `/etc/nixos` to `/etc/nixos.pre-hamra`
 and symlinks the checkout in its place.
 

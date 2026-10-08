@@ -65,6 +65,13 @@
       pkgs.glib
       pkgs.gdk-pixbuf
       pkgs.gobject-introspection
+      pkgs.graphene
+      pkgs.pango
+      pkgs.harfbuzz
+      pkgs.cairo
+      pkgs.freetype
+      pkgs.fontconfig
+      pkgs.wayland
     ];
     schemasPath = pkgs.lib.makeSearchPath "share/gsettings-schemas" [
       pkgs.gtk4
@@ -80,6 +87,7 @@
         --set GI_TYPELIB_PATH "$typelibPath" \
         --set GSETTINGS_SCHEMAS_PATH "$schemasPath" \
         --set XDG_DATA_DIRS "${pkgs.gtk4}/share:${pkgs.libadwaita}/share:${pkgs.glib}/share" \
+        --set GDK_PIXBUF_MODULE_FILE "${pkgs.gdk-pixbuf}/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache" \
         --add-flags "$out/share/hamra-setup/hamra-setup.py"
     '';
   };
