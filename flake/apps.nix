@@ -52,6 +52,22 @@
     flakeIgnore = ["E501" "E265" "W503"];
   } (builtins.readFile ../scripts/hamra-init.py);
 
+  hamraSetup = pkgs.stdenv.mkDerivation {
+    pname = "hamra-setup";
+    version = "0.1";
+    dontUnpack = true;
+    nativeBuildInputs = [pkgs.wrapGAppsHook4];
+    buildInputs = [pkgs.gtk4 pkgs.libadwaita pkgs.glib];
+    pythonEnv = pkgs.python3.withPackages (ps: [ps.pygobject3]);
+    installPhase = ''
+      mkdir -p $out/bin $out/share/hamra-setup
+      cp ${../scripts/hamra-setup.py} $out/share/hamra-setup/hamra-setup.py
+      cp ${../scripts/hamra-init.py} $out/share/hamra-setup/hamra-init.py
+      makeWrapper $pythonEnv/bin/python3 \
+        $out/bin/hamra-setup --add-flags "$out/share/hamra-setup/hamra-setup.py"
+    '';
+  };
+
   mkApps = fn: prefix:
     builtins.listToAttrs (map (h: {
         name = "${prefix}-${h}";
@@ -69,6 +85,14 @@ in {
         meta = {
           description = "Generate and validate a new Hamra host";
           mainProgram = "hamra-init";
+        };
+      };
+      hamra-setup = {
+        type = "app";
+        program = "${hamraSetup}/bin/hamra-setup";
+        meta = {
+          description = "Graphical installer for a new Hamra host (GTK4/libadwaita)";
+          mainProgram = "hamra-setup";
         };
       };
     };
