@@ -217,11 +217,11 @@
   }
   {
     key = "SUPER + ALT + mouse_up";
-    action = "Zoom in";
+    action = "Zoom out";
   }
   {
     key = "SUPER + ALT + mouse_down";
-    action = "Reset zoom";
+    action = "Zoom in";
   }
   {
     key = "ALT + L";
