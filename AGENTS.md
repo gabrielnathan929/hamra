@@ -1,129 +1,162 @@
-# Hamra — Regras do Projeto
+# Hamra — Project Rules
 
-Hamra é uma **biblioteca de configuração** NixOS + Home Manager. Cada programa é um
-"livro na prateleira": um arquivo autocontido que declara sua opção booleana e sua
-implementação. Para usar, basta ativar o toggle em `hosts/<host>/configuration.nix`.
+Hamra is a NixOS + Home Manager **configuration library**. Each program is a
+"book on the shelf": a self-contained file that declares its boolean option
+and its implementation. To use one, just enable the toggle in
+`hosts/<host>/configuration.nix`.
 
 ---
 
-## Regras
+## Rules
 
-### Sem comentários no código
+### No comments in code
 
-Não use comentários em `.nix`, scripts e configs. O código deve se explicar sozinho:
-nomes de arquivos, nomes de opções e `description` do `mkOption` cumprem esse papel.
-Documentação pertence aos `.md` (`README.md`, `SETUP.md`, `docs/`, este arquivo).
+Comments are forbidden in module code (modules/, scripts, configs) — code
+should explain itself: file names, option names and the `mkOption`
+`description` fulfill that role. Documentation belongs in the `.md` files
+(`README.md`, `SETUP.md`, `docs/`, this file). The single exception is
+hosts/common/: every file there carries a REQUIRED structured header comment
+documenting its options, in this exact format:
 
-### Camadas: NixOS vs Home
+```
+# <One-line summary.>
+#
+# Options:
+#   <option> - <What it does.> Supported: <values>.
+```
 
-Define o que entra em cada camada:
+The existing hosts/common/ files follow this pattern.
 
-| Camada | O que colocar | Exemplos |
+### Language
+
+English is the project standard for code, comments, documentation, commit
+messages and user-facing messages.
+
+### Layers: NixOS vs Home
+
+Defines what goes in each layer:
+
+| Layer | What to put there | Examples |
 |---|---|---|
-| **NixOS** (`modules/nixos/programs/{core,optionals}/`) | Toggle modules de programas — instalação de pacote, daemon systemd, firewall, grupo de usuário, permissões de hardware | `core/cli/grim`, `optionals/games/steam`, `core/noctalia/gpu-screen-recorder` |
-| **Home** (`modules/home/programs/`) | Apenas lógicas de configuração declarativa HM (`programs.foo`), config de shell/terminal/editor | zsh, foot, starship, aliases, neovim |
+| **NixOS** (`modules/nixos/programs/{core,optionals}/`) | Program toggle modules — package installation, systemd daemon, firewall, user group, hardware permissions | `core/cli/grim`, `optionals/games/steam`, `core/noctalia/gpu-screen-recorder` |
+| **Home** (`modules/home/programs/`) | Only declarative HM configuration logic (`programs.foo`), shell/terminal/editor config | zsh, foot, starship, aliases, neovim |
 
-➡ Toda instalação de pacote vai no NixOS. Home é só para config.
+➡ All package installation goes in NixOS. Home is for config only.
 
-### Categorias por forma do app
+### Categories by app shape
 
-A categoria descreve **como o app se apresenta**, não o domínio de uso:
+The category describes **how the app presents itself**, not its domain of use:
 
-| Pasta | Critério | Exemplos |
+| Folder | Criterion | Examples |
 |---|---|---|
-| `gui/` | Abre janela | navegadores, vscode, discord, bitwarden, obsidian, kodi, nautilus |
-| `tui/` | Interface dentro do terminal | btop, lazygit, yazi, lazydocker, cliamp |
-| `cli/` | Linha de comando / toolchain | git, ripgrep, fd, jq, gcc, python3, rclone |
-| `services/` | Daemon / integração do sistema | samba, docker, appimage, wayvnc, xdg, gtk |
-| `media/` | Player e criação de mídia | mpv, spotify, spicetify, obs |
-| `games/` | Jogos e launchers | steam, pcsx2, heroic, lutris |
+| `gui/` | Opens a window | browsers, vscode, discord, bitwarden, obsidian, kodi, nautilus |
+| `tui/` | Interface inside the terminal | btop, lazygit, yazi, lazydocker, cliamp |
+| `cli/` | Command line / toolchain | git, ripgrep, fd, jq, gcc, python3, rclone |
+| `services/` | Daemon / system integration | samba, docker, appimage, wayvnc, xdg, gtk |
+| `media/` | Media playback and creation | mpv, spotify, spicetify, obs |
+| `games/` | Games and launchers | steam, pcsx2, heroic, lutris |
 
-Mantidas por especificidade: `core/noctalia/` (integração com o shell Noctalia) e
-`core/scripts/` (scripts próprios do repo). Não crie subcategoria para 1 arquivo;
-não crie gaveta genérica tipo "utility".
+Kept for specificity: `core/noctalia/` (Noctalia shell integration) and
+`core/scripts/` (the repo's own scripts). Do not create a subcategory for
+1 file; do not create a generic catch-all like "utility".
 
-### Core vs Opcional
+### Core vs Optional
 
-Toggle modules são categorizados em dois tiers:
+Toggle modules are categorized into two tiers:
 
-| Tier | `default` | Critério |
+| Tier | `default` | Criterion |
 |---|---|---|
-| **Core** (infraestrutura) | `true` | Dependência de scripts, chamado em keybinds, utilitário recorrente do desktop, parte da base do ambiente. Exceções com `false`: `cli/git`, `gui/thunar` |
-| **Opcional** (escolha pessoal) | `false` | Não quebra nada se desligado — agentes de IA, jogos, IDEs, players de mídia, ferramentas de segurança |
+| **Core** (infrastructure) | `true` | Dependency of scripts, called in keybinds, recurring desktop utility, part of the environment's base. Exceptions with `false`: `cli/git`, `gui/thunar` |
+| **Optional** (personal choice) | `false` | Nothing breaks if turned off — AI agents, games, IDEs, media players, security tools |
 
-Programas core podem ser desligados explicitamente por quem quiser um ambiente mais enxuto.
+Core programs can be explicitly disabled by anyone wanting a leaner
+environment.
 
 ### mise vs Nix
 
-O usuário mantém ferramentas de dev em `latest` via **mise** (`core/cli/mise`)
-e pode ter a mesma ferramenta instalada por toggle Nix ao mesmo tempo — não é
-duplicata proibida, os contextos são diferentes. Precedência de PATH: no
-shell interativo o hook do mise (`mise activate` via `enableZshIntegration`)
-mantém os shims na frente, então `mise use -g` sempre vence o store do Nix;
-fora do shell (daemons, desktop entries, serviços) só existe a versão Nix.
-Se um host não quiser a versão mise de alguma ferramenta, basta não instalar
-via mise — o toggle Nix serve como base/fallback.
+The user keeps dev tools at `latest` via **mise** (`core/cli/mise`) and may
+have the same tool installed by a Nix toggle at the same time — it is not a
+forbidden duplicate, the contexts are different. PATH precedence: in the
+interactive shell the mise hook (`mise activate` via `enableZshIntegration`)
+keeps the shims in front, so `mise use -g` always wins over the Nix store;
+outside the shell (daemons, desktop entries, services) only the Nix version
+exists. If a host does not want the mise version of a tool, simply do not
+install it via mise — the Nix toggle serves as the base/fallback.
 
-### Apps por fonte (Nix, mise, flatpak, webapps)
+### Apps by source (Nix, mise, flatpak, webapps)
 
-O comando **`hamra-apps`** (toggle `core/scripts/apps`, default `true`) lista o que
-está instalado e o que pode ser instalado, com a fonte de cada item:
+The **`hamra-apps`** command (toggle `core/scripts/apps`, default `true`)
+lists what is installed and what can be installed, with the source of each
+item:
 
-- `hamra-apps` — tudo; `hamra-apps -v go` — filtrar por nome; `hamra-apps --help`
-- Instalados via Nix: pacotes do NixOS + `home.packages` do Home Manager (lidos do
-  manifest `/etc/hamra/apps.json`, gerado no build)
-- Disponíveis via mise: `mise ls --json` + o catálogo declarado em `hamra.mise.tools`
-- Flatpak: `flatpak list` (system e user) + os declarados em `hamra.flatpak.apps`
+- `hamra-apps` — everything; `hamra-apps -v go` — filter by name; `hamra-apps --help`
+- Installed via Nix: NixOS packages + Home Manager `home.packages` (read from
+  the `/etc/hamra/apps.json` manifest, generated at build)
+- Available via mise: `mise ls --json` + the catalog declared in `hamra.mise.tools`
+- Flatpak: `flatpak list` (system and user) + those declared in `hamra.flatpak.apps`
 
-Apps podem ser pré-setados no Nix (pode ser usado junto do modo imperativo):
+Apps can be pre-set in Nix (can be used alongside the imperative mode):
 
-| Opção | O que faz | Formato |
+| Option | What it does | Format |
 |---|---|---|
-| `hamra.mise.tools` | tools do mise (via HM `globalConfig`) | `{ go = "latest"; node = ["lts" "22"]; }` |
-| `hamra.mise.env` | seção `[env]` do mise | `{ _.path = ["~/.opencode/bin"]; }` |
-| `hamra.mise.settings` | seção `[settings]` do mise | `{ github_attestations = false; }` |
-| `hamra.flatpak.apps` | instala via oneshot `hamra-flatpak` na ativação | `[ "app.dvd.DVDStyler" ]` |
-| `hamra.webapps` | gera wrapper + `.desktop` de app web | `{ notion = { url = "..."; desktopName = "Notion"; }; }` |
+| `hamra.mise.tools` | mise tools (via HM `globalConfig`) | `{ go = "latest"; node = ["lts" "22"]; }` |
+| `hamra.mise.env` | mise `[env]` section | `{ _.path = ["~/.opencode/bin"]; }` |
+| `hamra.mise.settings` | mise `[settings]` section | `{ github_attestations = false; }` |
+| `hamra.flatpak.apps` | installs via `hamra-flatpak` oneshot on activation | `[ "app.dvd.DVDStyler" ]` |
+| `hamra.webapps` | generates a wrapper + `.desktop` for a web app | `{ notion = { url = "..."; desktopName = "Notion"; }; }` |
 
-As opções do mise exigem o toggle `core/cli/mise` ligado (assertion em build);
-as flatpak e webapps exigem seus módulos. `hamra.webapps.<nome>.icon` exige
-`iconHash`. O toggle `optionals/gui/notion` é um thin wrapper sobre
+The mise options require the `core/cli/mise` toggle enabled (build assertion);
+the flatpak and webapps ones require their modules. `hamra.webapps.<name>.icon`
+requires `iconHash`. The `optionals/gui/notion` toggle is a thin wrapper over
 `hamra.webapps.notion`.
 
-O HM escreve **um único** `~/.config/mise/config.toml` a partir de
-`hamra.mise.{tools,env,settings}`. Como o arquivo vira symlink para o store,
-não edite à mão: declaração imperativa e declarativa não convivem — escolha um
-dos dois, ou o build falha com "Existing file would be clobbered".
+HM writes a **single** `~/.config/mise/config.toml` from
+`hamra.mise.{tools,env,settings}`. Since the file becomes a symlink into the
+store, do not edit it by hand: imperative and declarative management do not
+coexist — pick one, or the build fails with "Existing file would be clobbered".
 
-Tools fora do registry padrão usam o backend completo como chave:
+Tools outside the default registry use the full backend as the key:
 `"github:herdrdev/herdr" = "latest"`.
 
-O `github_attestations = false` é workaround para o mise 2026.5.12 do nixpkgs,
-que falha na verificação de attestations (bug de timestamp do Sigstore,
-corrigido no 2026.10+). Sobe quando o input `nixpkgs` passar disso.
+`github_attestations = false` is a workaround for mise 2026.5.12 from nixpkgs,
+which fails attestation verification (a Sigstore timestamp bug, fixed in
+2026.10+). Remove it once the `nixpkgs` input is past that.
 
-### Perfil comum dos hosts (`hosts/common/`)
+### Layers: shared baseline, personal profile, host deltas
 
-Todo host importa `hosts/common` e declara apenas **deltas** (o que difere do padrão).
-O common define env padrão e os optionals de uso pessoal — todos como `true`,
-envolvidos em `lib.mkDefault` para qualquer host poder sobrescrever sem conflito.
+Configuration is split in three layers, merged by NixOS option priority —
+each knob lives in exactly one place:
 
-- Toggle novo em uso em todo host → adicione `= true` no common.
-- Host não quer algo do common → declare `= false` no `configuration.nix` dele
-  (ex.: um host com `desktop.default = "gnome"` precisa de `wayvnc = false`,
-  pois a assertion exige Hyprland/Sway).
-- Host quer algo fora do common → declare `= true` nele.
-- **Papel de host ≠ preferência pessoal:** `samba`, `wayvnc`, `tigervnc` dizem
-  *quem a máquina é* (NAS, VNC server), não *o que você gosta de usar*. Eles
-  ficam `false` no common (ou inexistentes lá) e ligam como delta só no host
-  que desempenha o papel (ex.: `acer` é o NAS → `services.samba = true`
-  nele). Um host novo criado pelo `setup-nas.sh` NÃO deve virar NAS por
-  acidente ao importar o common.
+| Layer | Path | Priority | Contents |
+|---|---|---|---|
+| Shared baseline | `hosts/common/` | `hamraLib.mkBase` (1000) | system defaults (boot, audio, security, hardware, login, keyboard). No personal values. |
+| Personal profile | `hosts/profiles/<owner>/` | `mkDefault` (900) | username, locale, theme, env apps, mise tools, app toggles, HM toggles |
+| Host | `hosts/<machine>/` | plain (100) | identity (hostname, GPU, desktop), hardware, host roles and exceptions |
+
+Rules:
+- A host imports `../common` **and** a profile (`../profiles/<owner>`), then
+  declares only machine deltas — each line in a host file is a decision.
+- Turn off a profile app on one machine → plain `= false` on that host.
+- Turn on something everywhere → set it once in the profile.
+- Change a system default for the whole fleet → `hosts/common/`.
+- **Host role ≠ personal preference:** `samba`, `wayvnc`, `tigervnc` say
+  *who the machine is* (NAS, VNC server) and live on hosts, not in profiles
+  (e.g. `acer` is the NAS → `services.samba = true` on it). A new host created
+  by `setup-nas.sh` must NOT become a NAS by accident.
+
+Fork contract: hardware and personal options **never flow upstream**. Forks
+create `hosts/profiles/<your-name>/` (copy an existing profile) and their
+own `hosts/<machine>/` folders and keep them in their fork — they are never
+submitted in PRs. Contributions are the library only (`modules/`,
+`hosts/common/`, `flake/`, `docs/`), so pulls stay conflict-free and every
+person's choices stay free. CI enforces this with the `personal-layer guard`
+job (PRs touching `hosts/<machine>/` config/hardware or `hosts/profiles/`
+fail unless a maintainer adds the `personal-layer` label).
 
 ### Toggle module (NixOS)
 
-Um arquivo por programa. Declara opção + implementação juntas. O `scanPaths` do
-`default.nix` da categoria descobre automaticamente.
+One file per program. Declares the option + implementation together. The
+`scanPaths` in the category's `default.nix` discovers them automatically.
 
 ```nix
 {config, lib, pkgs, ...}: let
@@ -142,22 +175,24 @@ in {
 }
 ```
 
-- Core: `options.hamra.programs.core.<categoria>.<nome>`
-- Opcional: `options.hamra.programs.optionals.<categoria>.<nome>`
-- Usuário (Home Manager): `options.hamra.home.programs.<categoria>.<nome>`
-- Nomes com hífen precisam de aspas: `"docker-compose"`
-- O caminho da opção deve bater com a localização do arquivo:
+- Core: `options.hamra.programs.core.<category>.<name>`
+- Optional: `options.hamra.programs.optionals.<category>.<name>`
+- User (Home Manager): `options.hamra.home.programs.<category>.<name>`
+- Hyphenated names need quotes: `"docker-compose"`
+- The option path must match the file location:
   `optionals/tui/yazi.nix` → `optionals.tui.yazi`
 
-### Nada de estrutura de pastas no código
+### No hardcoded folder structure in code
 
-Não confie em caminhos fixos. Use `scanPaths` para auto-import sempre que possível.
-Se um módulo precisa importar outro, use caminho relativo ao arquivo atual.
+Do not rely on fixed paths. Use `scanPaths` for auto-import whenever
+possible. If a module needs to import another, use a path relative to the
+current file.
 
-### Portal XDG
+### XDG portal
 
-Cada desktop define seu próprio portal no `compositor.nix` — cada desktop é
-auto-suficiente. O toggle `core/services/xdg` cuida só de user dirs, MIME e gvfs.
+Each desktop defines its own portal in `compositor.nix` — each desktop is
+self-contained. The `core/services/xdg` toggle only handles user dirs, MIME
+and gvfs.
 
 - Hyprland → `xdg-desktop-portal-hyprland`
 - Sway → `xdg-desktop-portal-wlr`
@@ -165,87 +200,91 @@ auto-suficiente. O toggle `core/services/xdg` cuida só de user dirs, MIME e gvf
 
 ### Hardware
 
-Opções de hardware (GPU, firmware, bluetooth, touchpad, brightness) são
-declaradas em módulos específicos, não num `options.nix` central.
+Hardware options (GPU, firmware, bluetooth, touchpad, brightness) are
+declared in specific modules, not in a central `options.nix`.
 
-### Tema
+### Theme
 
-Cada tema define wallpaper + profile icon para Noctalia e Silent SDDM.
-O toggle `hamra.theme.name` troca tudo automaticamente. Tema default: `resident-evil`.
+Each theme defines wallpaper + profile icon for Noctalia and Silent SDDM.
+The `hamra.theme.name` toggle switches everything automatically. Default
+theme: `resident-evil`.
 
-### Navegador padrão
+### Default browser
 
-O perfil comum define `browser = pkgs.chromium` (o default do módulo em
-`envs/env.nix` é `pkgs.helium`). Para trocar num host:
+The gabrielnathan profile sets `browser = pkgs.chromium` (the module
+default in `envs/env.nix` is `pkgs.helium`). To change it on a host:
 `hamra.env.browser = pkgs.firefox;`
 
-### Assertions em tempo de build
+### Build-time assertions
 
-Validações em `core/assertions.nix`: bootloader, GPU, firmware, áudio, desktop e
-display manager dentro dos ranges; tema existente na lista; locale com `.UTF-8`;
-campos obrigatórios preenchidos; WayVNC só com Hyprland ou Sway.
+Validations in `core/assertions.nix`: bootloader, GPU, firmware, audio,
+desktop and display manager within their ranges; theme exists in the list;
+locale with `.UTF-8`; required fields filled in; WayVNC only with Hyprland
+or Sway.
 
 ### NAS / Samba
 
-O toggle `hamra.programs.optionals.services.samba` transforma o host em NAS SMB
-(3 shares: `shared`, `games`, `backups`). Pastas criadas via `systemd.tmpfiles.rules`.
-Os shares têm **lixeira automática** (VFS `recycle`): arquivos apagados via SMB
-vão para a pasta oculta `.trash` de cada share, guardando a estrutura e versões.
-Limitações: não protege contra `rm` direto no servidor; é para-choque contra
-acidente, não backup. Guia: seção 9 de `docs/nas-iniciantes.md`.
+The `hamra.programs.optionals.services.samba` toggle turns the host into an
+SMB NAS (3 shares: `shared`, `games`, `backups`). Folders are created via
+`systemd.tmpfiles.rules`. The shares have an **automatic trash bin** (VFS
+`recycle`): files deleted over SMB go to the hidden `.trash` folder of each
+share, keeping the structure and file versions. Limitations: it does not
+protect against a direct `rm` on the server; it is a bumper against
+accidents, not a backup. Guide: section 9 of `docs/nas-iniciantes.md`.
 
-A senha Samba é gerenciada pelo **sops-nix**: segredo em `secrets/samba.yaml`
-(criptografado) aplicado automaticamente pelo `system.activationScripts.sync-samba-password`
-(o script usa `stringAfter ["setupSecrets"]` para rodar depois do sops-nix).
-Setup de chaves e uso no cliente: ver `README.md`/seção NAS.
+The Samba password is managed by **sops-nix**: the secret in
+`secrets/samba.yaml` (encrypted) is applied automatically by
+`system.activationScripts.sync-samba-password`
+(the script uses `stringAfter ["setupSecrets"]` to run after sops-nix).
+Key setup and client-side usage: see `README.md`/NAS section.
 
-### Novo PC / novo usuário (assistente para leigos)
+### New PC / new user (beginner-friendly assistant)
 
-Para replicar o NAS em QUALQUER PC sem conhecer criptografia/NixOS, existe o
-`scripts/setup-nas.sh` (instalado como comando `setup-nas` pelo toggle
-`core/scripts/setup-nas`). Ele cria a estrutura do host, gera/registra chaves
-no `.sops.yaml`, cria a senha própria do usuário em `secrets/samba.yaml`
-(criptografada) e aplica o rebuild — explicando cada passo e como resolver
-erros. O `configuration.nix` gerado herda do `hosts/common`. Modos: `--check`,
-`--mostrar-senha`, `--reset-senha`, `--ajuda`.
-Guia completo: `docs/nas-iniciantes.md`.
+To replicate the NAS on ANY PC without knowing encryption/NixOS, there is
+`scripts/setup-nas.sh` (installed as the `setup-nas` command by the
+`core/scripts/setup-nas` toggle). It creates the host structure,
+generates/registers keys in `.sops.yaml`, creates the user's own password in
+`secrets/samba.yaml` (encrypted) and applies the rebuild — explaining each
+step and how to fix errors. The generated `configuration.nix` imports
+`hosts/common` plus a profile under `hosts/profiles/`. Modes: `--check`, `--mostrar-senha`, `--reset-senha`,
+`--ajuda`. Full guide: `docs/nas-iniciantes.md`.
 
-### Segredos (sops-nix)
+### Secrets (sops-nix)
 
-- Segredos ficam **criptografados** em `secrets/*.yaml` no repositório.
-- Chaves (edição + decriptação por host) ficam no `.sops.yaml` na raiz.
-- Chave de edição: `~/.config/sops/age/keys.txt` (gerada com `age-keygen`).
-- Chave de cada host: `cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age`
-- Novo host com segredo → adicionar pubkey no `.sops.yaml` + `nix develop --command sops updatekeys secrets/<arquivo>`.
-- Editar um segredo: `nix develop --command sops secrets/<arquivo>`.
-- Nunca commitar chaves privadas nem valores em claro.
+- Secrets are stored **encrypted** in `secrets/*.yaml` in the repository.
+- Keys (editing + per-host decryption) live in `.sops.yaml` at the root.
+- Editing key: `~/.config/sops/age/keys.txt` (generated with `age-keygen`).
+- Per-host key: `cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age`
+- New host with a secret → add the pubkey to `.sops.yaml` + `nix develop --command sops updatekeys secrets/<file>`.
+- Edit a secret: `nix develop --command sops secrets/<file>`.
+- Never commit private keys or plaintext values.
 
 ---
 
-## CI e qualidade
+## CI and quality
 
-O repositório tem três checks no GitHub Actions:
+The repository has three checks on GitHub Actions:
 
-| Check | O que faz | Como evitar falha |
+| Check | What it does | How to avoid failure |
 |---|---|---|
-| Formatação | `alejandra --check .` | `nix fmt` antes de commitar |
-| Avaliação | `nix flake check` | `nix flake check` localmente |
+| Formatting | `alejandra --check .` | `nix fmt` before committing |
+| Evaluation | `nix flake check` | `nix flake check` locally |
 | Lint | `statix` + `deadnix` | `nix develop --command statix check . && nix develop --command deadnix .` |
 
-### Dicas
+### Tips
 
-1. **`nix fmt`** antes de todo commit
-2. **Agrupe chaves repetidas:** prefira `boot = { initrd.availableKernelModules = [...]; kernelModules = [...]; };` a duas linhas soltas
-3. **`hardware-configuration.nix`:** pode reestruturar (agrupar chaves), mas não mude UUIDs/dispositivos
-4. **Argumentos vazios:** use `_:` em vez de `{ }:` quando a função não usa argumentos
-5. **`inherit`:** prefira `inherit (nixpkgs) lib;` em vez de `lib = nixpkgs.lib;`
+1. **`nix fmt`** before every commit
+2. **Group repeated keys:** prefer `boot = { initrd.availableKernelModules = [...]; kernelModules = [...]; };` over two loose lines
+3. **`hardware-configuration.nix`:** you may restructure it (group keys), but do not change UUIDs/devices
+4. **Empty arguments:** use `_:` instead of `{ }:` when the function takes no arguments
+5. **`inherit`:** prefer `inherit (nixpkgs) lib;` over `lib = nixpkgs.lib;`
 
-### Comandos úteis
+### Useful commands
 
-| Comando | O que faz |
+| Command | What it does |
 |---|---|
-| `nix fmt` | Formata todos os `.nix` com alejandra |
-| `nix develop` | Entra no devShell com ferramentas |
-| `nix flake check` | Avalia a flake completa |
-| `nix develop --command statix check .` | Roda o linter |
-| `nix develop --command deadnix .` | Verifica código morto |
+| `nix fmt` | Formats all `.nix` files with alejandra |
+| `nix develop` | Enters the devShell with tools |
+| `nix flake check` | Evaluates the entire flake |
+| `nix develop --command statix check .` | Runs the linter |
+| `nix develop --command deadnix .` | Checks for dead code |

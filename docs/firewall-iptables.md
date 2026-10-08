@@ -1,271 +1,271 @@
-# Firewall com iptables — Guia Prático
+# Firewall with iptables — A Practical Guide
 
-## Índice
+## Table of Contents
 
-- [Conceitos Básicos](#conceitos-básicos)
-- [Estrutura do iptables](#estrutura-do-iptables)
-- [Caso Real: Liberar Porta para Acesso Externo](#caso-real-liberar-porta-para-acesso-externo)
-- [Comandos Essenciais](#comandos-essenciais)
-- [Cenários Comuns](#cenários-comuns)
-- [Persistência das Regras](#persistência-das-regras)
+- [Basic Concepts](#basic-concepts)
+- [iptables Structure](#iptables-structure)
+- [Real Case: Opening a Port for External Access](#real-case-opening-a-port-for-external-access)
+- [Essential Commands](#essential-commands)
+- [Common Scenarios](#common-scenarios)
+- [Rule Persistence](#rule-persistence)
 - [Troubleshooting](#troubleshooting)
 
 ---
 
-## Conceitos Básicos
+## Basic Concepts
 
-iptables é um firewall de filtro de pacotes do Linux. Ele organiza regras em **chains** (cadeias) dentro de **tables** (tabelas). A tabela mais usada é a `filter`, que controla se um pacote passa ou é bloqueado.
+iptables is a Linux packet-filtering firewall. It organizes rules into **chains** inside **tables**. The most used table is `filter`, which controls whether a packet passes or gets blocked.
 
-### Tables principais
+### Main tables
 
-| Tabela | Função |
+| Table | Function |
 |---|---|
-| `filter` | Filtro de pacotes (ACEITAR, REJEITAR, DROPAR) |
-| `nat` | Tradução de endereços (NAT, redirecionamento) |
-| `mangle` | Modificação de cabeçalhos dos pacotes |
+| `filter` | Packet filtering (ACCEPT, REJECT, DROP) |
+| `nat` | Address translation (NAT, redirection) |
+| `mangle` | Packet header modification |
 
-> 95% dos casos do dia a dia usam apenas a tabela `filter`.
+> 95% of day-to-day cases use only the `filter` table.
 
-### Chains padrão da tabela filter
+### Default chains of the filter table
 
-| Chain | Direção | Descrição |
+| Chain | Direction | Description |
 |---|---|---|
-| `INPUT` | Pacotes **recebidos** pelo servidor | Controle de acesso ao servidor |
-| `OUTPUT` | Pacotes **enviados** pelo servidor | Liberação de saída |
-| `FORWARD` | Pacotes **encaminhados** pelo servidor | Roteamento |
+| `INPUT` | Packets **received** by the server | Server access control |
+| `OUTPUT` | Packets **sent** by the server | Outbound traffic control |
+| `FORWARD` | Packets **forwarded** by the server | Routing |
 
-### Alvos (targets)
+### Targets
 
-| Alvo | Efeito |
+| Target | Effect |
 |---|---|
-| `ACCEPT` | Permite o pacote |
-| `DROP` | Descarta o pacote (sem resposta) |
-| `REJECT` | Rejeita o pacote (responde com erro) |
-| `LOG` | Registra o pacote nos logs |
-| `RETURN` | Volta para a chain anterior |
+| `ACCEPT` | Allows the packet |
+| `DROP` | Discards the packet (no response) |
+| `REJECT` | Rejects the packet (responds with an error) |
+| `LOG` | Logs the packet |
+| `RETURN` | Returns to the previous chain |
 
 ---
 
-## Estrutura do iptables
+## iptables Structure
 
-As regras são avaliadas em **ordem sequencial**, de cima para baixo. A primeira regra que corresponde ao pacote é executada. Se nenhuma regra corresponder, a **política padrão** (default policy) da chain é aplicada.
+Rules are evaluated in **sequential order**, top to bottom. The first rule that matches the packet is executed. If no rule matches, the chain's **default policy** is applied.
 
 ```
-INÍCIO
+START
   │
-  ├── Regra 1: corresponde? ──SIM──> AÇÃO (ACCEPT/DROP/...)
+  ├── Rule 1: matches? ──YES──> ACTION (ACCEPT/DROP/...)
   │
-  ├── Regra 2: corresponde? ──SIM──> AÇÃO
+  ├── Rule 2: matches? ──YES──> ACTION
   │
   ├── ...
   │
-  └── Nenhuma? ──> POLÍTICA PADRÃO
+  └── None? ──> DEFAULT POLICY
 ```
 
-> **A ordem das regras é crítica.** Uma regra de DROP no começo impede que qualquer regra de ACCEPT abaixo dela seja executada para aquele tráfego.
+> **Rule order is critical.** A DROP rule at the beginning prevents any ACCEPT rule below it from running for that traffic.
 
-### Exemplo de estrutura real
+### Example of a real structure
 
 ```
 Chain INPUT (policy ACCEPT)
 target     prot opt source         destination
-fw-custom  all  --  0.0.0.0/0      0.0.0.0/0       ← pula para chain personalizada
+fw-custom  all  --  0.0.0.0/0      0.0.0.0/0       ← jumps to a custom chain
 
 Chain fw-custom
 accept-all     all    --  0.0.0.0/0      0.0.0.0/0
 accept-all     all    --  0.0.0.0/0      0.0.0.0/0       ctstate RELATED,ESTABLISHED
 accept-all     tcp    --  0.0.0.0/0      0.0.0.0/0       tcp dpt:22
-log-and-refuse all    --  0.0.0.0/0      0.0.0.0/0       ← captura tudo que não foi aceito
-refuse-all     all    --  0.0.0.0/0      0.0.0.0/0       ← DROP final
+log-and-refuse all    --  0.0.0.0/0      0.0.0.0/0       ← catches everything not accepted
+refuse-all     all    --  0.0.0.0/0      0.0.0.0/0       ← final DROP
 
-Chain accept-all (várias referências)
+Chain accept-all (multiple references)
 ACCEPT     all  --  0.0.0.0/0      0.0.0.0/0
 
-Chain refuse-all (várias referências)
+Chain refuse-all (multiple references)
 DROP       all  --  0.0.0.0/0      0.0.0.0/0
 ```
 
 ---
 
-## Caso Real: Liberar Porta para Acesso Externo
+## Real Case: Opening a Port for External Access
 
-### Problema
+### Problem
 
-Um servidor web (Go, Node, Python, etc.) roda na porta `8080` e está acessível via `localhost`, mas dispositivos externos na mesma rede (celular, outro PC) recebem `ERR_TIMED_OUT`.
+A web server (Go, Node, Python, etc.) runs on port `8080` and is reachable via `localhost`, but external devices on the same network (phone, another PC) get `ERR_TIMED_OUT`.
 
-### Causa
+### Cause
 
-O firewall bloqueia conexões TCP de entrada na porta `8080`. O `curl` local funciona porque o firewall não bloqueia conexões originadas da própria máquina (elas passam pelo `OUTPUT`, não pelo `INPUT`).
+The firewall blocks incoming TCP connections on port `8080`. Local `curl` works because the firewall doesn't block connections originating from the machine itself (they go through `OUTPUT`, not `INPUT`).
 
-### Diagnóstico
+### Diagnosis
 
 ```bash
-# Verificar se o servidor está escutando na porta correta
-# O *:PORTA significa que escuta em todas as interfaces
+# Check whether the server is listening on the right port
+# *:PORT means it listens on all interfaces
 ss -tlnp | grep 8080
-# Exemplo de saída: LISTEN 0 4096 *:8080 *:* users:(("main",pid=1234,fd=4))
+# Example output: LISTEN 0 4096 *:8080 *:* users:(("main",pid=1234,fd=4))
 
-# Listar regras do firewall
+# List firewall rules
 iptables -L -n --line-numbers
 
-# Foco no chain INPUT e sub-chains
+# Focus on the INPUT chain and sub-chains
 iptables -L INPUT -n --line-numbers
 ```
 
-### Solução
+### Solution
 
 ```bash
-# Liberar porta TCP para qualquer origem
-sudo iptables -I INPUT <POSICAO> -p tcp --dport 8080 -j ACCEPT
+# Open a TCP port for any source
+sudo iptables -I INPUT <POSITION> -p tcp --dport 8080 -j ACCEPT
 
-# Exemplo: inserir na posição 1 (antes de qualquer regra restritiva)
+# Example: insert at position 1 (before any restrictive rule)
 sudo iptables -I INPUT 1 -p tcp --dport 8080 -j ACCEPT
 ```
 
-### Erro comum
+### Common mistake
 
-Adicionar a regra no **final** da chain com `-A` em vez de inserir com `-I`. Se a chain tem uma regra de DROP no final, a regra adicionada depois nunca é alcançada:
+Adding the rule at the **end** of the chain with `-A` instead of inserting it with `-I`. If the chain has a DROP rule at the end, the rule added after it is never reached:
 
 ```bash
-# ERRADO: regra fica depois do DROP e nunca é executada
+# WRONG: the rule lands after the DROP and never runs
 sudo iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
 
-# CORRETO: inserir antes da regra de DROP
+# CORRECT: insert before the DROP rule
 sudo iptables -I INPUT 1 -p tcp --dport 8080 -j ACCEPT
 ```
 
 ---
 
-## Comandos Essenciais
+## Essential Commands
 
-### Visualização
+### Viewing
 
 ```bash
-# Listar regras com números de linha (útil para diagnóstico)
+# List rules with line numbers (useful for diagnosis)
 sudo iptables -L -n --line-numbers
 
-# Listar apenas o chain INPUT
+# List only the INPUT chain
 sudo iptables -L INPUT -n --line-numbers
 
-# Listar com volume de tráfego (-v)
+# List with traffic volume (-v)
 sudo iptables -L -n -v
 
-# Ver regras em formato de comando (restaurável)
+# See rules in command format (restorable)
 sudo iptables-save
 ```
 
-### Gerenciamento de regras
+### Rule management
 
 ```bash
-# Inserir regra em posição específica
-sudo iptables -I <CHAIN> <POSICAO> -p <PROTO> --dport <PORTA> -j <ACAO>
+# Insert rule at a specific position
+sudo iptables -I <CHAIN> <POSITION> -p <PROTO> --dport <PORT> -j <ACTION>
 
-# Adicionar regra no final da chain
-sudo iptables -A <CHAIN> -p <PROTO> --dport <PORTA> -j <ACAO>
+# Add rule at the end of the chain
+sudo iptables -A <CHAIN> -p <PROTO> --dport <PORT> -j <ACTION>
 
-# Remover regra por número
-sudo iptables -D <CHAIN> <NUMERO>
+# Remove rule by number
+sudo iptables -D <CHAIN> <NUMBER>
 
-# Remover regra por correspondência exata
-sudo iptables -D <CHAIN> -p <PROTO> --dport <PORTA> -j <ACAO>
+# Remove rule by exact match
+sudo iptables -D <CHAIN> -p <PROTO> --dport <PORT> -j <ACTION>
 
-# Substituir regra em uma posição
-sudo iptables -R <CHAIN> <NUMERO> -p <PROTO> --dport <PORTA> -j <ACAO>
+# Replace a rule at a position
+sudo iptables -R <CHAIN> <NUMBER> -p <PROTO> --dport <PORT> -j <ACTION>
 
-# Limpar todas as regras da tabela filter
+# Flush all rules from the filter table
 sudo iptables -F
 
-# Limpar apenas uma chain
+# Flush just one chain
 sudo iptables -F <CHAIN>
 ```
 
-### Flags (parâmetros)
+### Flags (parameters)
 
-| Flag | Significado | Exemplo |
+| Flag | Meaning | Example |
 |---|---|---|
-| `-p` | Protocolo | `tcp`, `udp`, `icmp`, `all` |
-| `--dport` | Porta de destino | `8080`, `22`, `3000:3100` (range) |
-| `--sport` | Porta de origem | `1024:65535` |
-| `-s` | IP/CIDR de origem | `192.168.1.100`, `10.0.0.0/24` |
-| `-d` | IP/CIDR de destino | `0.0.0.0/0` (todos) |
-| `-i` | Interface de entrada | `eth0`, `wlp0s20f3` |
-| `-o` | Interface de saída | `eth0` |
-| `-j` | Alvo (target) | `ACCEPT`, `DROP`, `REJECT` |
-| `-I` | Inserir em posição | `-I INPUT 3` |
-| `-A` | Adicionar ao final | `-A INPUT` |
-| `-D` | Deletar | `-D INPUT 5` |
-| `-R` | Substituir | `-R INPUT 3` |
-| `-F` | Limpar (flush) | `-F INPUT` |
-| `--line-numbers` | Mostrar números | `-L -n --line-numbers` |
-| `-n` | Resolução DNS desligada | `-L -n` (mais rápido) |
-| `-v` | Verboso (contadores) | `-L -n -v` |
+| `-p` | Protocol | `tcp`, `udp`, `icmp`, `all` |
+| `--dport` | Destination port | `8080`, `22`, `3000:3100` (range) |
+| `--sport` | Source port | `1024:65535` |
+| `-s` | Source IP/CIDR | `192.168.1.100`, `10.0.0.0/24` |
+| `-d` | Destination IP/CIDR | `0.0.0.0/0` (all) |
+| `-i` | Inbound interface | `eth0`, `wlp0s20f3` |
+| `-o` | Outbound interface | `eth0` |
+| `-j` | Target | `ACCEPT`, `DROP`, `REJECT` |
+| `-I` | Insert at position | `-I INPUT 3` |
+| `-A` | Append to end | `-A INPUT` |
+| `-D` | Delete | `-D INPUT 5` |
+| `-R` | Replace | `-R INPUT 3` |
+| `-F` | Flush | `-F INPUT` |
+| `--line-numbers` | Show numbers | `-L -n --line-numbers` |
+| `-n` | DNS resolution off | `-L -n` (faster) |
+| `-v` | Verbose (counters) | `-L -n -v` |
 
 ---
 
-## Cenários Comuns
+## Common Scenarios
 
-### 1. Liberar uma porta TCP para qualquer origem
+### 1. Open a TCP port for any source
 
 ```bash
 sudo iptables -I INPUT 1 -p tcp --dport 3000 -j ACCEPT
 ```
 
-### 2. Liberar uma porta apenas para um IP específico
+### 2. Open a port only for a specific IP
 
 ```bash
 sudo iptables -I INPUT 1 -p tcp --dport 8080 -s 192.168.1.100 -j ACCEPT
 ```
 
-### 3. Liberar para uma sub-rede inteira
+### 3. Open for an entire subnet
 
 ```bash
 sudo iptables -I INPUT 1 -p tcp --dport 8080 -s 192.168.1.0/24 -j ACCEPT
 ```
 
-### 4. Bloquear um IP específico
+### 4. Block a specific IP
 
 ```bash
 sudo iptables -I INPUT 1 -s 10.0.0.50 -j DROP
 ```
 
-### 5. Liberar um range de portas
+### 5. Open a range of ports
 
 ```bash
 sudo iptables -I INPUT 1 -p tcp --dport 8000:8100 -j ACCEPT
 ```
 
-### 6. Liberar porta UDP
+### 6. Open a UDP port
 
 ```bash
 sudo iptables -I INPUT 1 -p udp --dport 5353 -j ACCEPT
 ```
 
-### 7. Liberar apenas para uma interface específica
+### 7. Open only for a specific interface
 
 ```bash
 sudo iptables -I INPUT 1 -p tcp --dport 8080 -i wlp0s20f3 -j ACCEPT
 ```
 
-### 8. Verificar se a porta está acessível de fora
+### 8. Check whether the port is reachable from outside
 
 ```bash
-# Teste local
+# Local test
 curl http://localhost:8080
 
-# Teste pelo IP da interface de rede
+# Test via the network interface's IP
 curl http://192.168.1.9:8080
 
-# De outro dispositivo na mesma rede
-# curl http://<IP_DO_SERVIDOR>:<PORTA>
+# From another device on the same network
+# curl http://<SERVER_IP>:<PORT>
 ```
 
 ---
 
-## Persistência das Regras
+## Rule Persistence
 
-Regras adicionadas com `iptables` manualmente são **voláteis** — desaparecem ao reiniciar o sistema.
+Rules added manually with `iptables` are **volatile** — they disappear when the system reboots.
 
-### Formas de persistir
+### Ways to persist them
 
 #### 1. NixOS
 
@@ -276,7 +276,7 @@ Regras adicionadas com `iptables` manualmente são **voláteis** — desaparecem
 }
 ```
 
-Aplicar com:
+Apply with:
 
 ```bash
 sudo nixos-rebuild switch
@@ -289,15 +289,15 @@ sudo apt install iptables-persistent
 sudo netfilter-persistent save
 ```
 
-#### 3. Script de inicialização (qualquer distro)
+#### 3. Startup script (any distro)
 
-Salvar as regras:
+Save the rules:
 
 ```bash
 sudo iptables-save > /etc/iptables.rules
 ```
 
-Restaurar no boot (via rc.local, systemd service, etc.):
+Restore at boot (via rc.local, systemd service, etc.):
 
 ```bash
 sudo iptables-restore < /etc/iptables.rules
@@ -307,36 +307,36 @@ sudo iptables-restore < /etc/iptables.rules
 
 ## Troubleshooting
 
-| Sintoma | Causa provável | Solução |
+| Symptom | Likely cause | Solution |
 |---|---|---|
-| `ERR_TIMED_OUT` | Firewall bloqueando a porta | Verificar `iptables -L -n --line-numbers` |
-| `ERR_CONNECTION_REFUSED` | Servidor não rodando ou porta errada | Verificar `ss -tlnp \| grep <PORTA>` |
-| `localhost` funciona, IP não | Firewall OU servidor escutando só em 127.0.0.1 | Verificar `ss -tlnp` (deve mostrar `*:PORTA`) |
-| Ping funciona, TCP não | Firewall bloqueando TCP | Verificar chains do iptables |
-| Regra adicionada mas sem efeito | Regra está depois de um DROP | Usar `-I` em vez de `-A` |
-| `Permission denied` | Falta sudo | Usar `sudo` antes do comando |
-| `No chain/target/match by that name` | Chain ou target não existe | Verificar nome com `iptables -L` |
+| `ERR_TIMED_OUT` | Firewall blocking the port | Check `iptables -L -n --line-numbers` |
+| `ERR_CONNECTION_REFUSED` | Server not running or wrong port | Check `ss -tlnp \| grep <PORT>` |
+| `localhost` works, IP doesn't | Firewall OR server listening only on 127.0.0.1 | Check `ss -tlnp` (should show `*:PORT`) |
+| Ping works, TCP doesn't | Firewall blocking TCP | Check the iptables chains |
+| Rule added but no effect | Rule sits after a DROP | Use `-I` instead of `-A` |
+| `Permission denied` | Missing sudo | Use `sudo` before the command |
+| `No chain/target/match by that name` | Chain or target doesn't exist | Check the name with `iptables -L` |
 
 ---
 
-## Diagrama de Fluxo rápido
+## Quick Flow Diagram
 
 ```
-Pacote chega ao servidor
-         │
-         ▼
-    Chain INPUT
-         │
-         ├── Regra ACCEPT? ──SIM──> PACOTE ACEITO
-         │
-         ├── Regra DROP? ──SIM──> PACOTE DESCARTADO
-         │
-         ├── Próxima regra...
-         │
-         └── Fim das regras?
-                 │
-                 ▼
-         Política padrão (policy)
-         ├── ACCEPT ──> PACOTE ACEITO
-         └── DROP ────> PACOTE DESCARTADO
+Packet arrives at the server
+          │
+          ▼
+     Chain INPUT
+          │
+          ├── ACCEPT rule? ──YES──> PACKET ACCEPTED
+          │
+          ├── DROP rule? ──YES──> PACKET DROPPED
+          │
+          ├── Next rule...
+          │
+          └── End of the rules?
+                  │
+                  ▼
+          Default policy
+          ├── ACCEPT ──> PACKET ACCEPTED
+          └── DROP ────> PACKET DROPPED
 ```

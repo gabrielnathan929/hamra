@@ -1,18 +1,18 @@
 ---
 name: Feature request
-about: Novo toggle, módulo ou melhoria
+about: New toggle, module, or improvement
 labels: enhancement
 ---
 
-## O que você quer
+## What you want
 
-<!-- Ex.: novo toggle, novo host, novo app. -->
+<!-- E.g. new toggle, new host, new app. -->
 
-## Por que
+## Why
 
-<!-- O caso de uso. Vale como opcional (default false) ou é core? -->
+<!-- The use case. Does it qualify as optional (default false) or is it core? -->
 
-## Caminho sugerido
+## Suggested path
 
-<!-- Se souber: modules/nixos/programs/<tier>/<categoria>/<nome>. —
-lembrando: caminho da opção replica o caminho do arquivo. -->
+<!-- If you know it: modules/nixos/programs/<tier>/<category>/<name>. —
+remember: the option path mirrors the file path. -->

@@ -1,20 +1,19 @@
-# Código de Conduta
+# Code of Conduct
 
-Este projeto segue o espírito do
+This project follows the spirit of the
 [Contributor Covenant 2.1](https://www.contributor-covenant.org/pt-br/version/2/1/code_of_conduct/):
 
-- Seja respeitoso e construtivo. Ataques pessoais, discriminação e assédio
-  não têm lugar aqui.
-- Crítica técnica é bem-vinda e faz parte do processo — o foco é sempre o
-  código, nunca a pessoa.
-- Respeite a privacidade alheia: nunca publique dados ou credenciais de
-  terceiros.
+- Be respectful and constructive. Personal attacks, discrimination, and
+  harassment have no place here.
+- Technical criticism is welcome and part of the process — the focus is
+  always the code, never the person.
+- Respect others' privacy: never publish third parties' data or credentials.
 
-## Aplicação
+## Enforcement
 
-Comportamento abusivo pode ser reportado em contato privado com o mantenedor
-(perfil no GitHub ou o e-mail do autor presente nos commits). Violações podem
-resultar em remoção de comentários, bloqueio temporário ou permanente de
-participação, conforme gravidade e recorrência.
+Abusive behavior can be reported by contacting the maintainer privately
+(GitHub profile or the author's email present in the commits). Violations
+may result in comment removal and temporary or permanent participation
+blocks, depending on severity and recurrence.
 
-Situações de segurança seguem o [`SECURITY.md`](SECURITY.md).
+Security situations follow [`SECURITY.md`](SECURITY.md).

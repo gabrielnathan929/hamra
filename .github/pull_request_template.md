@@ -1,37 +1,38 @@
-## Objetivo
+## Goal
 
-<!-- O que este PR faz, em uma frase. -->
+<!-- What this PR does, in one sentence. -->
 
-## Problema e causa
+## Problem and cause
 
-<!-- Qual era o comportamento errado e por quê. -->
+<!-- What the wrong behavior was and why. -->
 
-## Solução
+## Solution
 
-<!-- O que muda e onde. -->
+<!-- What changes and where. -->
 
-## Arquivos afetados
+## Affected files
 
-<!-- Liste os arquivos/grupos de arquivos. -->
+<!-- List the files/groups of files. -->
 
-## Riscos
+## Risks
 
-<!-- Hardware tocado? hosts/common? Segredos? Regressão possível? -->
+<!-- Hardware touched? hosts/common? Secrets? Possible regression? -->
 
-## Validação
+## Validation
 
 - [ ] `nix develop --command alejandra --check .`
 - [ ] `nix develop --command statix check .`
 - [ ] `nix develop --command deadnix .`
 - [ ] `nix flake check`
-- [ ] `nix run .#build-<host>` (se mudança estrutural)
-- [ ] `nixos-rebuild test` antes de `switch` (se mudança de sistema)
-- [ ] Toca `hosts/*/hardware-configuration.nix`? Justificar e validar na máquina alvo (`lsblk -f`)
+- [ ] `nix run .#build-<host>` (if structural change)
+- [ ] `nixos-rebuild test` before `switch` (if system change)
+- [ ] Touches `hosts/*/hardware-configuration.nix`? Justify and validate on the target machine (`lsblk -f`)
+- [ ] Does not touch personal layers (`hosts/<machine>/` configs, `hosts/profiles/`) — they stay in forks
 
-## Impacto arquitetural
+## Architectural impact
 
-<!-- Opções mudando de nome/default? Host adicionado/removido? Doc atualizada? -->
+<!-- Options changing name/default? Host added/removed? Docs updated? -->
 
-## Intervenção humana necessária
+## Human intervention required
 
-<!-- Hardware, secrets, remotes, bootloader, auth — ou "nenhuma". -->
+<!-- Hardware, secrets, remotes, bootloader, auth — or "none". -->

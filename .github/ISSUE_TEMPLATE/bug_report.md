@@ -1,24 +1,24 @@
 ---
 name: Bug report
-about: Algo quebrou ou se comporta errado
+about: Something broke or behaves incorrectly
 labels: bug
 ---
 
-## O que aconteceu
+## What happened
 
 
-## O que era esperado
+## What was expected
 
 
-## Host/máquina
+## Host/machine
 
-<!-- samsung, acer, vm ou outra (indique as opções hamra.* relevantes) -->
-
-
-## Como reproduzir
+<!-- samsung, acer, vm or other (list the relevant hamra.* options) -->
 
 
-## Logs / saída
+## How to reproduce
+
+
+## Logs / output
 
 <!-- journalctl, nix flake check, nixos-rebuild --show-trace... -->
 

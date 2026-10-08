@@ -1,187 +1,190 @@
-# NAS do Hamra — guia para quem nunca mexeu com isso
+# Hamra NAS — a guide for anyone who has never messed with this
 
-Este guia é para QUALQUER pessoa que queira montar o NAS (a "nuvem caseira")
-em qualquer PC usando este repositório. Você **não precisa entender de
-criptografia nem de NixOS** — o assistente `setup-nas` faz tudo, explicando
-cada passo. Quando aparecer um erro, ele diz **o que fazer a seguir**.
+This guide is for ANYONE who wants to set up the NAS (the "homemade
+cloud") on any PC using this repository. You **don't need to understand
+encryption or NixOS** — the `setup-nas` assistant does everything,
+explaining each step. When an error shows up, it tells you **what to
+do next**.
 
-> Conceito rápido: o NAS é uma pasta de rede compartilhada entre PCs.
-> Este repositório guarda uma senha **criptografada** dela. As chaves
-> criptográficas são os "cadeados" que abrem essa senha.
+> Quick concept: the NAS is a network folder shared between PCs.
+> This repository keeps its password **encrypted**. The crypto
+> keys are the "padlocks" that open this password.
 
 ---
 
-## 1. De um só trago (o caminho feliz)
+## 1. In one go (the happy path)
 
-Em um PC com NixOS, este repositório clonado numa pasta sua (ex.:
-`~/Projetos/hamra`) e o symlink `/etc/nixos` apontando para ela:
+On a PC with NixOS, this repository cloned into one of your folders
+(e.g. `~/Projetos/hamra`) and the `/etc/nixos` symlink pointing to it:
 
 ```bash
 cd ~/Projetos/hamra
-nix develop              # prepara as ferramentas (1ª vez demora um pouco)
-./scripts/setup-nas.sh   # o assistente guiado
+nix develop              # sets up the tools (first run takes a while)
+./scripts/setup-nas.sh   # the guided assistant
 ```
 
-O assistente pergunta pouca coisa (nome do PC, GPU, desktop, e a **sua**
-senha do NAS) e depois:
+The assistant asks for just a few things (PC name, GPU, desktop, and
+**your** NAS password) and then:
 
-1. cria o "host" deste PC no repositório (arquivos de configuração);
-2. gera a chave de **edição** dos segredos (se ainda não existir aqui);
-3. registra a chave deste PC no `.sops.yaml`;
-4. grava a sua senha criptografada em `secrets/samba.yaml`;
-5. pergunta se quer **aplicar** no PC (recomenda-se sim) e, se você
-   confirmou, reconfigura o sistema — o Samba passa a compartilhar
-   as pastas `shared`, `games` e `backups`.
+1. creates this PC's "host" in the repository (config files);
+2. generates the **edit** key for the secrets (if it doesn't exist here
+   yet);
+3. registers this PC's key in `.sops.yaml`;
+4. stores your password encrypted in `secrets/samba.yaml`;
+5. asks whether you want to **apply** it on the PC (recommended) and,
+   if you confirmed, reconfigures the system — Samba starts sharing
+   the `shared`, `games` and `backups` folders.
 
-Pronto. Qualquer outro PC pode acessar: mesmo script **naquele PC**.
+Done. Any other PC can connect: same script **on that PC**.
 
 ---
 
-## 2. Primeiros passos em um PC novo (passo a passo detalhado)
+## 2. First steps on a new PC (detailed step by step)
 
-### 2.1. Tenha o repositório na máquina
+### 2.1. Get the repository on the machine
 
 ```bash
-git clone <endereço-do-repositório> ~/Projetos/hamra
+git clone <repository-url> ~/Projetos/hamra
 sudo ln -s ~/Projetos/hamra /etc/nixos
 ```
 
-> Troque `<endereço-do-repositório>` pelo link "Clone" do GitHub
-> (botão verde). Ex.: `https://github.com/seuusuario/hamra.git`. O clone pode
-> ficar em qualquer pasta do seu usuário — o symlink `/etc/nixos` é o que faz
-> as ferramentas encontrarem o repo; crie-o uma única vez.
+> Replace `<repository-url>` with the GitHub "Clone" link
+> (green button). E.g. `https://github.com/youruser/hamra.git`. The
+> clone can live in any folder of your user — the `/etc/nixos` symlink
+> is what makes the tools find the repo; create it just once.
 
-### 2.2. Entre no ambiente de trabalho
+### 2.2. Enter the working environment
 
 ```bash
 cd ~/Projetos/hamra
 nix develop
 ```
 
-Este comando instala (na primeira vez) as ferramentas: `sops`, `age`,
-`ssh-to-age`, `python3`. Ele não altera seu sistema — é só um "banheiro
-de ferramentas" temporário.
+This command installs (on the first run) the tools: `sops`, `age`,
+`ssh-to-age`, `python3`. It doesn't change your system — it's just a
+temporary "toolbox".
 
-### 2.3. Rode o assistente
+### 2.3. Run the assistant
 
 ```bash
 ./scripts/setup-nas.sh
 ```
 
-O que cada pergunta significa:
+What each question means:
 
-| Pergunta | O que é | Dica |
+| Question | What it is | Tip |
 |---|---|---|
-| Nome deste PC no repositório | Apelido da máquina nos arquivos do repo | Pode ser o nome do PC, ex.: `notebook`, `servidor`, `desktop` |
-| GPU do PC | Placa gráfica | `intel`, `amd`, `nvidia` ou `virtio` (máquinas virtuais) |
-| Firmware | Tipo de inicialização | `uefi` (padrão) ou `bios` |
-| Desktop | Ambiente gráfico | `hyprland`, `sway`, `niri`, `gnome` ou `plasma` |
-| Usuário do sistema | Seu usuário no Linux | O mesmo da instalação (ex.: `gabrielnathan`) |
-| Senha do NAS | **Sua** senha do compartilhamento | Mínimo 8 caracteres. É digitada 2× e nunca aparece na tela |
+| Name of this PC in the repository | The machine's nickname in the repo files | Can be the PC's name, e.g. `laptop`, `server`, `desktop` |
+| PC GPU | Graphics card | `intel`, `amd`, `nvidia` or `virtio` (virtual machines) |
+| Firmware | Boot type | `uefi` (default) or `bios` |
+| Desktop | Graphical environment | `hyprland`, `sway`, `niri`, `gnome` or `plasma` |
+| System user | Your Linux user | The same one from the install (e.g. `gabrielnathan`) |
+| NAS password | **Your** password for the share | Minimum 8 characters. Typed 2× and never shown on screen |
 
-Deixe a resposta sugerida (entre colchetes) apertando apenas **Enter** se
-não souber.
+Keep the suggested answer (in brackets) by just pressing **Enter** if
+you don't know.
 
-### 2.4. Publique no repositório
+### 2.4. Publish to the repository
 
-No final o assistente mostra:
+At the end the assistant shows:
 
 ```bash
 git add -A && git commit -m "Add NAS setup" && git push
 ```
 
-Assim o repositório vira "fonte da verdade": **qualquer PC pode recriar**
-a mesma configuração só rodando este guia.
+This way the repository becomes the "source of truth": **any PC can
+recreate** the same configuration just by following this guide.
 
 ---
 
-## 3. Esqueci a senha do NAS (acontece!)
+## 3. I forgot the NAS password (it happens!)
 
-Dentro do repositório:
+Inside the repository:
 
 ```bash
 nix develop
 ./scripts/setup-nas.sh --mostrar-senha
 ```
 
-Ele mostra a senha na tela. Para o comando funcionar, o PC precisa ter
-**uma** das duas coisas:
+It shows the password on screen. For the command to work, the PC needs
+**one** of the two things:
 
-- a chave de edição em `~/.config/sops/age/keys.txt`; ou
-- a chave SSH deste PC cadastrada no `.sops.yaml` (em NixOS isso é
-  automático, sem nada para fazer).
+- the edit key in `~/.config/sops/age/keys.txt`; or
+- this PC's SSH key registered in `.sops.yaml` (on NixOS this is
+  automatic, nothing to do).
 
-### Perdi a chave de edição **e** meu PC não está cadastrado
+### I lost the edit key **and** my PC isn't registered
 
-O arquivo `secrets/samba.yaml` não abre (é essa a proteção). Soluções:
+The `secrets/samba.yaml` file won't open (that's exactly the
+protection). Solutions:
 
-- **O melhor caminho:** peça a alguém que tenha o repositório com acesso
-  para rodar no PC dele:
+- **Best route:** ask someone who has the repository with access to
+  run on their PC:
   ```bash
   nix develop
-  printf 'y\n' | sops updatekeys secrets/samba.yaml   # adiciona seu PC
+  printf 'y\n' | sops updatekeys secrets/samba.yaml   # adds your PC
   ```
-  e publique. Daí, no seu PC, o `--mostrar-senha` passa a funcionar.
-- **Alternativa drástica:** apagar o segredo e recriar com senha nova:
+  and publish. Then, on your PC, `--mostrar-senha` starts working.
+- **Drastic alternative:** delete the secret and recreate it with a
+  new password:
   ```bash
   rm secrets/samba.yaml && ./scripts/setup-nas.sh --reset-senha
   ```
-  A nova senha entra em vigor no próximo `nixos-rebuild switch` de
-  qualquer host com o Samba ativo (o script de ativação sincroniza
-  automaticamente). OS CLIENTES PRECISAM USAR A NOVA SENHA.
+  The new password takes effect on the next `nixos-rebuild switch`
+  of any host with Samba active (the activation script syncs it
+  automatically). CLIENTS MUST USE THE NEW PASSWORD.
 
 ---
 
-## 4. Quero trocar a senha
+## 4. I want to change the password
 
 ```bash
 nix develop
 ./scripts/setup-nas.sh --reset-senha
 ```
 
-Troca, criptografa de novo e sincroniza os PCs cadastrados. Depois
-execute em cada host do Samba:
+It changes, re-encrypts and syncs the registered PCs. Then run on each
+Samba host:
 
 ```bash
 sudo nixos-rebuild switch --flake ~/Projetos/hamra#<host>
 ```
 
-E atualize os clientes (arquivo `/etc/samba/cred-nas`, se usado).
+And update the clients (`/etc/samba/cred-nas` file, if used).
 
 ---
 
-## 5. Só conferir o ambiente, sem alterar nada
+## 5. Just check the environment, without changing anything
 
 ```bash
 nix develop
 ./scripts/setup-nas.sh --check
 ```
 
-Lista o que existe e o que falta. Ótimo para diagnosticar antes de rodar
-o assistente.
+Lists what exists and what's missing. Great for diagnosing before
+running the assistant.
 
 ---
 
-## 6. Usar o NAS de outros PCs (clientes)
+## 6. Using the NAS from other PCs (clients)
 
-### Linux (Arch/qualquer distro)
+### Linux (Arch/any distro)
 
-Crie o arquivo de credenciais (1 vez):
+Create the credentials file (once):
 
 ```bash
 sudo pacman -S cifs-utils                      # Arch
 echo 'username=gabrielnathan' | sudo tee /etc/samba/cred-nas
-echo 'password=sua-senha'     | sudo tee -a /etc/samba/cred-nas
+echo 'password=your-password' | sudo tee -a /etc/samba/cred-nas
 sudo chmod 600 /etc/samba/cred-nas
 ```
 
-Monte (ou coloque essas linhas no `/etc/fstab` para montar
-automaticamente):
+Mount (or put these lines in `/etc/fstab` to mount automatically):
 
 ```fstab
-//IP-DO-NAS/shared  /mnt/nas-shared  cifs  credentials=/etc/samba/cred-nas,uid=1000,gid=100,iocharset=utf8,noauto,x-systemd.automount,x-systemd.idle-timeout=60 0 0
-//IP-DO-NAS/games   /mnt/nas-games   cifs  credentials=/etc/samba/cred-nas,uid=1000,gid=100,iocharset=utf8,noauto,x-systemd.automount,x-systemd.idle-timeout=60 0 0
-//IP-DO-NAS/backups /mnt/nas-backups cifs  credentials=/etc/samba/cred-nas,uid=1000,gid=100,iocharset=utf8,noauto,x-systemd.automount,x-systemd.idle-timeout=60 0 0
+//NAS-IP/shared     /mnt/nas-shared  cifs  credentials=/etc/samba/cred-nas,uid=1000,gid=100,iocharset=utf8,noauto,x-systemd.automount,x-systemd.idle-timeout=60 0 0
+//NAS-IP/games      /mnt/nas-games   cifs  credentials=/etc/samba/cred-nas,uid=1000,gid=100,iocharset=utf8,noauto,x-systemd.automount,x-systemd.idle-timeout=60 0 0
+//NAS-IP/backups    /mnt/nas-backups cifs  credentials=/etc/samba/cred-nas,uid=1000,gid=100,iocharset=utf8,noauto,x-systemd.automount,x-systemd.idle-timeout=60 0 0
 ```
 
 ```bash
@@ -189,71 +192,76 @@ sudo mkdir -p /mnt/nas-{shared,games,backups}
 sudo mount -a
 ```
 
-> O IP do NAS aparece com `ip a` no PC que tem o Samba ativado.
-> Se quiser IP fixo, reserve no roteador (rede local) ou configure um
-> endereço estático.
+> The NAS IP shows up with `ip a` on the PC with Samba enabled.
+> If you want a fixed IP, reserve it in the router (local network) or
+> configure a static address.
 
 ### Windows
 
-No Explorador de Arquivos, endereço: `\\IP-DO-NAS\shared` \
-(Ao pedir usuário, use `gabrielnathan` e a senha do NAS.)
+In File Explorer, address: `\\NAS-IP\shared` \
+(When asked for the user, use `gabrielnathan` and the NAS password.)
 
 ### Mac
 
-Finder → Ir → Conectar ao servidor → `smb://IP-DO-NAS/shared`
+Finder → Go → Connect to Server → `smb://NAS-IP/shared`
 
 ---
 
-## 7. Problemas comuns (e o que fazer)
+## 7. Common problems (and what to do)
 
-| Erro / situação | O que está acontecendo | Solução |
+| Error / situation | What's going on | Solution |
 |---|---|---|
-| `Faltam ferramentas: ...` | Você não está no ambiente | Rode `nix develop` e tente de novo |
-| `no matching creation rules found` | Um arquivo em local errado foi criptografado | Manualmente raro; rode o assistente de novo — ele grava o rascunho na pasta certa |
-| `sops metadata not found` | O sops achou o arquivo "meio criptografado" | Rode novamente; se persistir, `rm secrets/samba.yaml && ./scripts/setup-nas.sh --reset-senha` |
-| `Não achei <ip> ... shared` ao montar | Samba fora do ar ou IP errado | `sudo systemctl status samba-smbd.service` no NAS; confira o IP |
-| Senha não aceita ao montar | Credencial desatualizada | Repita a seção 6 (ou seção 4 se trocou a senha) |
-| Rebuild falha | Alguma validação do NixOS rejeitou a config | Leia o erro; o assistente aponta o comando para refazer |
-| Esqueci a senha | — | Seção 3 deste guia |
+| `Missing tools: ...` | You're not in the environment | Run `nix develop` and try again |
+| `no matching creation rules found` | A file in the wrong place got encrypted | Rarely manual; run the assistant again — it writes the draft in the right folder |
+| `sops metadata not found` | sops found the file "half encrypted" | Run again; if it persists, `rm secrets/samba.yaml && ./scripts/setup-nas.sh --reset-senha` |
+| `Couldn't find <ip> ... shared` when mounting | Samba down or wrong IP | `sudo systemctl status samba-smbd.service` on the NAS; check the IP |
+| Password not accepted when mounting | Outdated credential | Redo section 6 (or section 4 if you changed the password) |
+| Rebuild fails | Some NixOS validation rejected the config | Read the error; the assistant points out the command to rerun |
+| I forgot the password | — | Section 3 of this guide |
 
 ---
 
-## 8. Segurança — o que pode e o que NÃO pode ir para o GitHub
+## 8. Security — what can and can NOT go to GitHub
 
-**Pode (é criptografado):**
+**Can go (it's encrypted):**
 
-- `secrets/samba.yaml` — contém a senha, mas cifrada. Sem as chaves,
-  ninguém lê.
+- `secrets/samba.yaml` — contains the password, but ciphered. Without
+  the keys, nobody reads it.
 
-**NUNCA committe:**
+**NEVER commit:**
 
-- `~/.config/sops/age/keys.txt` — é a "senha-mestra" dos segredos.
-- `/etc/ssh/ssh_host_ed25519_key` (arquivo privado — o `.pub` é ok).
-- Senhas em texto claro, em qualquer arquivo.
+- `~/.config/sops/age/keys.txt` — it's the "master password" of the
+  secrets.
+- `/etc/ssh/ssh_host_ed25519_key` (private file — the `.pub` is ok).
+- Passwords in plain text, in any file.
 
 ---
 
-## 9. A lixeira do NAS (anti-apagão)
+## 9. The NAS trash bin (anti-wipe)
 
-Apagar um arquivo/pasta **pelo compartilhamento** (Windows, Mac, Linux) não
-apaga de verdade: o Samba move tudo para uma **lixeira** dentro do próprio
-compartilhamento, na pasta oculta `.trash` (`/data/shared/.trash`,
-`/data/games/.trash`, `/data/backups/.trash`).
+Deleting a file/folder **through the share** (Windows, Mac, Linux)
+doesn't really delete it: Samba moves everything to a **trash bin**
+inside the share itself, in the hidden `.trash` folder
+(`/data/shared/.trash`, `/data/games/.trash`, `/data/backups/.trash`).
 
-- **Como ver:** no Windows habilite "Itens ocultos"; no Linux, `ls -a`
-  na pasta montada. As pastas preservam a origem (`keeptree`) e a data.
-- **Duplicado:** se você apagar um nome que já está na lixeira, ele guarda
-  as **duas versões** (sufixo com a data) — nada se perde por sobrescrever.
-- **Recuperar:** é só mover o arquivo de volta para a pasta original.
-- **Esvaziar:** apague o que quiser de dentro de `.trash` (ocupa espaço —
-  limpe de vez em quando).
+- **How to view:** on Windows enable "Hidden items"; on Linux, `ls -a`
+  in the mounted folder. Folders keep the origin structure
+  (`keeptree`) and the date.
+- **Duplicate:** if you delete a name that's already in the trash, it
+  keeps **both versions** (suffix with the date) — nothing is lost to
+  overwriting.
+- **Recover:** just move the file back to the original folder.
+- **Empty:** delete whatever you want from inside `.trash` (it uses
+  disk space — clean it out now and then).
 
-Limitações honestas:
+Honest limitations:
 
-- Protege contra apagar **via rede (SMB)** — inclusive o Shift+Delete do
-  Windows. Um `rm` direto no servidor **apaga de verdade**: não fique
-  rodando `rm` na máquina que tem o NAS.
-- Arquivos temporários (`.tmp`, `~$`... do Office) saem **sem** passar pela
-  lixeira (para não entulhar).
-- A lixeira vive no mesmo disco — é um para-choque contra **acidente**,
-  não um backup. Para cópia real, veja a seção sobre backups.
+- It protects against deletion **over the network (SMB)** — including
+  Windows' Shift+Delete. A direct `rm` on the server **really
+  deletes**: don't go around running `rm` on the machine hosting the
+  NAS.
+- Temporary files (`.tmp`, `~$`... from Office) leave **without**
+  passing through the trash (to keep it from piling up).
+- The trash lives on the same disk — it's a bumper against
+  **accidents**, not a backup. For a real copy, see the section about
+  backups.

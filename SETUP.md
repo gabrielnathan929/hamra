@@ -1,25 +1,25 @@
 # Setup
 
-Instalar o NixOS e subir o Hamra numa máquina nova. É o caminho que eu uso:
-ISO gráfica e instalador gráfico, sem particionamento manual.
+Install NixOS and bring up Hamra on a new machine. This is the path I use:
+graphical ISO and graphical installer, no manual partitioning.
 
-## 1. Instalar o NixOS
+## 1. Install NixOS
 
-1. Baixe a ISO gráfica do NixOS (GNOME) em <https://nixos.org/download>,
-   grave num pendrive e dê boot por ele.
-2. Instale pelo instalador gráfico. O desktop escolhido ali não importa — o
-   Hamra instala o seu. Use o mesmo nome de usuário que vai declarar no
-   Hamra (`hamra.users.userName`, default `gabrielnathan`) para aproveitar
-   a home criada agora.
+1. Download the NixOS graphical ISO (GNOME) from <https://nixos.org/download>,
+   flash it to a USB drive and boot from it.
+2. Install through the graphical installer. The desktop chosen there does not
+   matter — Hamra installs its own. Use the same username you will declare in
+   Hamra (`hamra.users.userName`, default `gabrielnathan`) to reuse the home
+   created now.
 3. Reboot.
 
-Do que a instalação gera, só o `hardware-configuration.nix` (discos, UUIDs,
-mounts) sobrevive — é a identidade física da máquina. O `configuration.nix`
-da instalação é descartado no passo seguinte.
+Of what the installation generates, only the `hardware-configuration.nix`
+(disks, UUIDs, mounts) survives — it is the machine's physical identity. The
+installer's `configuration.nix` is discarded in the next step.
 
-## 2. Subir o Hamra
+## 2. Bring up Hamra
 
-No primeiro boot, como o usuário criado na instalação:
+On the first boot, as the user created during installation:
 
 ```bash
 sudo cp /etc/nixos/hardware-configuration.nix /tmp/
@@ -29,31 +29,53 @@ sudo ln -s ~/Projetos/hamra /etc/nixos
 cd ~/Projetos/hamra
 ```
 
-Se o git não estiver instalado: `nix-shell -p git` antes do clone.
+If git is not installed: `nix-shell -p git` before the clone.
 
-O checkout vive no seu usuário, em qualquer caminho — `~/Projetos/hamra`,
-`~/src/nixos`, `~/dev/hamra`, o que preferir. O symlink `/etc/nixos` aponta
-para ele e é só conveniência: `nixos-rebuild` sem `--flake` e o assistente
-`setup-nas` encontram o repo pelo caminho tradicional, e você edita tudo sem
-sudo. O rebuild preserva a revision do git mesmo quando feito pelo symlink.
+The checkout lives in your user, at any path — `~/Projetos/hamra`,
+`~/src/nixos`, `~/dev/hamra`, whatever you prefer. The `/etc/nixos` symlink
+points to it and is pure convenience: `nixos-rebuild` without `--flake` and
+the `setup-nas` wizard find the repo through the traditional path, and you
+edit everything without sudo. Rebuilding through the symlink still preserves
+the git revision.
 
-Se algo der errado antes do primeiro switch funcionar, restaura a
-configuração original do instalador com
-`sudo rm /etc/nixos && sudo mv /etc/nixos.pre-hamra /etc/nixos` — e apague o
-backup quando o Hamra estiver estável.
+If anything goes wrong before the first switch works, restore the
+installer's original configuration with
+`sudo rm /etc/nixos && sudo mv /etc/nixos.pre-hamra /etc/nixos` — and delete
+the backup once Hamra is stable.
 
-Copie o host mais parecido e troque o hardware-configuration:
+### Fast path: `hamra-init`
 
 ```bash
-cp -r hosts/samsung hosts/meu-pc
-cp /tmp/hardware-configuration.nix hosts/meu-pc/
+nix run .#hamra-init
 ```
 
-Ajuste os campos de identidade em `hosts/meu-pc/configuration.nix`:
+The wizard asks for the machine name, GPU and firmware (both detected by
+default), the desktop and the host roles (NAS, wayvnc). It writes
+`hosts/<name>/{configuration,hardware-configuration}.nix` atomically — an
+existing host is never overwritten — and the host is registered
+automatically (hosts are discovered from `hosts/*/`). It then validates in
+order: format, lint, `nix flake check` and a full `nix build` of the
+toplevel. Only after all gates pass does it offer `nixos-rebuild test`, and
+then the switch — both with typed confirmation. It never commits anything
+for you.
+
+Non-interactive: `hamra-init --answers answers.json --dry-run` prints the
+files without writing. Environment audit only: `hamra-init --check`.
+
+### Manual path (escape hatch)
+
+Copy the most similar host and swap the hardware configuration:
+
+```bash
+cp -r hosts/samsung hosts/my-pc
+cp /tmp/hardware-configuration.nix hosts/my-pc/
+```
+
+Adjust the identity fields in `hosts/my-pc/configuration.nix`:
 
 ```nix
 hamra = {
-  networking.hostname = "meu-pc";
+  networking.hostname = "my-pc";
   users.userName = "gabrielnathan";
 
   hardware = {
@@ -68,65 +90,56 @@ hamra = {
 - `hardware.gpu` — `intel` | `amd` | `nvidia` | `virtio`
 - `hardware.firmware` — `uefi` | `bios`
 - `desktop.default` — `hyprland` | `niri` | `sway` | `gnome` | `plasma`
-- `theme.name` (opcional) — `dragon-ball` | `evangelion` | `resident-evil`
+- `theme.name` (optional) — `dragon-ball` | `evangelion` | `resident-evil`
 
-Tudo que diferir do perfil comum declara no host como delta
-(ex.: `hamra.programs.optionals.services.samba = false;`).
+Anything that differs from the shared baseline or the profile is declared
+on the host as a delta (e.g. `hamra.programs.optionals.services.samba =
+false;`).
 
-Registre o host em `flake/hosts.nix`:
+You may restructure the `hardware-configuration.nix` (group keys), but never
+change UUIDs or devices.
 
-```nix
-meu-pc = mkHost "meu-pc";
-```
+## 3. The Samba secret
 
-Pode reestruturar o `hardware-configuration.nix` (agrupar chaves), mas nunca
-mude UUIDs nem dispositivos.
+Samba is a host role (NAS). It is off by default — enable it on the host
+that will be the NAS. Its password lives encrypted in
+`secrets/samba.yaml`, and that machine must be able to decrypt it at boot —
+without it the rebuild fails during activation. Either you register the
+machine, or you leave Samba off on it.
 
-## 3. Segredo do Samba
-
-O perfil comum liga o Samba (NAS). A senha dele fica criptografada em
-`secrets/samba.yaml` e esta máquina precisa conseguir abri-la no boot — sem
-isso o rebuild falha na ativação. Ou você registra a máquina, ou desliga o
-Samba nela.
-
-Registrando, com o assistente:
+Registering, with the wizard:
 
 ```bash
 nix develop
 ./scripts/setup-nas.sh
 ```
 
-Ele registra as chaves deste PC no `.sops.yaml`, grava a senha do NAS
-criptografada para os PCs cadastrados e oferece o rebuild. Em máquina nova,
-deixe-o criar/redefinir a senha — o arquivo precisa ser regravado com a
-chave deste PC. Guia completo: [`docs/nas-iniciantes.md`](docs/nas-iniciantes.md).
+It registers this PC's keys in `.sops.yaml`, stores the NAS password
+encrypted for the registered PCs and offers the rebuild. On a new machine,
+let it create/reset the password — the file must be re-encrypted with this
+PC's key. Full guide: [`docs/nas-iniciantes.md`](docs/nas-iniciantes.md).
 
-Ou, se esta máquina não é NAS, no `configuration.nix` do host:
+Or, if this machine is not the NAS, simply do not enable Samba on the host.
 
-```nix
-hamra.programs.optionals.services.samba = false;
-```
-
-## 4. Build e switch
+## 4. Build and switch
 
 ```bash
-sudo nixos-rebuild switch --flake .#meu-pc
+sudo nixos-rebuild switch --flake .#my-pc
 ```
 
-O primeiro build demora — baixa o mundo. A partir daí os rebuilds são
-incrementais. Reboot para cair no desktop do Hamra.
+The first build takes a while — it downloads the world. From there on,
+rebuilds are incremental. Reboot to land on the Hamra desktop.
 
-No dia a dia existem atalhos: `nix run .#deploy-<host>` (roda
-`nix flake check` antes do switch) e `nix run .#build-<host>` (build sem
-aplicar, resultado em `./result`). Eles são gerados automaticamente para
-todo host registrado em `flake/hosts.nix`.
+Day to day there are shortcuts: `nix run .#deploy-<host>` (runs
+`nix flake check` before the switch) and `nix run .#build-<host>` (build
+without applying, result in `./result`). They are generated automatically for every host under `hosts/`.
 
-Com o symlink `/etc/nixos` apontando para o checkout, os atalhos simples
-também funcionam: `nix-test` e `nix-switch` (nixos-rebuild sem `--flake`)
-usam `/etc/nixos#$(hostname)` — basta o hostname da máquina bater com o
-nome do host em `flake/hosts.nix`.
+With the `/etc/nixos` symlink pointing to the checkout, the simple aliases
+work too: `nix-test` and `nix-switch` (nixos-rebuild without `--flake`) use
+`/etc/nixos#$(hostname)` — as long as the machine hostname matches its
+folder name under `hosts/`.
 
-## Validar
+## Validate
 
 ```bash
 nix fmt
@@ -135,5 +148,5 @@ nix develop --command statix check .
 nix develop --command deadnix .
 ```
 
-O CI roda os mesmos checks — formatação, lint, avaliação e build de todos
-os hosts — a cada push.
+CI runs the same checks — formatting, lint, evaluation and the build of all
+hosts — on every push.

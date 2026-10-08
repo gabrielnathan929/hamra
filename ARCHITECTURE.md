@@ -1,90 +1,97 @@
-# Arquitetura
+# Architecture
 
-## De onde vem a configuração que inicializa esta máquina?
+## Where does the configuration that boots this machine come from?
 
-Resposta curta: o sistema ativo é o closure do último
-`nixos-rebuild switch --flake <checkout>#<host>`. O **repositório Git é a
-fonte de verdade**; `/etc/nixos` é apenas um symlink opcional apontando para
-o checkout — conveniência para `nixos-rebuild` sem `--flake` e para o
-assistente `setup-nas`, que esperam o caminho tradicional. O checkout vive no
-usuário, em qualquer caminho, e o rebuild feito pelo symlink preserva a
-revision (a detecção de git atravessa o link).
+Short answer: the active system is the closure of the last
+`nixos-rebuild switch --flake <checkout>#<host>`. The **Git repository is the
+source of truth**; `/etc/nixos` is just an optional symlink pointing to the
+checkout — a convenience for `nixos-rebuild` without `--flake` and for the
+`setup-nas` assistant, which expect the traditional path. The checkout lives
+in the user's home, at any path, and a rebuild done through the symlink
+preserves the revision (git detection follows the link).
 
-A cadeia completa:
+The full chain:
 
 ```
-flake.nix + flake.lock (inputs pinados, nixos-26.05)
-  -> mkHost (flake/hosts.nix; specialArgs: self, inputs, hostName, hamraLib)
-    -> hosts/<maquina>/configuration.nix    (identidade + deltas do padrão)
-    -> hosts/<maquina>/hardware-configuration.nix (identidade física; gerado na máquina)
-    -> hosts/common/default.nix             (perfil compartilhado, tudo em mkDefault)
+flake.nix + flake.lock (pinned inputs, nixos-26.05)
+  -> mkHost (flake/hosts.nix; hosts discovered by scanning hosts/*; specialArgs: self, inputs, hostName, hamraLib)
+    -> hosts/<machine>/configuration.nix    (identity + deltas from the default)
+    -> hosts/<machine>/hardware-configuration.nix (physical identity; generated on the machine)
+    -> hosts/common/default.nix             (shared baseline, hamraLib.mkBase)
+    -> hosts/profiles/<owner>/default.nix   (personal profile, mkDefault)
     -> modules/nixos/{core,programs,desktops} (auto-import via hamraLib.scanPaths)
-    -> home-manager (extraSpecialArgs: tema, teclado, desktop, env...)
-    -> assertions (desktop, GPU, tema, papel de host inválidos quebram o eval)
+    -> home-manager (extraSpecialArgs: theme, keyboard, desktop, env...)
+    -> assertions (desktop, GPU, theme, invalid host role break the eval)
   -> closure -> switch -> /run/current-system
 ```
 
-O nome do sistema ativo segue `hamra.networking.hostname`
-(ex.: `nixos-system-samsung`), e `system.configurationRevision` registra o
-commit do build quando o rebuild parte de um checkout git (o app
-`deploy-<host>` usa uma cópia da fonte no store e hoje perde essa marca —
-para rastreabilidade, prefira `sudo nixos-rebuild switch --flake .#<host>` a
-partir da raiz do repo).
+The active system's name follows `hamra.networking.hostname`
+(e.g. `nixos-system-samsung`), and `system.configurationRevision` records the
+build's commit when the rebuild runs from a git checkout (the
+`deploy-<host>` app uses a copy of the source in the store and currently
+loses this marker — for traceability, prefer
+`sudo nixos-rebuild switch --flake .#<host>` from the repo root).
 
-## Hosts: nomeados por máquina
+## Hosts: named by machine
 
-Há exatamente um host por máquina: `samsung`, `acer`, `vm`. O hardware vive
-**dentro do host nomeado** e nunca é copiado entre hosts — cada máquina tem
-os seus UUIDs, que validam com `lsblk -f` nela mesma. Em ambientes de
-desktop, GNOME/Plasma/Hyprland/Sway/Niri são *opções* (`hamra.desktop.default`),
-não hosts.
+There is exactly one host per machine: `samsung`, `acer`, `vm`. Hardware lives
+**inside the named host** and is never copied between hosts — each machine
+has its own UUIDs, which validate with `lsblk -f` on the machine itself. In
+desktop environments, GNOME/Plasma/Hyprland/Sway/Niri are *options*
+(`hamra.desktop.default`), not hosts.
 
-## Camadas
+## Layers
 
-| Camada | Conteúdo |
+| Layer | Contents |
 |---|---|
-| NixOS (`modules/nixos/`) | Toggles de programas: pacote, daemon, firewall, grupo, permissão de hardware |
-| Home (`modules/home/`) | Config declarativa de usuário (zsh, terminal, editor, desktops HM) |
-| `hosts/common` | Perfil compartilhado em `mkDefault`; deltas por host sobrescrevem |
+| NixOS (`modules/nixos/`) | Program toggles: package, daemon, firewall, group, hardware permission |
+| Home (`modules/home/`) | Declarative user config (zsh, terminal, editor, HM desktops) |
+| `hosts/common` | Shared baseline in `hamraLib.mkBase` (1000) — system defaults, no personal values |
+| `hosts/profiles/<owner>` | Personal profile in `mkDefault` (900) — username, theme, locale, env apps, mise tools, app toggles |
+| `hosts/<machine>` | Host deltas, plain values (100) — identity, hardware, roles, exceptions |
 
-Papel de host (NAS, VNC server) é desligado no common e ligado como delta no
-host que o desempenha (ex.: `samsung` é o NAS).
+The tier ladder: module defaults (1500) < `hosts/common` (1000) < profile
+(900) < host (plain). Host roles (NAS, VNC server) live on hosts: `acer` is
+the NAS, `samsung` runs wayvnc. Forks copy `hosts/profiles/<owner>` under
+their own name and point their hosts at it — personal config never conflicts
+with upstream.
 
-## Apps fora do Nix
+## Apps outside Nix
 
-`hamra.mise.*` (tools, env, settings) geram o `~/.config/mise/config.toml`
-via HM; o serviço `hamra-mise-install` instala as tools declaradas na
-ativação (oneshot, `after home-manager-<user>.service`, re-executa quando as
-tools mudam). Flatpaks e webapps seguem o mesmo padrão de módulo.
+`hamra.mise.*` (tools, env, settings) generate `~/.config/mise/config.toml`
+via HM; the `hamra-mise-install` service installs the declared tools on
+activation (oneshot, `after home-manager-<user>.service`, re-runs when the
+tools change). Flatpaks and webapps follow the same module pattern.
 
 ## Secrets
 
-sops-nix + age: `secrets/*.yaml` criptografados; chaves públicas por máquina
-no `.sops.yaml`; cada host decripta com a chave derivada do seu
-`ssh_host_ed25519_key`. Nada em claro entra no repo nem no store.
+sops-nix + age: `secrets/*.yaml` encrypted; public keys per machine in
+`.sops.yaml`; each host decrypts with the key derived from its own
+`ssh_host_ed25519_key`. Nothing in plaintext enters the repo or the store.
 
 ## CI / Git Flow
 
-CI a cada push/PR: formatação (alejandra), lint (statix + deadnix),
-avaliação (`nix flake check`) e build dos toplevels de todos os hosts
-(descobertos dinamicamente). Todo merge em `main` dispara o `release.yml`,
-que cria a tag semver de minor seguinte com notas geradas dos commits
-convencionais. Fluxo: `feature/* -> PR -> main`.
+CI on every push/PR: formatting (alejandra), lint (statix + deadnix),
+evaluation (`nix flake check`) and build of all hosts' toplevels
+(discovered dynamically). Every merge to `main` triggers `release.yml`,
+which creates the next minor semver tag with notes generated from the
+conventional commits. Flow: `feature/* -> PR -> main`.
 
-## Atualização
+## Updates
 
-O nixpkgs vem pinado pelo `flake.lock` (`github:NixOS/nixpkgs/nixos-26.05`).
-Atualizar = `nix flake update <input>` + rebuild. Não há auto-update: mudança
-de input passa por PR como qualquer outra.
+nixpkgs is pinned by `flake.lock` (`github:NixOS/nixpkgs/nixos-26.05`).
+Updating = `nix flake update <input>` + rebuild. There is no auto-update:
+input changes go through a PR like anything else.
 
-## Diretórios
+## Directories
 
-| Pasta | Papel |
+| Folder | Role |
 |---|---|
 | `flake/` | hosts, apps (deploy/build), devshell |
-| `hosts/<maquina>/` | identidade + hardware da máquina |
-| `hosts/common/` | perfil compartilhado |
-| `modules/` | toda a biblioteca (lib, nixos, home) |
-| `scripts/` | assistentes (ex.: setup-nas) |
-| `secrets/` | segredos criptografados |
-| `docs/` | guias (NAS para iniciantes, firewall) |
+| `hosts/<machine>/` | machine identity + hardware |
+| `hosts/common/` | shared machine baseline (no personal values) |
+| `hosts/profiles/` | personal profiles, one folder per owner |
+| `modules/` | the whole library (lib, nixos, home) |
+| `scripts/` | assistants (e.g. setup-nas) |
+| `secrets/` | encrypted secrets |
+| `docs/` | guides (NAS for beginners, firewall) |

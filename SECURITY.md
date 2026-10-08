@@ -1,42 +1,43 @@
-# Política de Segurança
+# Security Policy
 
-## Reportar uma vulnerabilidade
+## Reporting a vulnerability
 
-Use o botão **Report a vulnerability** na aba Security do repositório
-(Private Vulnerability Reporting do GitHub) em vez de abrir issue pública.
-Descreva o problema, como reproduzir e o impacto. Este é um projeto pessoal
-mantido por uma pessoa — sem SLA formal, mas relatórios recebem resposta
-assim que possível.
+Use the **Report a vulnerability** button in the repository's Security tab
+(GitHub's Private Vulnerability Reporting) instead of opening a public
+issue. Describe the problem, how to reproduce it, and the impact. This is a
+personal project maintained by one person — no formal SLA, but reports get
+a response as soon as possible.
 
-**Escopo do que reportar aqui:**
+**In scope for reporting here:**
 
-- Exposição de segredos ou credenciais (commit acidental, configuração que
-  vaze valor em claro).
-- Configuração insegura dos módulos deste repositório (permissões, polkit,
+- Exposure of secrets or credentials (accidental commit, configuration
+  that leaks a value in plaintext).
+- Insecure configuration of this repository's modules (permissions, polkit,
   sudo, PAM, SSH).
-- Escalada de privilégios induzida por algo declarado aqui.
+- Privilege escalation induced by something declared here.
 
-**Fora de escopo:** vulnerabilidades dos programas empacotados (Hyprland,
-Noctalia, mise etc.) — reporte no upstream de cada projeto.
+**Out of scope:** vulnerabilities in packaged programs (Hyprland, Noctalia,
+mise etc.) — report those upstream in each project.
 
-## Como este repositório lida com segredos
+## How this repository handles secrets
 
-- Segredos vivem **criptografados** em `secrets/*.yaml` (sops-nix + age).
-  Valores em claro nunca entram no repositório.
-- As chaves públicas por host ficam no `.sops.yaml`; a chave privada de
-  edição vive em `~/.config/sops/age/keys.txt` na máquina do editor — fora
-  do repo, fora do Nix Store.
-- Cada host decripta com a chave derivada da própria `ssh_host_ed25519_key`
-  (registrada via `ssh-to-age`). Um host novo precisa ter a chave registrada
-  e o segredo atualizado (`sops updatekeys`) — sem isso ele não abre o
-  conteúdo.
-- Senhas de serviço (ex.: Samba) são aplicadas na ativação a partir dos
-  segredos decriptados — nada passa pelo Nix Store.
-- Polkit, keyring, GnuPG e SSH são módulos `core` com toggles explícitos.
+- Secrets live **encrypted** in `secrets/*.yaml` (sops-nix + age).
+  Plaintext values never enter the repository.
+- Public keys per host live in `.sops.yaml`; the private editing key lives
+  in `~/.config/sops/age/keys.txt` on the editor's machine — outside the
+  repo, outside the Nix Store.
+- Each host decrypts with the key derived from its own
+  `ssh_host_ed25519_key` (registered via `ssh-to-age`). A new host must
+  have its key registered and the secret updated (`sops updatekeys`) —
+  without that it cannot open the content.
+- Service passwords (e.g. Samba) are applied on activation from the
+  decrypted secrets — nothing passes through the Nix Store.
+- Polkit, keyring, GnuPG, and SSH are `core` modules with explicit toggles.
 
-## Limitações honestas
+## Honest limitations
 
-- A lixeira dos shares Samba (VFS recycle) é amortecedor contra acidente via
-  cliente SMB, não backup. Não protege contra `rm` direto no servidor.
-- Os hosts deste repo são das máquinas do autor; hardware e identity ficam em
-  `hosts/<nome>/` e o restante é reutilizável por qualquer fork.
+- The Samba shares' trash bin (VFS recycle) is a buffer against accidents
+  over the SMB client, not a backup. It does not protect against a direct
+  `rm` on the server.
+- The hosts in this repo belong to the author's machines; hardware and
+  identity live in `hosts/<name>/` and the rest is reusable by any fork.
