@@ -130,10 +130,9 @@ detect_repo() {
 
   if [[ ! -f "$dir/scripts/setup-nas.sh" ]]; then
     _HELP="Clone o repositório neste PC primeiro. Ex.:
-  sudo mkdir -p /etc/nixos
-  sudo chown \$(whoami):users /etc/nixos
-  git clone <url-do-repo> /etc/nixos
-Depois rode:  cd /etc/nixos && nix develop && ./scripts/setup-nas.sh"
+  git clone <url-do-repo> ~/Projetos/hamra
+  sudo ln -s ~/Projetos/hamra /etc/nixos
+Depois rode:  cd ~/Projetos/hamra && nix develop && ./scripts/setup-nas.sh"
     die "Não encontrei o repositório Hamra em: $dir"
   fi
   REPO="$(cd "$dir" && pwd)"
