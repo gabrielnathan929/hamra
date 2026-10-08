@@ -189,5 +189,5 @@ in {
     };
   };
 
-  config.xdg.configFile."fastfetch/config.jsonc".force = true;
+  config.xdg.configFile."fastfetch/config.jsonc" = mkIf cfg {force = true;};
 }
