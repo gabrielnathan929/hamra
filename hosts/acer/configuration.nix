@@ -17,6 +17,9 @@ _: {
 
     desktop.default = "hyprland";
 
-    programs.optionals.services.samba = true;
+    programs.optionals.services = {
+      samba = true;
+      wayvnc = false;
+    };
   };
 }
