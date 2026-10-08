@@ -22,14 +22,17 @@ installer's `configuration.nix` is discarded in the next step.
 On the first boot, as the user created during installation:
 
 ```bash
-sudo cp /etc/nixos/hardware-configuration.nix /tmp/
-sudo mv /etc/nixos /etc/nixos.pre-hamra
+nix-shell -p git
 git clone https://github.com/gabrielnathan929/hamra ~/Projetos/hamra
-sudo ln -s ~/Projetos/hamra /etc/nixos
 cd ~/Projetos/hamra
+nix --extra-experimental-features "nix-command flakes" run .#hamra-init
 ```
 
-If git is not installed: `nix-shell -p git` before the clone.
+The bootstrap flag is only needed for that single launch — a fresh NixOS
+ships without flakes, and the wizard needs them to run. Everything else is
+automated: the wizard enables flakes for your user, and with typed
+confirmation backs up the installer's `/etc/nixos` to `/etc/nixos.pre-hamra`
+and symlinks the checkout in its place.
 
 The checkout lives in your user, at any path — `~/Projetos/hamra`,
 `~/src/nixos`, `~/dev/hamra`, whatever you prefer. The `/etc/nixos` symlink
@@ -50,7 +53,8 @@ nix run .#hamra-init
 ```
 
 The wizard asks for the machine name, GPU and firmware (both detected by
-default), the desktop and the host roles (NAS, wayvnc). It writes
+default), the desktop and the host roles (NAS, wayvnc), and performs the
+one-time `/etc/nixos` setup when needed. It writes
 `hosts/<name>/{configuration,hardware-configuration}.nix` atomically — an
 existing host is never overwritten — and the host is registered
 automatically (hosts are discovered from `hosts/*/`). It then validates in

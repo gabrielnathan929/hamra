@@ -465,6 +465,7 @@ def run_gates(repo, hostname, offer_rebuild):
         "You can roll back with: sudo nixos-rebuild switch --rollback"
     )
     if input("Run 'sudo nixos-rebuild test' now? [y/N]: ").strip().lower() in ("y", "yes"):
+        enable_flakes_root()
         run(["sudo", "nixos-rebuild", "test", "--flake", f".#{hostname}"], cwd=repo)
         ok("test activation done")
         print("\nIf the machine looks good, make it the boot default:")
@@ -502,6 +503,76 @@ def print_git_hint(hostname):
     )
 
 
+def ensure_flakes_user():
+    """Enable nix-command + flakes for the current user (idempotent, no sudo).
+
+    A fresh NixOS install ships without them, and every nix call the engine
+    makes needs them. The one-time bootstrap flag on the launch command got
+    us here; from now on the config is persistent.
+    """
+    conf = Path.home() / ".config/nix/nix.conf"
+    conf.parent.mkdir(parents=True, exist_ok=True)
+    existing = conf.read_text() if conf.is_file() else ""
+    if "experimental-features" not in existing:
+        with conf.open("a") as f:
+            f.write("experimental-features = nix-command flakes\n")
+        ok(f"enabled flakes for the user ({conf})")
+    if "nix-command flakes" not in existing and "experimental-features" in existing:
+        warn(
+            f"{conf} sets experimental-features without nix-command flakes — "
+            "the bootstrap flag will be needed for now"
+        )
+
+
+def offer_etc_nixos_symlink(repo):
+    """One-time /etc/nixos setup: back up the installer's config, symlink the checkout.
+
+    Needs sudo, so it is always announced and confirmed by typing the answer.
+    """
+    target = Path("/etc/nixos")
+    if target.is_symlink():
+        if target.resolve() == repo.resolve():
+            return
+        warn(f"/etc/nixos symlinks to {target.resolve()} (not this checkout)")
+        return
+    if target.exists():
+        backup = Path("/etc/nixos.pre-hamra")
+        print(
+            "\nOne-time setup (runs with sudo): back up the installer's /etc/nixos\n"
+            f"to {backup} and symlink this checkout in its place. This is what\n"
+            "makes plain `nixos-rebuild` and setup-nas find the repository."
+        )
+        if input("Do it now? [y/N]: ").strip().lower() not in ("y", "yes"):
+            print("  skipped — plain nixos-rebuild will not find the repository until done")
+            return
+        if backup.exists():
+            die(f"{backup} already exists — refusing to overwrite it")
+        run(["sudo", "mv", str(target), str(backup)])
+    else:
+        print("\nOne-time setup (runs with sudo): symlink this checkout to /etc/nixos.")
+        if input("Do it now? [y/N]: ").strip().lower() not in ("y", "yes"):
+            print("  skipped — plain nixos-rebuild will not find the repository until done")
+            return
+    run(["sudo", "ln", "-s", str(repo), str(target)])
+    ok(f"/etc/nixos -> {repo}")
+
+
+def enable_flakes_root():
+    """Enable flakes for root, piggybacked on the confirmed rebuild step."""
+    run(
+        [
+            "sudo",
+            "sh",
+            "-c",
+            "mkdir -p /root/.config/nix; "
+            "grep -q '^experimental-features' /root/.config/nix/nix.conf 2>/dev/null "
+            "|| echo 'experimental-features = nix-command flakes' "
+            ">> /root/.config/nix/nix.conf",
+        ]
+    )
+    ok("flakes enabled for root (one-time)")
+
+
 def cmd_check(repo, enums):
     print("hamra-init --check (read-only audit)")
     check_disk()
@@ -520,6 +591,20 @@ def cmd_check(repo, enums):
         ok("sops editing key present")
     else:
         warn("no sops editing key (only needed to create/reset NAS passwords)")
+    nixconf = Path.home() / ".config/nix/nix.conf"
+    if nixconf.is_file() and "nix-command" in nixconf.read_text():
+        ok("flakes enabled for the user")
+    else:
+        warn("user nix.conf lacks flakes (the wizard enables it; harmless when the system already provides them)")
+    etsymlink = Path("/etc/nixos")
+    if etsymlink.is_symlink() and etsymlink.resolve() == repo.resolve():
+        ok("/etc/nixos symlinks to this checkout")
+    elif etsymlink.is_symlink():
+        warn(f"/etc/nixos symlinks to {etsymlink.resolve()} (not this checkout)")
+    elif etsymlink.exists():
+        warn("/etc/nixos is the installer's copy (the wizard offers the backup + symlink)")
+    else:
+        warn("/etc/nixos does not exist (the wizard can create the symlink)")
     print("\nEnvironment ready for hamra-init.")
 
 
@@ -554,6 +639,9 @@ def main():
             die(f"hosts/{args.gates_only} does not exist")
         run_gates(REPO, args.gates_only, offer_rebuild=True)
         return
+
+    if not args.render_only and not args.dry_run:
+        ensure_flakes_user()
 
     enums = load_enums(REPO)
     existing = scanned_hosts(REPO)
@@ -594,6 +682,7 @@ def main():
         print("\n(dry-run: nothing was written, gates not run)")
         return
 
+    offer_etc_nixos_symlink(REPO)
     check_dirty_targets(a["hostname"])
     check_disk()
     check_user(a["profile"])
