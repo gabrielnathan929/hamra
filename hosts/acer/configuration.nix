@@ -16,5 +16,7 @@ _: {
     };
 
     desktop.default = "hyprland";
+
+    programs.optionals.services.samba = true;
   };
 }

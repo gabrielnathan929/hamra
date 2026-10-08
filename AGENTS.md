@@ -116,7 +116,7 @@ envolvidos em `lib.mkDefault` para qualquer host poder sobrescrever sem conflito
 - **Papel de host ≠ preferência pessoal:** `samba`, `wayvnc`, `tigervnc` dizem
   *quem a máquina é* (NAS, VNC server), não *o que você gosta de usar*. Eles
   ficam `false` no common (ou inexistentes lá) e ligam como delta só no host
-  que desempenha o papel (ex.: `samsung` é o NAS → `services.samba = true`
+  que desempenha o papel (ex.: `acer` é o NAS → `services.samba = true`
   nele). Um host novo criado pelo `setup-nas.sh` NÃO deve virar NAS por
   acidente ao importar o common.
 
