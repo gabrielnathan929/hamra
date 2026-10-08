@@ -13,7 +13,10 @@
   };
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    helium = {
+      url = "github:oxcl/nix-flake-helium-browser";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
@@ -21,31 +24,34 @@
     };
 
     noctalia = {
-      url = "github:noctalia-dev/noctalia/v5.2.1";
-    };
-
-    silent-sddm = {
-      url = "github:gabrielnathan929/SilentSDDM";
+      url = "github:noctalia-dev/noctalia";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    spicetify-nix = {
-      url = "github:Gerg-L/spicetify-nix";
+    noctalia-greeter = {
+      url = "github:noctalia-dev/noctalia-greeter";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    helium = {
-      url = "github:oxcl/nix-flake-helium-browser";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
     nix-software-center = {
       url = "github:snowfallorg/nix-software-center";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    silent-sddm = {
+      url = "github:uiriansan/SilentSDDM";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     sops-nix = {
       url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    spicetify-nix = {
+      url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -64,21 +70,22 @@
 
     mkHost = hostName:
       lib.nixosSystem {
-        specialArgs = {inherit self inputs hostName hamraLib;};
+        specialArgs = {inherit hamraLib hostName inputs self;};
         modules = [
           ./hosts/${hostName}/configuration.nix
           inputs.home-manager.nixosModules.home-manager
+          inputs.noctalia-greeter.nixosModules.default
           inputs.silent-sddm.nixosModules.default
-          inputs.spicetify-nix.nixosModules.spicetify
           inputs.sops-nix.nixosModules.sops
-          {nixpkgs.overlays = [inputs.helium.overlays.default];}
-          {
-            system.configurationRevision = self.rev or self.dirtyRev or null;
-          }
+          inputs.spicetify-nix.nixosModules.spicetify
           {
             home-manager.sharedModules = [
               inputs.sops-nix.homeManagerModules.sops
             ];
+          }
+          {nixpkgs.overlays = [inputs.helium.overlays.default];}
+          {
+            system.configurationRevision = self.rev or self.dirtyRev or null;
           }
         ];
       };

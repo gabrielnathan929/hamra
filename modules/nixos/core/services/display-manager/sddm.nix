@@ -9,23 +9,23 @@ in {
     default = lib.mkOption {
       type = lib.types.str;
       default = "sddm";
-      description = "Display manager padrão.";
+      description = "Default display manager.";
     };
     sddm = {
       theme = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = "silent";
-        description = "Tema do SDDM.";
+        description = "SDDM theme.";
       };
       preset = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = "catppuccin-mocha";
-        description = "Preset do SDDM.";
+        description = "SDDM preset.";
       };
       profileIcon = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
         default = "profile.jpg";
-        description = "Ícone de perfil do SDDM.";
+        description = "SDDM profile icon.";
       };
     };
   };

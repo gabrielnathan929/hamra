@@ -105,35 +105,43 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1790323409,
-        "narHash": "sha256-m4DGo58Fza5ImOegtWOeE18nhpSO1IGzsVA6Lpsb4zw=",
-        "rev": "e94cb152ed51bd6e24eb4a41f1460252beb52cd2",
-        "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1079315.e94cb152ed51/nixexprs.tar.zst"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://channels.nixos.org/nixos-unstable/nixexprs.tar.zst"
-      }
-    },
     "noctalia": {
       "inputs": {
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": [
+          "nixpkgs"
+        ]
       },
       "locked": {
-        "lastModified": 1790905070,
-        "narHash": "sha256-ukT5U54WQSpq6sktl5QJOZ8S4ZF3LLmP8CAFel1XJf0=",
+        "lastModified": 1791467837,
+        "narHash": "sha256-+oVM3FIiYjmthuzpc6Q1AZfsGm8C+2+0Qm8Tc/l5F78=",
         "owner": "noctalia-dev",
         "repo": "noctalia",
-        "rev": "6ef43e2bf2f3d5b4205ec72a72e34a2ab76ce3b4",
+        "rev": "ab373ad78d7e8936dd6067aab1195ee70c02c13c",
         "type": "github"
       },
       "original": {
         "owner": "noctalia-dev",
-        "ref": "v5.2.1",
         "repo": "noctalia",
+        "type": "github"
+      }
+    },
+    "noctalia-greeter": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791371992,
+        "narHash": "sha256-+M3rbqo/h5z0ayFIg+hWFa6hDewa79IBc0UUMSR0v0c=",
+        "owner": "noctalia-dev",
+        "repo": "noctalia-greeter",
+        "rev": "836071bcbc490c6ab7095d0aae5d0885bd2c5659",
+        "type": "github"
+      },
+      "original": {
+        "owner": "noctalia-dev",
+        "repo": "noctalia-greeter",
         "type": "github"
       }
     },
@@ -144,6 +152,7 @@
         "nix-software-center": "nix-software-center",
         "nixpkgs": "nixpkgs",
         "noctalia": "noctalia",
+        "noctalia-greeter": "noctalia-greeter",
         "silent-sddm": "silent-sddm",
         "sops-nix": "sops-nix",
         "spicetify-nix": "spicetify-nix"
@@ -156,15 +165,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1785353884,
-        "narHash": "sha256-UYAP/sPJxG95tN6a4VNTcskY54ud2sIQKrTzTLioGv0=",
-        "owner": "gabrielnathan929",
+        "lastModified": 1790785664,
+        "narHash": "sha256-TNGAElCnjIA4OzTtn0VuCk6pXKd92kBkz+5NjHLwbkM=",
+        "owner": "uiriansan",
         "repo": "SilentSDDM",
-        "rev": "0dc4386ef570659537b480f4b226b3b6f2699948",
+        "rev": "d32ebc060ee0f832cf2a2ea4c91d96582d3f31ce",
         "type": "github"
       },
       "original": {
-        "owner": "gabrielnathan929",
+        "owner": "uiriansan",
         "repo": "SilentSDDM",
         "type": "github"
       }
