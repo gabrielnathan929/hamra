@@ -106,6 +106,8 @@ in {
 
       restartTriggers = [toolsHash];
 
+      path = [pkgs.nodejs];
+
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
