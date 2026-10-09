@@ -1,7 +1,5 @@
-{
-  pkgs,
-  ...
-}: pkgs.stdenv.mkDerivation {
+{pkgs, ...}:
+pkgs.stdenv.mkDerivation {
   pname = "foundry";
   version = "0.1.0";
   dontUnpack = true;
