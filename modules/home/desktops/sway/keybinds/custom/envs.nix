@@ -17,4 +17,6 @@ in ''
   bindsym $mod+Ctrl+Print  exec ocr-screenshot
 
   bindsym $mod+Alt+t        exec ${terminal} -e btop
+  bindsym $mod+h              exec ${terminal} -e herdr
+  bindsym $mod+Shift+t        exec ${terminal} -e tmux new-session -A -s main
 ''

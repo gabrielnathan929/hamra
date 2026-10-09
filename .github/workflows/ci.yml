@@ -8,7 +8,7 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   NIX_CONFIG: |
@@ -31,8 +31,9 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           ALLOWED: ${{ contains(github.event.pull_request.labels.*.name, 'personal-layer') }}
         run: |
-          files=$(git diff --name-only "$BASE_SHA"... "$HEAD_SHA")
-          personal=$(echo "$files" | grep -E '^hosts/[^/]+/(configuration|hardware-configuration)\.nix$|^hosts/profiles/' || true)
+          git fetch --no-tags origin "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || true
+          files=$(git diff --name-only "$BASE_SHA"... "$HEAD_SHA" || git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
+          personal=$(echo "$files" | grep -E '^hosts/profiles/|^hosts/[^/]+/' | grep -v '^hosts/common/' || true)
           if [ -n "$personal" ] && [ "$ALLOWED" != 'true' ]; then
             {
               echo "This PR touches personal layers:"
@@ -61,7 +62,7 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
-      - run: nix develop --command sh -c "statix check . && deadnix ."
+      - run: nix develop --command sh -c "statix check . && deadnix --fail ."
 
   check:
     name: Evaluation
@@ -75,6 +76,7 @@ jobs:
 
   discover:
     name: Hosts
+    needs: [check]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
@@ -87,7 +89,7 @@ jobs:
 
   init-golden:
     name: hamra-init golden
-    needs: [format]
+    needs: [check]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -109,7 +111,7 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
-      - run: nix build .#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel
+      - run: nix build --print-build-logs .#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel
       - name: Push closures to cachix
         if: env.CACHIX_TOKEN != ''
         uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866

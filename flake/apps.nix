@@ -73,6 +73,8 @@
     '';
   };
 
+  hamraControl = pkgs.callPackage ../apps/hamra-control {};
+
   mkApps = fn: prefix:
     builtins.listToAttrs (map (h: {
         name = "${prefix}-${h}";
@@ -98,6 +100,14 @@ in {
         meta = {
           description = "Graphical installer for a new Hamra host (GTK4/libadwaita)";
           mainProgram = "hamra-setup";
+        };
+      };
+      hamra-control = {
+        type = "app";
+        program = "${hamraControl}/bin/hamra-control";
+        meta = {
+          description = "Hamra Control Center — manage machines and toggles visually";
+          mainProgram = "hamra-control";
         };
       };
     };

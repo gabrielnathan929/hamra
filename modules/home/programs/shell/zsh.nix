@@ -16,6 +16,8 @@ in {
     programs.zoxide = mkIf cfg {
       enable = true;
       enableZshIntegration = true;
+      enableBashIntegration = true;
+      options = ["--cmd cd"];
     };
 
     programs.zsh = mkIf cfg {
@@ -23,6 +25,10 @@ in {
       enableCompletion = true;
       autosuggestion.enable = true;
       syntaxHighlighting.enable = true;
+      shellAliases = {
+        z = "cd";
+        zi = "cdi";
+      };
       history = {
         size = 10000;
         path = "$HOME/.zsh_history";

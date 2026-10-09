@@ -35,6 +35,18 @@ in ''
     "SUPER+CTRL+Print",
     hl.dsp.exec_cmd("ocr-screenshot")
   )
+  -- Herdr
+  hl.bind(
+    "SUPER+H",
+    hl.dsp.exec_cmd("${terminal} -e herdr")
+  )
+
+  -- Tmux
+  hl.bind(
+    "SUPER+SHIFT+T",
+    hl.dsp.exec_cmd("${terminal} -e tmux new-session -A -s main")
+  )
+
   -- Btop
   hl.bind(
     "SUPER+ALT+T",

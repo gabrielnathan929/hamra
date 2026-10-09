@@ -17,6 +17,8 @@ in ''
   Mod+Ctrl+Print         { spawn-sh "ocr-screenshot"; }
 
   Mod+Alt+T               { spawn-sh "${terminal} -e btop"; }
+  Mod+Shift+H             { spawn-sh "${terminal} -e herdr"; }
+  Mod+Shift+T             { spawn-sh "${terminal} -e tmux new-session -A -s main"; }
 
   Mod+Shift+D             { spawn-sh "${terminal} -e lazydocker"; }
 

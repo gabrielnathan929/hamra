@@ -20,6 +20,14 @@
     action = "Editor (terminal)";
   }
   {
+    key = "SUPER + H";
+    action = "Terminal workspace manager (herdr)";
+  }
+  {
+    key = "SUPER + SHIFT + T";
+    action = "Terminal multiplexer (tmux)";
+  }
+  {
     key = "SUPER + ALT + T";
     action = "Activity monitor (btop)";
   }
