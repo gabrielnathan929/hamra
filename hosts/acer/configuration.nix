@@ -18,6 +18,8 @@ _: {
 
     desktop.default = "hyprland";
 
+    displayManager.default = "greetd";
+
     programs.optionals.services = {
       samba = true;
       wayvnc = false;
