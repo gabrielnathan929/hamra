@@ -52,28 +52,7 @@
     flakeIgnore = ["E501" "E265" "W503"];
   } (builtins.readFile ../scripts/hamra-init.py);
 
-  hamraSetup = pkgs.stdenv.mkDerivation {
-    pname = "hamra-setup";
-    version = "0.1";
-    dontUnpack = true;
-
-    nativeBuildInputs = [pkgs.wrapGAppsHook4 pkgs.makeWrapper];
-    buildInputs = [pkgs.gtk4 pkgs.libadwaita];
-
-    pythonEnv = pkgs.python3.withPackages (ps: [ps.pygobject3]);
-
-    installPhase = ''
-      mkdir -p $out/bin $out/share/hamra-setup
-      cp ${../scripts/hamra-setup.py} $out/share/hamra-setup/hamra-setup.py
-      cp ${../scripts/hamra-init.py} $out/share/hamra-setup/hamra-init.py
-
-      makeWrapper $pythonEnv/bin/python3 \
-        $out/bin/hamra-setup \
-        --add-flags "$out/share/hamra-setup/hamra-setup.py"
-    '';
-  };
-
-  hamraControl = pkgs.callPackage ../apps/hamra-control {};
+  foundry = pkgs.callPackage ../apps/foundry {};
 
   mkApps = fn: prefix:
     builtins.listToAttrs (map (h: {
@@ -84,30 +63,22 @@
 in {
   ${system} =
     (mkApps mkDeployApp "deploy"
-      // mkApps mkBuildApp "build")
+    // mkApps mkBuildApp "build")
     // {
       hamra-init = {
         type = "app";
         program = "${hamraInit}/bin/hamra-init";
         meta = {
-          description = "Generate and validate a new Hamra host";
+          description = "Generate and validate a new Hamra host (CLI engine)";
           mainProgram = "hamra-init";
         };
       };
-      hamra-setup = {
+      foundry = {
         type = "app";
-        program = "${hamraSetup}/bin/hamra-setup";
+        program = "${foundry}/bin/foundry";
         meta = {
-          description = "Graphical installer for a new Hamra host (GTK4/libadwaita)";
-          mainProgram = "hamra-setup";
-        };
-      };
-      hamra-control = {
-        type = "app";
-        program = "${hamraControl}/bin/hamra-control";
-        meta = {
-          description = "Hamra Control Center — manage machines and toggles visually";
-          mainProgram = "hamra-control";
+          description = "Foundry — shape your NixOS machine visually";
+          mainProgram = "foundry";
         };
       };
     };

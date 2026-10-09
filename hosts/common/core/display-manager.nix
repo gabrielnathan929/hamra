@@ -8,7 +8,7 @@
 # The sddm.* options only apply when default is "sddm".
 {hamraLib, ...}: {
   hamra.displayManager = hamraLib.mkBase {
-    default = "greetd";
+    default = "sddm";
     sddm = {
       theme = "silent";
       preset = "catppuccin-mocha";

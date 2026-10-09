@@ -16,7 +16,9 @@ in ''
 
   bindsym $mod+Ctrl+Print  exec ocr-screenshot
 
-  bindsym $mod+Alt+t        exec ${terminal} -e btop
+  bindsym $mod+Alt+t        exec ${terminal} --app-id=hamra-tui -e btop
+  bindsym $mod+Shift+d        exec ${terminal} --app-id=hamra-tui -e lazydocker
+  bindsym $mod+Shift+g        exec ${terminal} --app-id=hamra-tui -e lazygit
   bindsym $mod+h              exec ${terminal} -e herdr
   bindsym $mod+Shift+t        exec ${terminal} -e tmux new-session -A -s main
 ''

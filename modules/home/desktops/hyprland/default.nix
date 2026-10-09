@@ -10,6 +10,7 @@
 }: let
   monitorsPart = import ./monitors {inherit displays lib;};
   settingsPart = import ./settings {inherit keyboard;};
+  rulesPart = import ./rules.nix {};
   noctaliaPart = import ./noctalia {inherit displays lib;};
   keybindsPart = import ./keybinds {inherit config lib pkgs env;};
 in {
@@ -18,6 +19,7 @@ in {
     text = ''
       ${monitorsPart}
       ${settingsPart}
+      ${rulesPart}
       ${noctaliaPart}
       ${keybindsPart}
 

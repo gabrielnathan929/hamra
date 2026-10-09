@@ -5,6 +5,17 @@ _: ''
   }
 
   window-rule {
+    match app-id="hamra-tui"
+    open-floating true
+    default-column-width {
+      fixed 1100
+    }
+    default-window-height {
+      fixed 700
+    }
+  }
+
+  window-rule {
     match app-id="dev.noctalia.Noctalia.Settings"
     open-floating true
     default-column-width {

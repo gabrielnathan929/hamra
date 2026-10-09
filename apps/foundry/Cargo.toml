@@ -1,8 +1,8 @@
 [package]
-name = "hamra-control"
+name = "foundry"
 version = "0.1.0"
 edition = "2021"
-description = "Hamra Control Center — manage your NixOS machines visually"
+description = "Foundry — shape your NixOS machine visually"
 
 [dependencies]
 gtk4 = { version = "0.9", features = ["v4_12"] }

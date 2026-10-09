@@ -29,15 +29,15 @@
   }
   {
     key = "SUPER + ALT + T";
-    action = "Activity monitor (btop)";
+    action = "Activity monitor (btop, floating)";
   }
   {
     key = "SUPER + SHIFT + D";
-    action = "Lazydocker";
+    action = "Lazydocker (floating)";
   }
   {
     key = "SUPER + SHIFT + G";
-    action = "Lazygit";
+    action = "Lazygit (floating)";
   }
   {
     key = "SUPER + CTRL + ALT + M";
@@ -145,11 +145,11 @@
   }
   {
     key = "SUPER + TAB";
-    action = "Next workspace (skip empty)";
+    action = "Next workspace on this monitor (skip empty)";
   }
   {
     key = "SUPER + SHIFT + TAB";
-    action = "Previous workspace (skip empty)";
+    action = "Previous workspace on this monitor (skip empty)";
   }
   {
     key = "SUPER + 1..0";

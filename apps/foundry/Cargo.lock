@@ -64,6 +64,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundry"
+version = "0.1.0"
+dependencies = [
+ "gtk4",
+ "libadwaita",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "futures-channel"
 version = "0.3.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -371,16 +381,6 @@ dependencies = [
  "libc",
  "pango-sys",
  "system-deps",
-]
-
-[[package]]
-name = "hamra-control"
-version = "0.1.0"
-dependencies = [
- "gtk4",
- "libadwaita",
- "serde",
- "serde_json",
 ]
 
 [[package]]

@@ -8,9 +8,11 @@
 
   cfg = config.hamra.programs.optionals.services.wayvnc;
   supported = builtins.elem config.hamra.desktop.default ["hyprland" "sway"];
+  userName = config.hamra.users.userName;
 
   hyprctl = "${pkgs.hyprland}/bin/hyprctl";
   swaymsg = "${pkgs.swayfx}/bin/swaymsg";
+  openssl = "${pkgs.openssl}/bin/openssl";
 
   headlessDisplays = config.hamra.displays.headless or {};
   headlessNames = builtins.attrNames headlessDisplays;
@@ -182,13 +184,55 @@
       esac
     }
 
+    ensure_tls() {
+      state_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/wayvnc"
+      mkdir -p "$state_dir"
+      chmod 700 "$state_dir"
+      if [ ! -f "$state_dir/tls.crt" ] || [ ! -f "$state_dir/tls.key" ] || [ ! -f "$state_dir/rsa.pem" ]; then
+        info "Gerando certificado TLS autoassinado em $state_dir ..."
+        ${openssl} req -x509 -newkey rsa:2048 -keyout "$state_dir/tls.key" -out "$state_dir/tls.crt" -days 825 -nodes -subj "/CN=hamra-vnc" 2>/dev/null
+        ${openssl} genrsa -out "$state_dir/rsa.pem" 2048 2>/dev/null
+        chmod 600 "$state_dir/tls.key" "$state_dir/rsa.pem"
+      fi
+      echo "$state_dir"
+    }
+
+    write_auth_config() {
+      secret_file=$1
+      state_dir=$2
+      if [ ! -f "$secret_file" ]; then
+        error "Segredo vnc-password ausente em $secret_file (sops)."
+        error "Gere com: nix develop --command sops secrets/vnc.yaml"
+        return 1
+      fi
+      pw=$(tr -d '\n\r' <"$secret_file")
+      if [ -z "$pw" ]; then
+        error "Segredo vnc-password vazio."
+        return 1
+      fi
+      conf="$XDG_RUNTIME_DIR/wayvnc.conf"
+      {
+        echo "enable_auth=true"
+        echo "username=${userName}"
+        echo "password=$pw"
+        echo "private_key_file=$state_dir/tls.key"
+        echo "certificate_file=$state_dir/tls.crt"
+        echo "rsa_private_key_file=$state_dir/rsa.pem"
+      } >"$conf"
+      chmod 600 "$conf"
+      echo "$conf"
+    }
+
     main() {
       setup_env
       compositor=$(wait_compositor) || exit 1
       output=$(setup_headless "$compositor") || exit 1
+      tls_dir=$(ensure_tls)
+      auth_conf=$(write_auth_config "${config.sops.secrets."vnc-password".path}" "$tls_dir") || exit 1
 
-      info "Iniciando wayvnc no output '$output' (porta $VNC_ADDR:5900)..."
+      info "Iniciando wayvnc no output '$output' (porta $VNC_ADDR:5900, auth TLS)..."
       exec ${lib.getExe pkgs.wayvnc} \
+        --config="$auth_conf" \
         "$VNC_ADDR" \
         --max-fps="$VNC_FPS" \
         --output="$output"
@@ -200,12 +244,20 @@ in {
   options.hamra.programs.optionals.services.wayvnc = mkOption {
     type = types.bool;
     default = false;
-    description = "Habilitar WayVNC (porta 5900). Requer Hyprland ou Sway.";
+    description = "Habilitar WayVNC (porta 5900, auth com senha via sops + TLS). Requer Hyprland ou Sway.";
   };
 
   config = mkIf (cfg && supported) {
     programs.wayvnc.enable = true;
     networking.firewall.allowedTCPPorts = [5900];
+
+    sops.age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
+
+    sops.secrets."vnc-password" = {
+      sopsFile = ../../../../../secrets/vnc.yaml;
+      owner = userName;
+      mode = "0400";
+    };
 
     systemd.user.services.wayvnc = {
       description = "WayVNC — Remote Desktop (Hyprland/Sway)";

@@ -19,6 +19,11 @@
     settings = {
       systemd.launch_apps_as_systemd_services = true;
 
+      system.monitor = {
+        enabled = true;
+        gpu_poll_seconds = 2.0;
+      };
+
       shell = {
         ui_scale = 1.0;
         window_switcher.current_workspace_only = true;
