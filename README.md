@@ -35,7 +35,7 @@ this in `system.nix` (then the complete `programs.core`,
 }
 ```
 
-Never hand-write them: `hamra-init` (or the CookieCutter TUI) generates the
+Never hand-write them: `hamra-init` generates the
 files from the toggle modules themselves, so the menu never goes stale.
 
 Three toggle families:
@@ -127,8 +127,8 @@ Package in the NixOS layer, user config in `modules/home/`. `scanPaths`
 discovers the file on its own, no manual import. Enable it in the host file.
 Loose package without a module: `hamra.packages.extra = [pkgs.foo];`.
 
-Forking for personal use: generate your hosts with `hamra-init` (or the
-CookieCutter TUI) and keep the `hosts/<machine>/` folders in your fork.
+Forking for personal use: generate your hosts with `hamra-init`
+and keep the `hosts/<machine>/` folders in your fork.
 Your hosts are yours alone and never flow upstream — CI blocks PRs
 that touch them — and your fork is their version control (see
 CONTRIBUTING.md, "Versioning your personal layers"). Pulling updates stays
@@ -151,8 +151,7 @@ cursor (Bibata) are fixed parts of the base theme.
 | `nix develop` | shell with statix, deadnix, sops, age, ssh-to-age |
 | `nix run .#build-<host>` | build without applying (saved in `./result`) |
 | `nix run .#deploy-<host>` | `nix flake check` + `nixos-rebuild switch` |
-| `nix run .#cookiecutter` | CookieCutter — shape a new machine from a template |
-| `nix run .#hamra-init` | CLI engine that generates a new host |
+| `nix run .#hamra-init` | wizard that generates a new host (gum/fzf when available, `--from <host>` inherits its optionals) |
 | `hamra-keybinds [context]` | keybinds of the active WM, `tmux`, `herdr` or `all` |
 
 On the desktop, `SUPER+K` opens the compositor keybinds in an interactive

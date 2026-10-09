@@ -124,9 +124,9 @@ from shared layers — repetition across hosts is normal and expected.
 Rules:
 - Each line in a host file is a decision — the files are the full menu, not a
   delta. Disabled toggles stay visible as `= false`.
-- Never hand-write host files: generate them with `hamra-init` (answers file
-  or wizard) or the CookieCutter TUI, which read the toggle universes from
-  the module files themselves.
+- Never hand-write host files: generate them with `hamra-init` (answers file,
+  wizard or `--from <host>` to inherit another host's optionals), which reads
+  the toggle universes from the module files themselves.
 - `flake/hosts.nix` discovers every directory under `hosts/` automatically.
 - **Host role ≠ personal preference:** `samba`, `wayvnc`, `tigervnc` say
   *who the machine is* (NAS, VNC server) and are plain values on that host

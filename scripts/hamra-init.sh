@@ -15,7 +15,8 @@
 #  from the toggle modules.
 #
 #  Usage:
-#    hamra-init                       interactive wizard
+#    hamra-init                       interactive wizard (gum/fzf when available)
+#    hamra-init --from <host>         wizard pre-loaded with a host's enabled optionals
 #    hamra-init --answers a.json      non-interactive
 #    hamra-init --dry-run             print the files, write nothing
 #    hamra-init --render-only         print the files to stdout (golden-test mode)
@@ -53,6 +54,11 @@ CHECK=0
 GATES_ONLY=""
 EXTRA_ENABLE=""
 EXTRA_DISABLE=""
+FROM_HOST=""
+GUM=$(command -v gum 2>/dev/null || true)
+FZF=$(command -v fzf 2>/dev/null || true)
+HAVE_TTY=0
+[ -t 0 ] && [ -t 2 ] && HAVE_TTY=1
 
 die() {
     printf "%b\n" "${BLD}${CRE}error:${CNC} $1" >&2
@@ -85,6 +91,14 @@ step() {
 
 ask_input() {
     label="$1"; default="${2:-}"
+    if [ -n "$GUM" ]; then
+        if [ -n "$default" ]; then
+            "$GUM" input --prompt "$label " --value "$default" --char-limit 120
+        else
+            "$GUM" input --prompt "$label " --char-limit 120
+        fi
+        return 0
+    fi
     if [ -n "$default" ]; then
         printf " %b" "${BLD}${CYE}${label}${CNC} [${default}]: "
     else
@@ -97,6 +111,10 @@ ask_input() {
 
 ask_yes_no() {
     label="$1"; default="${2:-false}"
+    if [ -n "$GUM" ]; then
+        "$GUM" confirm "$label" --default="${default:-false}"
+        return $?
+    fi
     case "$default" in
         true) suffix="[Y/n]" ;;
         *) suffix="[y/N]" ;;
@@ -117,6 +135,10 @@ ask_enum() {
     opts="$*"
     display=$(printf "%s | " "$@")
     display="${display% | }"
+    if [ -n "$GUM" ]; then
+        "$GUM" choose --header "$label (default: $default)" "$@"
+        return 0
+    fi
     while :; do
         printf " %b" "${BLD}${CYE}${label}${CNC} (${display}) [${default}]: "
         read -r raw
@@ -126,6 +148,61 @@ ask_enum() {
         done
         warn "'$raw' is not one of: $display"
     done
+}
+
+toggle_lines() {
+    base="$1"
+    [ -d "$base" ] || return 0
+    for category in "$base"/*/; do
+        category="${category%/}"
+        for file in "$category"/*.nix; do
+            [ "$(basename "$file")" = "default.nix" ] && continue
+            app="$(basename "$file" .nix)"
+            desc=$(grep -m1 'description = "' "$file" 2>/dev/null | sed -e 's/.*description = "//' -e 's/";\s*$//')
+            printf "%s/%s %s\n" "$(basename "$category")" "$app" "${desc:+— $desc}"
+        done
+    done | sort
+}
+
+enabled_from() {
+    host="$1"
+    nix eval --accept-flake-config --json \
+        ".#nixosConfigurations.$host.config.hamra.programs.optionals" \
+        --apply 'cats: builtins.concatLists (builtins.attrValues (builtins.mapAttrs (cat: apps: builtins.filter (x: x != null) (builtins.attrValues (builtins.mapAttrs (app: on: if on then "${cat}/${app}" else null) apps))) cats))' \
+        2>/dev/null | jq -r '.[]' || true
+}
+
+ask_app_list() {
+    label="$1"; base="$2"; preselect="${3:-}"
+    lines=$(toggle_lines "$base")
+    if [ -n "$FZF" ] && [ "$HAVE_TTY" = "1" ] && [ -n "$lines" ]; then
+        preview="sed -n '1,25p' ${base}/{1}.nix"
+        sel=$(printf "%s\n" "$lines" \
+            | "$FZF" --multi --prompt "${label}> " \
+                --header "TAB selects (empty = keep defaults)" \
+                --preview "$preview" \
+                --preview-window "right,50%" || true)
+        picked=$(printf "%s\n" "$sel" | awk 'NF {print $1}' | tr '/' '.' | paste -sd, -)
+        if [ -n "$preselect" ]; then
+            [ -n "$picked" ] && preselect="${preselect},${picked}"
+            printf "%s" "$preselect"
+        else
+            printf "%s" "$picked"
+        fi
+        return 0
+    fi
+    if [ -n "$preselect" ]; then
+        printf "\n  %b\n" "${BLD}${CYE}pre-selected from --from:${CNC} ${preselect}"
+    fi
+    printf " %b\n" "${BLD}${CYE}${label}${CNC} (comma-separated cat.app, empty = defaults): "
+    read -r raw
+    raw="${raw// /}"
+    if [ -n "$preselect" ]; then
+        [ -z "$raw" ] && { printf "%s" "$preselect"; return 0; }
+        printf "%s,%s" "$preselect" "$raw"
+        return 0
+    fi
+    printf "%s" "$raw"
 }
 
 render_expr() {
@@ -296,15 +373,6 @@ ask_hostname() {
         printf "%s" "$hostname"
         return 0
     done
-}
-
-ask_app_list() {
-    label="$1"
-    printf " %b\n" "${BLD}${CYE}${label}${CNC} (comma-separated cat.app, empty = defaults): "
-    read -r raw
-    raw="${raw// /}"
-    [ -z "$raw" ] && return 0
-    printf "%s" "$raw" | tr ',' '\n'
 }
 
 build_answers() {
@@ -493,9 +561,14 @@ ${BLD}${CRE}[${CYE}!${CRE}]${CNC} ${BLD}${CRE}It never overwrites an existing ho
 
     step "Toggles"
     info "Core toggles default ON, optionals default OFF — every toggle is written to the host."
-    enable_list=$(ask_app_list "Optional apps to enable" | tr '\n' ',')
-    core_disable_list=$(ask_app_list "Core apps to disable" | tr '\n' ',')
-    hm_enable_list=$(ask_app_list "Home (HM) apps to enable" | tr '\n' ',')
+    inherited=""
+    if [ -n "$FROM_HOST" ]; then
+        inherited=$(enabled_from "$FROM_HOST" | paste -sd, -)
+        [ -n "$inherited" ] && info "inheriting from hosts/$FROM_HOST: $inherited"
+    fi
+    enable_list=$(ask_app_list "Optional apps to enable" "$REPO/modules/nixos/programs/optionals" "$inherited")
+    core_disable_list=$(ask_app_list "Core apps to disable" "$REPO/modules/nixos/programs/core")
+    hm_enable_list=$(ask_app_list "Home (HM) apps to enable" "$REPO/modules/home/programs")
 
     build_answers "$username" "$HOSTNAME_ANSWER" "$locale" "$timezone" "$theme" \
         "$gpu" "$firmware" "$desktop" "$displayManager" "$keyboard" \
@@ -596,6 +669,7 @@ main() {
             --gates-only) GATES_ONLY="${2:?--gates-only needs a host name}"; shift 2 ;;
             --enable) EXTRA_ENABLE="${2:?--enable needs a comma list}"; shift 2 ;;
             --disable) EXTRA_DISABLE="${2:?--disable needs a comma list}"; shift 2 ;;
+            --from) FROM_HOST="${2:?--from needs a host name}"; shift 2 ;;
             -h|--help) sed -n '3,30p' "$0" | sed 's/^#  \{0,1\}//'; exit 0 ;;
             *) die "unknown argument '$1' (see --help)" ;;
         esac
@@ -613,6 +687,11 @@ main() {
     [ -n "$RENDER_INTO" ] && RENDER_INTO=$(readlink -m "$RENDER_INTO")
 
     [ "$CHECK" = "1" ] && { cmd_check; return 0; }
+
+    if [ -n "$FROM_HOST" ]; then
+        [ -d "$REPO/hosts/$FROM_HOST" ] \
+            || die "hosts/$FROM_HOST does not exist (--from)"
+    fi
 
     if [ -n "$GATES_ONLY" ]; then
         [ -d "$REPO/hosts/$GATES_ONLY" ] || die "hosts/$GATES_ONLY does not exist"

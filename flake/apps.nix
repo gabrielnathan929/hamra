@@ -63,8 +63,10 @@
           pkgs.bash
           pkgs.coreutils
           pkgs.findutils
+          pkgs.fzf
           pkgs.git
           pkgs.gnused
+          pkgs.gum
           pkgs.jq
           pkgs.nix
         ]
@@ -74,34 +76,6 @@
     meta = {
       description = "Generate and validate a new Hamra host (CLI engine)";
       mainProgram = "hamra-init";
-    };
-  };
-
-  cookiecutter = pkgs.stdenv.mkDerivation {
-    pname = "cookiecutter";
-    version = "0.1.0";
-    dontUnpack = true;
-
-    nativeBuildInputs = [pkgs.makeWrapper];
-
-    installPhase = ''
-      mkdir -p $out/bin
-      makeWrapper ${../scripts/cookiecutter.sh} $out/bin/cookiecutter \
-        --prefix PATH : ${
-        pkgs.lib.makeBinPath [
-          pkgs.bash
-          pkgs.fzf
-          pkgs.git
-          pkgs.gum
-          pkgs.jq
-          pkgs.nix
-        ]
-      }
-    '';
-
-    meta = {
-      description = "CookieCutter — shape a new Hamra machine from a template";
-      mainProgram = "cookiecutter";
     };
   };
 
@@ -122,14 +96,6 @@ in {
         meta = {
           description = "Generate and validate a new Hamra host (CLI engine)";
           mainProgram = "hamra-init";
-        };
-      };
-      cookiecutter = {
-        type = "app";
-        program = pkgs.lib.getExe cookiecutter;
-        meta = {
-          description = "CookieCutter — shape a new Hamra machine from a template";
-          mainProgram = "cookiecutter";
         };
       };
     };
