@@ -188,7 +188,7 @@ This does NOT change the boot menu." \
   sudo sh -c "mkdir -p /root/.config/nix; grep -q '^experimental-features' /root/.config/nix/nix.conf 2>/dev/null || echo 'experimental-features = nix-command flakes' >> /root/.config/nix/nix.conf" 2>/dev/null || true
 
   TMP_SUDO=$(mktemp)
-  sudo nixos-rebuild test --flake "$REPO#$hostname" > "$TMP_SUDO" 2>&1 &
+  sudo sh -c "nixos-rebuild test --flake '$REPO#$hostname' > '$TMP_SUDO' 2>&1" &
   SUDO_PID=$!
   TEST_EXIT=0
 
