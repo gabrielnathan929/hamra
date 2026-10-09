@@ -5,17 +5,11 @@ _: ''
     end
   end
 
-  local function ws_monitor(ws)
-    if ws == nil then
+  local function ws_monitor_name(ws)
+    if ws == nil or ws.monitor == nil then
       return nil
     end
-    if ws.monitorID ~= nil then
-      return ws.monitorID
-    end
-    if ws.monitor ~= nil then
-      return ws.monitor
-    end
-    return nil
+    return ws.monitor.name
   end
 
   local function workspace_cycle(direction)
@@ -23,12 +17,13 @@ _: ''
 
     local active = hl.get_active_workspace()
     local current = active and active.id or nil
-    local active_monitor = ws_monitor(active)
+    local active_monitor = ws_monitor_name(active)
     local candidates = {}
 
     for _, ws in ipairs(hl.get_workspaces()) do
       if ws.id ~= nil and not ws.special and ws.windows > 0 and ws.id ~= current then
-        if active_monitor == nil or ws_monitor(ws) == nil or ws_monitor(ws) == active_monitor then
+        local ws_monitor = ws_monitor_name(ws)
+        if active_monitor == nil or ws_monitor == nil or ws_monitor == active_monitor then
           candidates[#candidates + 1] = ws.id
         end
       end
