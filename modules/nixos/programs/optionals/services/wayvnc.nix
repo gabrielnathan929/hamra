@@ -271,7 +271,7 @@
           --output="$output"
       }
 
-      main
+      main "$@"
   '';
 in {
   options.hamra.programs.optionals.services.wayvnc = mkOption {
