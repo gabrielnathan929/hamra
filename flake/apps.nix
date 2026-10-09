@@ -52,10 +52,25 @@
     flakeIgnore = ["E501" "E265" "W503"];
   } (builtins.readFile ../scripts/hamra-init.py);
 
-  hamraSetup = pkgs.writeShellApplication {
-    name = "hamra-setup";
-    runtimeInputs = [pkgs.zenity pkgs.python3];
-    text = builtins.readFile ../scripts/hamra-setup.sh;
+  hamraSetup = pkgs.stdenv.mkDerivation {
+    pname = "hamra-setup";
+    version = "0.1";
+    dontUnpack = true;
+
+    nativeBuildInputs = [pkgs.wrapGAppsHook4 pkgs.makeWrapper];
+    buildInputs = [pkgs.gtk4 pkgs.libadwaita];
+
+    pythonEnv = pkgs.python3.withPackages (ps: [ps.pygobject3]);
+
+    installPhase = ''
+      mkdir -p $out/bin $out/share/hamra-setup
+      cp ${../scripts/hamra-setup.py} $out/share/hamra-setup/hamra-setup.py
+      cp ${../scripts/hamra-init.py} $out/share/hamra-setup/hamra-init.py
+
+      makeWrapper $pythonEnv/bin/python3 \
+        $out/bin/hamra-setup \
+        --add-flags "$out/share/hamra-setup/hamra-setup.py"
+    '';
   };
 
   mkApps = fn: prefix:
