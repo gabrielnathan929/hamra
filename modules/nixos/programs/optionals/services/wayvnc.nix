@@ -113,8 +113,9 @@
         '$displays[$name] // $fallback | "\(.mode // "1920x1080@60") \(.position // "1920x0") \(.scale // 1.0)"')
       read -r mode position scale <<<"$spec"
       info "Hyprland: monitor rule: $name,$mode,$position,$scale"
-      ${hyprctl} keyword monitor "$name,$mode,$position,$scale" >/dev/null 2>&1 \
-        || warn "Hyprland: failed to apply monitor rule for $name"
+      if ! out=$(${hyprctl} eval "hl.monitor({ output = '$name', mode = '$mode', position = '$position', scale = $scale })" 2>&1); then
+        warn "Hyprland: failed to apply monitor rule for $name: $out"
+      fi
     }
 
       move_workspaces() {
