@@ -1,6 +1,4 @@
 {lib}: {
-  mkBase = lib.mkOverride 1000;
-
   scanPaths = dir: let
     inherit (builtins) readDir attrNames sort lessThan filter;
     entries = readDir dir;

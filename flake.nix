@@ -94,6 +94,7 @@
 
     devShells = import ./flake/devshell.nix {inherit pkgs system;};
     apps = import ./flake/apps.nix {inherit pkgs system self;};
+    packages = import ./flake/packages.nix {inherit pkgs system;};
     nixosConfigurations = import ./flake/hosts.nix {inherit mkHost;};
   };
 }

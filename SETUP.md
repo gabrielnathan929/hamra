@@ -40,11 +40,11 @@ automated: the installer enables flakes for your user, and with typed
 confirmation backs up the installer's `/etc/nixos` to `/etc/nixos.pre-hamra`
 and symlinks the checkout in its place.
 
-Alternatively, **Foundry** (the graphical machine configurator) can do the
-same from a desktop:
+Alternatively, **CookieCutter** (the TUI machine shaper) can do the
+same from a terminal:
 
 ```bash
-nix --extra-experimental-features "nix-command flakes" run .#foundry
+nix --extra-experimental-features "nix-command flakes" run .#cookiecutter
 ```
 
 The checkout lives in your user, at any path — `~/Projetos/hamra`,
@@ -65,10 +65,12 @@ the backup once Hamra is stable.
 nix run .#hamra-init
 ```
 
-The wizard asks for the machine name, GPU and firmware (both detected by
-default), the desktop and the host roles (NAS, wayvnc), and performs the
+The wizard asks for the machine name, user, locale, theme, GPU and firmware
+(both detected by default), the desktop, display manager, terminal apps and
+the host roles (NAS, wayvnc), and performs the
 one-time `/etc/nixos` setup when needed. It writes
-`hosts/<name>/{configuration,hardware-configuration}.nix` atomically — an
+`hosts/<name>/{configuration,hardware-configuration}.nix` atomically — a
+complete host file with every toggle visible, never a delta — and an
 existing host is never overwritten — and the host is registered
 automatically (hosts are discovered from `hosts/*/`). It then validates in
 order: format, lint, `nix flake check` and a full `nix build` of the
@@ -109,9 +111,9 @@ hamra = {
 - `desktop.default` — `hyprland` | `niri` | `sway` | `gnome` | `plasma`
 - `theme.name` (optional) — `dragon-ball` | `evangelion` | `resident-evil`
 
-Anything that differs from the shared baseline or the profile is declared
-on the host as a delta (e.g. `hamra.programs.optionals.services.samba =
-false;`).
+Every choice lives in the host file itself — identity, system defaults and
+the full true/false toggle menus (e.g. `hamra.programs.optionals.services.samba =
+true;` on the NAS).
 
 You may restructure the `hardware-configuration.nix` (group keys), but never
 change UUIDs or devices.
@@ -155,6 +157,28 @@ With the `/etc/nixos` symlink pointing to the checkout, the simple aliases
 work too: `nix-test` and `nix-switch` (nixos-rebuild without `--flake`) use
 `/etc/nixos#$(hostname)` — as long as the machine hostname matches its
 folder name under `hosts/`.
+
+## Test on the VM
+
+The `vm` host (virtio GPU, sway) exists for trying changes without touching
+real hardware. From the repo root:
+
+```bash
+nix run .#build-vm
+```
+
+builds the `vm` toplevel without applying (result in `./result`). To boot it
+as a virtual machine:
+
+```bash
+nixos-rebuild build-vm --flake .#vm
+./result/bin/run-*-vm
+```
+
+The VM runs the same evaluated configuration as a real rebuild, so it
+catches evaluation and activation errors before they reach a physical
+machine. GUI and hardware-specific behavior (GPU, brightness, bluetooth)
+still needs the target machine.
 
 ## Validate
 

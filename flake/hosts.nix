@@ -1,9 +1,7 @@
 {mkHost, ...}: let
   inherit (builtins) attrNames filter listToAttrs map readDir;
   entries = readDir ../hosts;
-  hostNames = filter (
-    name: entries.${name} == "directory" && name != "common" && name != "profiles"
-  ) (attrNames entries);
+  hostNames = filter (name: entries.${name} == "directory") (attrNames entries);
 in
   listToAttrs (map (name: {
       inherit name;

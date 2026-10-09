@@ -80,51 +80,62 @@
         return 1
       }
 
-      # Headless names declared in the config (e.g. HEADLESS-1).
       WANTED_NAMES="${lib.concatStringsSep " " headlessNames}"
 
-      # Hyprland 0.55 ignores explicit names when creating headless outputs and
-      # generates HEADLESS-N automatically. We detect the real name at runtime.
-      detect_hyprland_headless() {
+      detect_hyprland_headless_all() {
         ${hyprctl} monitors all 2>/dev/null \
           | grep -oE 'HEADLESS-[0-9]+' \
-          | sort -u \
-          | tail -1 || true
+          | sort -u -t- -k2 -n || true
+      }
+
+      detect_hyprland_headless() {
+        detect_hyprland_headless_all | tail -1 || true
+      }
+
+      prune_hyprland_headless() {
+        local keep=$1 name stale
+        stale=$(detect_hyprland_headless_all | grep -vFx "$keep" || true)
+        for name in $stale; do
+          info "Hyprland: removing stale headless output: $name"
+          ${hyprctl} output remove "$name" >/dev/null 2>&1 || warn "Hyprland: failed to remove $name"
+        done
       }
 
     monitor_rule_for() {
-      # Applies the configured mode/position/scale for the detected real output.
-      # headlessDisplays from the flake config serialized at build time.
-      local name=$1
-      ${pkgs.jq}/bin/jq -n \
+      local name=$1 spec mode position scale
+      spec=$(${pkgs.jq}/bin/jq -n -r \
         --arg name "$name" \
-        --argjson displays ${builtins.toJSON headlessDisplays} \
-        --argjson fallback ${builtins.toJSON headlessFallback} \
-        -r '$displays[$name] // $fallback | "\(.mode // "1920x1080@60") \(.position // "1920x0") \(.scale)"' |
-      while IFS= read -r line; do
-        eval "$line"
-      done
-      if [ -z "$real" ]; then
-        echo "1920x1080@60 1920x0 1"
-      fi
+        --argjson displays '${builtins.toJSON headlessDisplays}' \
+        --argjson fallback '${builtins.toJSON headlessFallback}' \
+        '$displays[$name] // $fallback | "\(.mode // "1920x1080@60") \(.position // "1920x0") \(.scale // 1.0)"')
+      read -r mode position scale <<<"$spec"
+      info "Hyprland: monitor rule: $name,$mode,$position,$scale"
+      ${hyprctl} keyword monitor "$name,$mode,$position,$scale" >/dev/null 2>&1 \
+        || warn "Hyprland: failed to apply monitor rule for $name"
     }
 
+      workspaces_on() {
+        ${hyprctl} monitors -j 2>/dev/null \
+          | ${pkgs.jq}/bin/jq -r --arg mon "$1" \
+            '[.[] | select(.name == $mon) | .activeWorkspace.id] | join(" ")' || true
+      }
+
       move_workspaces() {
-        # Workspaces 6-10 to the real headless monitor.
-        # Lua API 0.55: create the workspace (focus) before moving, since
-        # moveworkspacetomonitor fails if the workspace does not exist.
-        # Static config only knows the declared HEADLESS-1 name, so rebind
-        # 6-10 to the real output here; otherwise a reload drops them on eDP.
+        local target=$1 ws shown
         for ws in 6 7 8 9 10; do
           ${hyprctl} eval "hl.dispatch(hl.dsp.focus({ workspace = $ws }))" >/dev/null 2>&1 || true
-          ${hyprctl} eval "hl.dispatch(hl.dsp.workspace.move({ workspace = $ws, monitor = '$1' }))" >/dev/null 2>&1 || true
-          ${hyprctl} eval "hl.workspace_rule({ workspace = \"$ws\", monitor = '$1', persistent = true })" >/dev/null 2>&1 \
-            || warn "Hyprland: failed to bind workspace $ws to $1"
+          ${hyprctl} dispatch moveworkspacetomonitor "$ws,$target" >/dev/null 2>&1 \
+            || warn "Hyprland: failed to move workspace $ws to $target"
+          ${hyprctl} eval "hl.workspace_rule({ workspace = \"$ws\", monitor = '$target', persistent = true })" >/dev/null 2>&1 \
+            || warn "Hyprland: failed to bind workspace $ws to $target"
         done
-        # VNC lands on 6; hand focus back to physical workspace 1.
         ${hyprctl} eval "hl.dispatch(hl.dsp.focus({ workspace = 6 }))" >/dev/null 2>&1 || true
         ${hyprctl} eval "hl.dispatch(hl.dsp.focus({ workspace = 1 }))" >/dev/null 2>&1 || true
-        info "Hyprland: workspaces 6-10 moved to $1 (showing 6), focus back on 1"
+        info "Hyprland: workspaces 6-10 moved to $target (showing 6), focus back on 1"
+        shown=$(workspaces_on "$target")
+        if [ "$shown" != "6" ]; then
+          warn "Hyprland: $target shows workspace ($shown), expected 6"
+        fi
       }
 
       setup_headless() {
@@ -132,11 +143,11 @@
 
         case "$compositor" in
           hyprland)
-            # Reuse a headless output if one already exists (e.g. previous session).
             local real
             real=$(detect_hyprland_headless)
             if [ -n "$real" ]; then
               info "Hyprland: existing headless output: $real"
+              prune_hyprland_headless "$real"
               monitor_rule_for "$real"
               move_workspaces "$real"
               echo "$real"
@@ -159,6 +170,7 @@
             fi
 
             info "Hyprland: output created: $real"
+            prune_hyprland_headless "$real"
             monitor_rule_for "$real"
             move_workspaces "$real"
             echo "$real"

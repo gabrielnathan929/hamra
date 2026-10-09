@@ -14,18 +14,7 @@ and its implementation. To use one, just enable the toggle in
 Comments are forbidden in module code (modules/, scripts, configs) — code
 should explain itself: file names, option names and the `mkOption`
 `description` fulfill that role. Documentation belongs in the `.md` files
-(`README.md`, `SETUP.md`, `docs/`, this file). The single exception is
-hosts/common/: every file there carries a REQUIRED structured header comment
-documenting its options, in this exact format:
-
-```
-# <One-line summary.>
-#
-# Options:
-#   <option> - <What it does.> Supported: <values>.
-```
-
-The existing hosts/common/ files follow this pattern.
+(`README.md`, `SETUP.md`, `docs/`, this file).
 
 ### Language
 
@@ -122,36 +111,32 @@ Tools outside the default registry use the full backend as the key:
 which fails attestation verification (a Sigstore timestamp bug, fixed in
 2026.10+). Remove it once the `nixpkgs` input is past that.
 
-### Layers: shared baseline, personal profile, host deltas
+### Hosts are atomic units
 
-Configuration is split in three layers, merged by NixOS option priority —
-each knob lives in exactly one place:
-
-| Layer | Path | Priority | Contents |
-|---|---|---|---|
-| Shared baseline | `hosts/common/` | `hamraLib.mkBase` (1000) | system defaults (boot, audio, security, hardware, login, keyboard). No personal values. |
-| Personal profile | `hosts/profiles/<owner>/` | `mkDefault` (900) | username, locale, theme, env apps, mise tools, app toggles, HM toggles |
-| Host | `hosts/<machine>/` | plain (100) | identity (hostname, GPU, desktop), hardware, host roles and exceptions |
+Each host is self-contained: `hosts/<machine>/configuration.nix` carries
+identity (hostname, user, locale, theme), system choices (hardware, boot,
+audio, keyboard, display manager) and the full true/false menus
+(`programs.core`, `programs.optionals`, home programs). Nothing is inherited
+from shared layers — repetition across hosts is normal and expected.
 
 Rules:
-- A host imports `../common` **and** a profile (`../profiles/<owner>`), then
-  declares only machine deltas — each line in a host file is a decision.
-- Turn off a profile app on one machine → plain `= false` on that host.
-- Turn on something everywhere → set it once in the profile.
-- Change a system default for the whole fleet → `hosts/common/`.
+- Each line in a host file is a decision — the file is the full menu, not a
+  delta. Disabled toggles stay visible as `= false`.
+- Never hand-write a host file: generate it with `hamra-init` (answers file
+  or wizard) or the CookieCutter TUI, which read the toggle universes from
+  the module files themselves.
+- `flake/hosts.nix` discovers every directory under `hosts/` automatically.
 - **Host role ≠ personal preference:** `samba`, `wayvnc`, `tigervnc` say
-  *who the machine is* (NAS, VNC server) and live on hosts, not in profiles
+  *who the machine is* (NAS, VNC server) and are plain values on that host
   (e.g. `acer` is the NAS → `services.samba = true` on it). A new host created
   by `setup-nas.sh` must NOT become a NAS by accident.
 
-Fork contract: hardware and personal options **never flow upstream**. Forks
-create `hosts/profiles/<your-name>/` (copy an existing profile) and their
-own `hosts/<machine>/` folders and keep them in their fork — they are never
-submitted in PRs. Contributions are the library only (`modules/`,
-`hosts/common/`, `flake/`, `docs/`), so pulls stay conflict-free and every
-person's choices stay free. CI enforces this with the `personal-layer guard`
-job (PRs touching `hosts/<machine>/` config/hardware or `hosts/profiles/`
-fail unless a maintainer adds the `personal-layer` label).
+Fork contract: hosts **never flow upstream**. Forks keep their own
+`hosts/<machine>/` folders in their fork — they are never submitted in PRs.
+Contributions are the library only (`modules/`, `flake/`, `docs/`), so pulls
+stay conflict-free and every person's choices stay free. CI enforces this
+with the `personal-layer guard` job (PRs touching `hosts/` fail unless a
+maintainer adds the `personal-layer` label).
 
 ### Toggle module (NixOS)
 
@@ -211,7 +196,7 @@ theme: `resident-evil`.
 
 ### Default browser
 
-The gabrielnathan profile sets `browser = pkgs.chromium` (the module
+The acer host sets `browser = pkgs.chromium` (the module
 default in `envs/env.nix` is `pkgs.helium`). To change it on a host:
 `hamra.env.browser = pkgs.firefox;`
 
@@ -245,8 +230,8 @@ To replicate the NAS on ANY PC without knowing encryption/NixOS, there is
 `core/scripts/setup-nas` toggle). It creates the host structure,
 generates/registers keys in `.sops.yaml`, creates the user's own password in
 `secrets/samba.yaml` (encrypted) and applies the rebuild — explaining each
-step and how to fix errors. The generated `configuration.nix` imports
-`hosts/common` plus a profile under `hosts/profiles/`. Modes: `--check`, `--mostrar-senha`, `--reset-senha`,
+step and how to fix errors. The generated `configuration.nix` is a full
+atomic host file (see "Hosts are atomic units"). Modes: `--check`, `--mostrar-senha`, `--reset-senha`,
 `--ajuda`. Full guide: `docs/nas-iniciantes.md`.
 
 ### Secrets (sops-nix)

@@ -1,14 +1,11 @@
-{
-  lib,
-  pkgs,
-  ...
-}: {
+{lib, ...}: {
   imports = [
     ./assertions.nix
     ./boot
     ./envs
     ./fonts.nix
     ./hardware
+    ./home-manager.nix
     ./locale.nix
     ./maintenance.nix
     ./networking.nix
@@ -22,7 +19,6 @@
 
   nix.settings = {
     experimental-features = ["nix-command" "flakes"];
-    trusted-users = ["gabrielnathan"];
     trusted-substituters = [
       "https://nix-community.cachix.org"
       "https://noctalia.cachix.org"
@@ -34,5 +30,7 @@
   };
   nixpkgs.config.allowUnfree = lib.mkDefault true;
 
-  environment.systemPackages = [pkgs.home-manager];
+  programs.nix-ld.enable = true;
+
+  system.stateVersion = "26.05";
 }

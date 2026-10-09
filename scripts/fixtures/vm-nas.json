@@ -1,14 +1,25 @@
 {
   "hostname": "test-vm",
+  "username": "tester",
+  "locale": "en_US.UTF-8",
+  "timezone": "UTC",
+  "theme": "dragon-ball",
   "gpu": "virtio",
   "firmware": "uefi",
   "desktop": "sway",
-  "profile": "gabrielnathan",
-  "nas": true,
-  "vnc": false,
+  "displayManager": "sddm",
   "keyboard": {
     "keymap": "us",
     "xkbVariant": "intl"
   },
-  "disable": ["gui.firefox", "gui.wireshark", "services.appimage"]
+  "nas": true,
+  "vnc": false,
+  "env": {
+    "editor": "neovim",
+    "browser": "chromium",
+    "terminal": "foot",
+    "filemanager": "thunar"
+  },
+  "enable": ["gui.firefox", "media.davinci-resolve"],
+  "disable": ["gui.wireshark", "services.appimage"]
 }

@@ -20,7 +20,7 @@ in {
 
     programs.spicetify = {
       enable = true;
-      enabledCustomApps = [spicePkgs.apps.marketplace];
+      enabledCustomApps = [spicePkgs.apps.marketplace spicePkgs.apps.lyricsPlus];
       enabledExtensions = [
         spicePkgs.extensions.popupLyrics
       ];

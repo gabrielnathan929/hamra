@@ -1,11 +1,24 @@
 {
   "hostname": "test-desktop",
+  "username": "tester",
+  "locale": "en_US.UTF-8",
+  "timezone": "UTC",
+  "theme": "dragon-ball",
   "gpu": "intel",
   "firmware": "uefi",
   "desktop": "hyprland",
-  "profile": "gabrielnathan",
-  "nas": false,
-  "vnc": false,
+  "displayManager": "sddm",
   "keyboard": null,
-  "disable": []
+  "nas": false,
+  "vnc": true,
+  "env": {
+    "editor": "neovim",
+    "browser": "chromium",
+    "terminal": "foot",
+    "filemanager": "thunar"
+  },
+  "enable": ["gui.chromium", "services.wayvnc"],
+  "disable": ["media.kodi"],
+  "core_disable": ["tui.fzf"],
+  "hm_disable": ["utils.fastfetch"]
 }

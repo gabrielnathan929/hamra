@@ -285,7 +285,7 @@
   }
   {
     key = "ALT + Space";
-    action = "Hamra Control panel";
+    action = "ControlFreak panel";
   }
   {
     key = "SUPER + Space";

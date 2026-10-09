@@ -10,26 +10,29 @@ need.
 
 ## How it works
 
-Configuration is split in three layers merged by NixOS option priority:
-`hosts/common/` is the shared machine baseline (no personal values),
-`hosts/profiles/<owner>/` is the personal profile (apps on, username, theme,
-mise tools) and `hosts/<name>/` holds only machine deltas — identity,
-hardware and roles. A host imports the baseline plus a profile; each line in
-a host file is a decision of that machine. The whole `samsung` is this:
+Each host is self-contained: `hosts/<name>/configuration.nix` carries
+identity, system choices and the full true/false menus — nothing is inherited
+from shared layers. Each line in a host file is a decision of that machine.
+The whole `samsung` starts like this (then the complete `programs.core`,
+`programs.optionals` and home menus, every toggle visible):
 
 ```nix
-_: {
+{ config, pkgs, ... }: {
   imports = [
     ../../modules/nixos/core
     ../../modules/nixos/desktops
     ../../modules/nixos/programs
-    ../common
-    ../profiles/gabrielnathan
     ./hardware-configuration.nix
   ];
 
   hamra = {
     networking.hostname = "samsung";
+
+    users.userName = "gabrielnathan";
+
+    locale = "pt_BR.UTF-8";
+    timezone = "America/Sao_Paulo";
+    theme.name = "dragon-ball";
 
     hardware = {
       gpu = "intel";
@@ -42,9 +45,15 @@ _: {
     };
 
     desktop.default = "hyprland";
+
+    programs.optionals.services.wayvnc = true;
+    # ... every core/optional/home toggle, true or false
   };
 }
 ```
+
+Never hand-write it: `hamra-init` (or the CookieCutter TUI) generates the
+file from the toggle modules themselves, so the menu never goes stale.
 
 Three toggle families:
 
@@ -53,10 +62,10 @@ Three toggle families:
   GnuPG, SSH) and recurring utilities. Turn them off by toggle for a leaner
   environment.
 - `hamra.programs.optionals.<category>.<name>` — personal choice,
-  `default = false`, enabled through the owner profile in
-  `hosts/profiles/`: `optionals.gui.vscode`, `optionals.games.steam`,
-  `optionals.services.docker`... A host that does not want something from
-  the profile declares `= false` on itself.
+  `default = false`, switched in the host file:
+  `optionals.gui.vscode`, `optionals.games.steam`,
+  `optionals.services.docker`... Disabled toggles stay visible as `= false`,
+  so the host file is the full menu.
 - `hamra.home.programs.<category>.<name>` — Home Manager, user-level
   configuration (editor, shell, terminal). Package installation always stays
   in the NixOS layer; the home layer is config only.
@@ -134,13 +143,12 @@ in {
 ```
 
 Package in the NixOS layer, user config in `modules/home/`. `scanPaths`
-discovers the file on its own, no manual import. Enable it in your profile
-(`hosts/profiles/<owner>/`) if it applies to every machine, or in the host.
+discovers the file on its own, no manual import. Enable it in the host file.
 Loose package without a module: `hamra.packages.extra = [pkgs.foo];`.
 
-Forking for personal use: copy `hosts/profiles/gabrielnathan` under your own
-name, edit it (username, theme, apps) and point your hosts at it. Your hosts
-and your profile are yours alone and never flow upstream — CI blocks PRs
+Forking for personal use: generate your hosts with `hamra-init` (or the
+CookieCutter TUI) and keep the `hosts/<machine>/` folders in your fork.
+Your hosts are yours alone and never flow upstream — CI blocks PRs
 that touch them — and your fork is their version control (see
 CONTRIBUTING.md, "Versioning your personal layers"). Pulling updates stays
 conflict-free and your choices stay yours.
@@ -162,7 +170,7 @@ cursor (Bibata) are fixed parts of the base theme.
 | `nix develop` | shell with statix, deadnix, sops, age, ssh-to-age |
 | `nix run .#build-<host>` | build without applying (saved in `./result`) |
 | `nix run .#deploy-<host>` | `nix flake check` + `nixos-rebuild switch` |
-| `nix run .#foundry` | Foundry — shape your machine visually (Rust + GTK4) |
+| `nix run .#cookiecutter` | CookieCutter — shape a new machine from a template |
 | `nix run .#hamra-init` | CLI engine that generates a new host |
 | `hamra-keybinds [context]` | keybinds of the active WM, `tmux`, `herdr` or `all` |
 

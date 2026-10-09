@@ -45,8 +45,8 @@ in {
       gnome-software
     ];
 
-    systemd.services.hamra-flatpak = mkIf (apps != []) {
-      description = "Install declared Flatpak apps (hamra.flatpak.apps)";
+    systemd.services.hamra-flatpak = {
+      description = "Ensure Flathub remote and install declared Flatpak apps (hamra.flatpak.apps)";
       wantedBy = ["multi-user.target"];
       wants = ["network-online.target"];
       after = ["network-online.target"];

@@ -16,7 +16,7 @@
 
 ## Risks
 
-<!-- Hardware touched? hosts/common? Secrets? Possible regression? -->
+<!-- Host files touched? Secrets? Possible regression? -->
 
 ## Validation
 
@@ -27,7 +27,7 @@
 - [ ] `nix run .#build-<host>` (if structural change)
 - [ ] `nixos-rebuild test` before `switch` (if system change)
 - [ ] Touches `hosts/*/hardware-configuration.nix`? Justify and validate on the target machine (`lsblk -f`)
-- [ ] Does not touch personal layers (`hosts/<machine>/` configs, `hosts/profiles/`) — they stay in forks
+- [ ] Does not touch personal hosts (`hosts/<machine>/`) — they stay in forks
 
 ## Architectural impact
 

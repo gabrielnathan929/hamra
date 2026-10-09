@@ -15,10 +15,8 @@ The full chain:
 ```
 flake.nix + flake.lock (pinned inputs, nixos-26.05)
   -> mkHost (flake/hosts.nix; hosts discovered by scanning hosts/*; specialArgs: self, inputs, hostName, hamraLib)
-    -> hosts/<machine>/configuration.nix    (identity + deltas from the default)
+    -> hosts/<machine>/configuration.nix    (atomic unit: identity, choices, full toggle menus)
     -> hosts/<machine>/hardware-configuration.nix (physical identity; generated on the machine)
-    -> hosts/common/default.nix             (shared baseline, hamraLib.mkBase)
-    -> hosts/profiles/<owner>/default.nix   (personal profile, mkDefault)
     -> modules/nixos/{core,programs,desktops} (auto-import via hamraLib.scanPaths)
     -> home-manager (extraSpecialArgs: theme, keyboard, desktop, env...)
     -> assertions (desktop, GPU, theme, invalid host role break the eval)
@@ -46,15 +44,12 @@ desktop environments, GNOME/Plasma/Hyprland/Sway/Niri are *options*
 |---|---|
 | NixOS (`modules/nixos/`) | Program toggles: package, daemon, firewall, group, hardware permission |
 | Home (`modules/home/`) | Declarative user config (zsh, terminal, editor, HM desktops) |
-| `hosts/common` | Shared baseline in `hamraLib.mkBase` (1000) — system defaults, no personal values |
-| `hosts/profiles/<owner>` | Personal profile in `mkDefault` (900) — username, theme, locale, env apps, mise tools, app toggles |
-| `hosts/<machine>` | Host deltas, plain values (100) — identity, hardware, roles, exceptions |
+| `hosts/<machine>` | Atomic unit — identity, system choices, full true/false menus |
 
-The tier ladder: module defaults (1500) < `hosts/common` (1000) < profile
-(900) < host (plain). Host roles (NAS, VNC server) live on hosts: `acer` is
-the NAS, `samsung` runs wayvnc. Forks copy `hosts/profiles/<owner>` under
-their own name and point their hosts at it — personal config never conflicts
-with upstream.
+Hosts carry plain values; the library carries the implementation. Host roles
+(NAS, VNC server) live on hosts: `acer` is the NAS, `samsung` runs wayvnc.
+Repetition across hosts is normal — each file is the full menu, and `git
+diff` shows exactly what differs between machines.
 
 ## Apps outside Nix
 
@@ -88,11 +83,9 @@ input changes go through a PR like anything else.
 | Folder | Role |
 |---|---|
 | `flake/` | hosts, apps (deploy/build), devshell |
-| `hosts/<machine>/` | machine identity + hardware |
-| `hosts/common/` | shared machine baseline (no personal values) |
-| `hosts/profiles/` | personal profiles, one folder per owner |
+| `hosts/<machine>/` | atomic unit: identity, choices, full menus + hardware |
 | `modules/` | the whole library (lib, nixos, home) |
-| `apps/foundry/` | Foundry — visual machine configurator (Rust + GTK4) |
+| `apps/cookiecutter/` | CookieCutter — TUI machine shaper (bash + gum + fzf, no compilation) |
 | `scripts/` | CLI engine (hamra-init), golden tests, NAS wizard |
 | `scripts/` | assistants (e.g. setup-nas) |
 | `secrets/` | encrypted secrets |

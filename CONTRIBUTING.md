@@ -13,29 +13,26 @@ boots each machine comes from.
 
 ## Fork contract
 
-Hardware and personal options **never flow upstream**. The architecture keeps
-them free for each person's own choice:
+Hosts **never flow upstream**. Each host is an atomic personal unit:
 
 - `hosts/<machine>/configuration.nix` and `hardware-configuration.nix` —
-  machine identity and hardware. Yours alone. Keep them in your fork and
-  never submit them in a PR.
-- `hosts/profiles/<owner>/` — username, theme, locale, app picks. Yours
-  alone. Same rule.
+  machine identity, choices and toggles. Yours alone. Keep them in your fork
+  and never submit them in a PR.
 - Contributions are the library and its documentation: `modules/`,
-  `hosts/common/`, `flake/`, `docs/`, `.github/`, root `*.md`.
+  `flake/`, `docs/`, `.github/`, root `*.md`.
 
-CI enforces this: a PR that touches a host's configuration/hardware files or
-any profile fails the `personal-layer guard` check. A maintainer may still
-merge an intentional change by adding the `personal-layer` label.
+CI enforces this: a PR that touches anything under `hosts/` fails the
+`personal-layer guard` check. A maintainer may still merge an intentional
+change by adding the `personal-layer` label.
 
-In your fork everything is yours — the layer ladder
-(`modules` < `hosts/common` < profile < host) lets you override any value
-without touching upstream code, so pulling updates stays conflict-free.
+In your fork everything is yours — generate hosts with `hamra-init` and edit
+them freely; pulling upstream updates stays conflict-free because your files
+do not exist upstream.
 
-## Versioning your personal layers (in your fork)
+## Versioning your hosts (in your fork)
 
-"Never push personal layers upstream" does not mean "never version them".
-Your fork is your version control: hardware, profile and host configs are
+"Never push hosts upstream" does not mean "never version them".
+Your fork is your version control: hardware and host configs are
 committed and pushed to **your own GitHub fork** (your `origin`), which backs
 up your machines like any Nix config repo.
 
@@ -50,12 +47,11 @@ git remote add upstream https://github.com/gabrielnathan929/hamra
 Day to day — your machines, versioned in your fork:
 
 ```bash
-git add hosts/profiles/<your-name> hosts/<your-machine>
+git add hosts/<your-machine>
 git commit -m "hosts: <your-machine>"
 git push origin main
 ```
-
-Pulling library updates (personal files do not exist upstream, so this merge
+Pulling library updates (your hosts do not exist upstream, so this merge
 is clean by construction):
 
 ```bash
@@ -65,7 +61,7 @@ git push origin main
 ```
 
 Contributing back — always branch from **upstream/main**, never from your
-personal main, so your hardware and profile stay out of the diff:
+personal main, so your hosts stay out of the diff:
 
 ```bash
 git switch -c feature/your-change upstream/main
@@ -74,10 +70,9 @@ git push origin feature/your-change
 gh pr create --repo gabrielnathan929/hamra
 ```
 
-Prefer the tier ladder (profile and host deltas) over editing
-`hosts/common/` in your fork: overriding is conflict-free, editing shared
-files is not. If you do change `hosts/common/` and believe it belongs in the
-project, propose it upstream and drop your local edit once merged.
+Your host file is yours to edit freely — every toggle lives there. If a
+change belongs in the project (a module fix, a new toggle, better defaults),
+propose it upstream as a library change.
 
 ## Workflow (Git Flow)
 
@@ -104,8 +99,8 @@ project, propose it upstream and drop your local edit once merged.
   documenting.
 - Hosts are named by machine (`samsung`, `acer`, `vm`); each host's hardware
   is generated on the machine itself and is **never** copied between hosts.
-- Host role (NAS, VNC server) != personal preference: it stays `false` in
-  `hosts/common` and is enabled as a delta on the host that performs the
+- Host role (NAS, VNC server) != personal preference: role toggles default
+  `false` in the modules and are enabled on the host that performs the
   role.
 - Secrets: never in plaintext and never in the Nix Store — `secrets/*.yaml`
   via sops-nix (instructions in AGENTS.md).

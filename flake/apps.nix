@@ -52,7 +52,7 @@
     flakeIgnore = ["E501" "E265" "W503"];
   } (builtins.readFile ../scripts/hamra-init.py);
 
-  foundry = pkgs.callPackage ../apps/foundry {};
+  cookiecutter = self.packages.${system}.cookiecutter;
 
   mkApps = fn: prefix:
     builtins.listToAttrs (map (h: {
@@ -73,12 +73,12 @@ in {
           mainProgram = "hamra-init";
         };
       };
-      foundry = {
+      cookiecutter = {
         type = "app";
-        program = "${foundry}/bin/foundry";
+        program = pkgs.lib.getExe cookiecutter;
         meta = {
-          description = "Foundry — shape your NixOS machine visually";
-          mainProgram = "foundry";
+          description = "CookieCutter — shape a new Hamra machine from a template";
+          mainProgram = "cookiecutter";
         };
       };
     };

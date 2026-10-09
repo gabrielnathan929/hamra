@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
         with:
           fetch-depth: 0
-      - name: Block hardware and personal option changes
+      - name: Block personal host changes
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -33,13 +33,13 @@ jobs:
         run: |
           git fetch --no-tags origin "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || true
           files=$(git diff --name-only "$BASE_SHA"... "$HEAD_SHA" || git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
-          personal=$(echo "$files" | grep -E '^hosts/profiles/|^hosts/[^/]+/' | grep -v '^hosts/common/' || true)
+          personal=$(echo "$files" | grep -E '^hosts/' || true)
           if [ -n "$personal" ] && [ "$ALLOWED" != 'true' ]; then
             {
-              echo "This PR touches personal layers:"
+              echo "This PR touches personal hosts:"
               echo "$personal"
               echo ""
-              echo "Hardware and personal options never flow upstream — keep them in your fork"
+              echo "Each host is an atomic personal unit — keep hosts in your fork"
               echo "(see CONTRIBUTING.md, 'Fork contract'). A maintainer may still merge this by"
               echo "adding the 'personal-layer' label."
             } >&2
@@ -53,7 +53,7 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
-      - run: nix develop --command alejandra --check .
+      - run: nix develop --accept-flake-config --command alejandra --check .
 
   lint:
     name: Lint
@@ -62,7 +62,7 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
-      - run: nix develop --command sh -c "statix check . && deadnix --fail ."
+      - run: nix develop --accept-flake-config --command sh -c "statix check . && deadnix --fail ."
 
   check:
     name: Evaluation
@@ -72,7 +72,7 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
-      - run: nix flake check
+      - run: nix flake check --accept-flake-config
 
   discover:
     name: Hosts
@@ -85,7 +85,7 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
       - id: hosts
-        run: echo "hosts=$(nix eval --json .#nixosConfigurations --apply 'builtins.attrNames')" >> "$GITHUB_OUTPUT"
+        run: echo "hosts=$(nix eval --accept-flake-config --json .#nixosConfigurations --apply 'builtins.attrNames')" >> "$GITHUB_OUTPUT"
 
   init-golden:
     name: hamra-init golden
@@ -95,7 +95,7 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
-      - run: nix develop --command python3 scripts/tests/test_golden.py
+      - run: nix develop --accept-flake-config --command python3 scripts/tests/test_golden.py
 
   build:
     name: Build ${{ matrix.host }}
@@ -111,7 +111,7 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
-      - run: nix build --print-build-logs .#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel
+      - run: nix build --accept-flake-config --print-build-logs .#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel
       - name: Push closures to cachix
         if: env.CACHIX_TOKEN != ''
         uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866
@@ -120,7 +120,7 @@ jobs:
           authToken: ${{ env.CACHIX_TOKEN }}
 
   apps:
-    name: Build apps (foundry)
+    name: Build apps (cookiecutter)
     needs: [check]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -129,7 +129,7 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
-      - run: nix build --print-build-logs .#apps.x86_64-linux.foundry.program
+      - run: nix build --accept-flake-config --print-build-logs .#packages.x86_64-linux.cookiecutter
       - name: Push apps to cachix
         if: env.CACHIX_TOKEN != ''
         uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866

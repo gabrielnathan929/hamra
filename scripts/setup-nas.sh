@@ -350,37 +350,24 @@ create_host() {
   ok "hardware-configuration.nix criado."
 
   local cfg="$HOST_DIR/configuration.nix"
-  cat > "$cfg" <<'TEMPLATE'
-_: {
-  imports = [
-    ./hardware-configuration.nix
-    ../common
-    ../../modules/nixos/core
-    ../../modules/nixos/programs
-    ../../modules/nixos/desktops
-  ];
-
-  hamra = {
-    networking.hostname = "__NAME__";
-    users.userName = "__USER__";
-    hardware = {
-      gpu = "__GPU__";
-      firmware = "__FIRMWARE__";
-    };
-    desktop.default = "__DESKTOP__";
-
-    programs.optionals.services.samba = true;
-  };
+  local answers
+  answers="$(mktemp)" || die "Could not create temp answers file."
+  cat > "$answers" <<ANSWERS
+{
+  "hostname": "$HOST_NAME",
+  "username": "$HOST_USER",
+  "gpu": "$HOST_GPU",
+  "firmware": "$HOST_FIRMWARE",
+  "desktop": "$HOST_DESKTOP",
+  "nas": true,
+  "vnc": false
 }
-TEMPLATE
+ANSWERS
 
-  sed -i \
-    -e "s/__NAME__/$HOST_NAME/g" \
-    -e "s/__USER__/$HOST_USER/g" \
-    -e "s/__GPU__/$HOST_GPU/g" \
-    -e "s/__FIRMWARE__/$HOST_FIRMWARE/g" \
-    -e "s/__DESKTOP__/$HOST_DESKTOP/g" \
-    "$cfg"
+  HAMRA_REPO="$REPO" python3 "$REPO/scripts/hamra-init.py" \
+    --answers "$answers" --render-only > "$cfg" \
+    || { rm -f "$answers"; die "hamra-init could not render the host file."; }
+  rm -f "$answers"
 
   ok "host \"$HOST_NAME\" created (hosts under hosts/ are discovered by scan; no manual registration). Files:"
   printf "    %s\n" "$HOST_DIR/configuration.nix" "$HOST_DIR/hardware-configuration.nix"
