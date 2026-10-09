@@ -3,7 +3,7 @@
 Hamra is a NixOS + Home Manager **configuration library**. Each program is a
 "book on the shelf": a self-contained file that declares its boolean option
 and its implementation. To use one, just enable the toggle in
-`hosts/<host>/configuration.nix`.
+`hosts/<host>/programs-optionals.nix` (or `programs-core.nix`).
 
 ---
 
@@ -96,8 +96,7 @@ Apps can be pre-set in Nix (can be used alongside the imperative mode):
 
 The mise options require the `core/cli/mise` toggle enabled (build assertion);
 the flatpak and webapps ones require their modules. `hamra.webapps.<name>.icon`
-requires `iconHash`. The `optionals/gui/notion` toggle is a thin wrapper over
-`hamra.webapps.notion`.
+requires `iconHash`.
 
 HM writes a **single** `~/.config/mise/config.toml` from
 `hamra.mise.{tools,env,settings}`. Since the file becomes a symlink into the
@@ -113,16 +112,19 @@ which fails attestation verification (a Sigstore timestamp bug, fixed in
 
 ### Hosts are atomic units
 
-Each host is self-contained: `hosts/<machine>/configuration.nix` carries
+Each host is self-contained: `hosts/<machine>/` carries
 identity (hostname, user, locale, theme), system choices (hardware, boot,
 audio, keyboard, display manager) and the full true/false menus
-(`programs.core`, `programs.optionals`, home programs). Nothing is inherited
+(`programs.core`, `programs.optionals`, home programs), split by toggle type:
+`config/system.nix`, `config/hardware.nix`, `config/desktop.nix`, `config/programs-core.nix`,
+`config/programs-optionals.nix`, `config/home.nix` (plus the `configuration.nix` import
+shim and `hardware-configuration.nix`). Nothing is inherited
 from shared layers — repetition across hosts is normal and expected.
 
 Rules:
-- Each line in a host file is a decision — the file is the full menu, not a
+- Each line in a host file is a decision — the files are the full menu, not a
   delta. Disabled toggles stay visible as `= false`.
-- Never hand-write a host file: generate it with `hamra-init` (answers file
+- Never hand-write host files: generate them with `hamra-init` (answers file
   or wizard) or the CookieCutter TUI, which read the toggle universes from
   the module files themselves.
 - `flake/hosts.nix` discovers every directory under `hosts/` automatically.
@@ -230,8 +232,8 @@ To replicate the NAS on ANY PC without knowing encryption/NixOS, there is
 `core/scripts/setup-nas` toggle). It creates the host structure,
 generates/registers keys in `.sops.yaml`, creates the user's own password in
 `secrets/samba.yaml` (encrypted) and applies the rebuild — explaining each
-step and how to fix errors. The generated `configuration.nix` is a full
-atomic host file (see "Hosts are atomic units"). Modes: `--check`, `--mostrar-senha`, `--reset-senha`,
+step and how to fix errors. The generated host folder is a full
+atomic host (see "Hosts are atomic units"). Modes: `--check`, `--mostrar-senha`, `--reset-senha`,
 `--ajuda`. Full guide: `docs/nas-iniciantes.md`.
 
 ### Secrets (sops-nix)

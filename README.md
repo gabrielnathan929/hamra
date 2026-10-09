@@ -10,21 +10,17 @@ need.
 
 ## How it works
 
-Each host is self-contained: `hosts/<name>/configuration.nix` carries
+Each host is self-contained: `hosts/<name>/` carries
 identity, system choices and the full true/false menus — nothing is inherited
 from shared layers. Each line in a host file is a decision of that machine.
-The whole `samsung` starts like this (then the complete `programs.core`,
+The files are split by toggle type (`config/system.nix`, `config/hardware.nix`,
+`config/desktop.nix`, `config/programs-core.nix`, `config/programs-optionals.nix`, `config/home.nix`,
+plus the `configuration.nix` import shim). The whole `samsung` starts like
+this in `system.nix` (then the complete `programs.core`,
 `programs.optionals` and home menus, every toggle visible):
 
 ```nix
-{ config, pkgs, ... }: {
-  imports = [
-    ../../modules/nixos/core
-    ../../modules/nixos/desktops
-    ../../modules/nixos/programs
-    ./hardware-configuration.nix
-  ];
-
+{...}: {
   hamra = {
     networking.hostname = "samsung";
 
@@ -34,26 +30,13 @@ The whole `samsung` starts like this (then the complete `programs.core`,
     timezone = "America/Sao_Paulo";
     theme.name = "dragon-ball";
 
-    hardware = {
-      gpu = "intel";
-      firmware = "uefi";
-    };
-
-    keyboard = {
-      keymap = "us";
-      xkbVariant = "intl";
-    };
-
-    desktop.default = "hyprland";
-
-    programs.optionals.services.wayvnc = true;
     # ... every core/optional/home toggle, true or false
   };
 }
 ```
 
-Never hand-write it: `hamra-init` (or the CookieCutter TUI) generates the
-file from the toggle modules themselves, so the menu never goes stale.
+Never hand-write them: `hamra-init` (or the CookieCutter TUI) generates the
+files from the toggle modules themselves, so the menu never goes stale.
 
 Three toggle families:
 
@@ -114,8 +97,6 @@ hamra.webapps.notion = {
   desktopName = "Notion";
 };
 ```
-
-(`optionals/gui/notion.nix` is exactly this block behind a toggle.)
 
 ## Adding a new app
 

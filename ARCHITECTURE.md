@@ -15,7 +15,8 @@ The full chain:
 ```
 flake.nix + flake.lock (pinned inputs, nixos-26.05)
   -> mkHost (flake/hosts.nix; hosts discovered by scanning hosts/*; specialArgs: self, inputs, hostName, hamraLib)
-    -> hosts/<machine>/configuration.nix    (atomic unit: identity, choices, full toggle menus)
+    -> hosts/<machine>/configuration.nix    (import shim: modules + split host files)
+    -> hosts/<machine>/config/{system,hardware,desktop,programs-core,programs-optionals,home}.nix (atomic unit: identity, choices, full toggle menus)
     -> hosts/<machine>/hardware-configuration.nix (physical identity; generated on the machine)
     -> modules/nixos/{core,programs,desktops} (auto-import via hamraLib.scanPaths)
     -> home-manager (extraSpecialArgs: theme, keyboard, desktop, env...)

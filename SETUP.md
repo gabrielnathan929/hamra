@@ -90,7 +90,8 @@ cp -r hosts/samsung hosts/my-pc
 cp /tmp/hardware-configuration.nix hosts/my-pc/
 ```
 
-Adjust the identity fields in `hosts/my-pc/configuration.nix`:
+Adjust the identity fields in `hosts/my-pc/config/system.nix` (`networking.hostname`,
+`users.userName`) and `hosts/my-pc/config/hardware.nix` (`hardware`):
 
 ```nix
 hamra = {

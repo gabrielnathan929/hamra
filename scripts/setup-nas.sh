@@ -349,7 +349,6 @@ create_host() {
   fi
   ok "hardware-configuration.nix criado."
 
-  local cfg="$HOST_DIR/configuration.nix"
   local answers
   answers="$(mktemp)" || die "Could not create temp answers file."
   cat > "$answers" <<ANSWERS
@@ -365,16 +364,16 @@ create_host() {
 ANSWERS
 
   HAMRA_REPO="$REPO" python3 "$REPO/scripts/hamra-init.py" \
-    --answers "$answers" --render-only > "$cfg" \
-    || { rm -f "$answers"; die "hamra-init could not render the host file."; }
+    --answers "$answers" --render-into "$HOST_DIR" \
+    || { rm -f "$answers"; die "hamra-init could not render the host files."; }
   rm -f "$answers"
 
   ok "host \"$HOST_NAME\" created (hosts under hosts/ are discovered by scan; no manual registration). Files:"
-  printf "    %s\n" "$HOST_DIR/configuration.nix" "$HOST_DIR/hardware-configuration.nix"
+  printf "    %s\n" "$HOST_DIR"/configuration.nix "$HOST_DIR"/config/system.nix "$HOST_DIR"/config/hardware.nix "$HOST_DIR"/config/desktop.nix "$HOST_DIR"/config/programs-core.nix "$HOST_DIR"/config/programs-optionals.nix "$HOST_DIR"/config/home.nix "$HOST_DIR/hardware-configuration.nix"
 }
 
 ensure_samba_enabled() {
-  local cfg="$HOST_DIR/configuration.nix"
+  local cfg="$HOST_DIR/config/programs-optionals.nix"
   if grep -qE 'samba[[:space:]]*=[[:space:]]*true' "$cfg"; then
     ok "Samba is already enabled on host \"$HOST_NAME\"."
     return 0

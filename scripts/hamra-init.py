@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 """hamra-init — generate an atomic Hamra host from answers, validate it, guide the rebuild.
 
-Each host is self-contained: hosts/<name>/configuration.nix carries identity,
-system choices and the full true/false menus. Nothing is inherited from shared
-layers. Toggle universes and their defaults are read from the module files
-themselves (single nix eval per tree), so generation can never drift from the
-toggle modules. Scalar system choices use PROJECT_DEFAULTS below, the same
-values every host carries explicitly.
+Each host is self-contained: hosts/<name>/ carries identity, system choices
+and the full true/false menus split by toggle type (system.nix, hardware.nix,
+desktop.nix, programs-core.nix, programs-optionals.nix, home.nix, plus the
+configuration.nix import shim and hardware-configuration.nix). Nothing is
+inherited from shared layers. Toggle universes and their defaults are read
+from the module files themselves (single nix eval per tree), so generation
+can never drift from the toggle modules. Scalar system choices use
+PROJECT_DEFAULTS below, the same values every host carries explicitly.
 
 Usage:
   hamra-init                       interactive wizard
   hamra-init --answers a.json      non-interactive
   hamra-init --dry-run             print the files, write nothing
+  hamra-init --render-only         print the files to stdout (golden-test mode)
+  hamra-init --render-into DIR     write the host files (no hardware-configuration.nix) into DIR
   hamra-init --check               read-only environment audit
   hamra-init --gates-only <host>   re-run the validation gates for an existing host
 """
@@ -38,6 +42,10 @@ PROJECT_DEFAULTS = {
     "locale": "pt_BR.UTF-8",
     "timezone": "America/Sao_Paulo",
     "theme": "dragon-ball",
+    "users": {
+        "fullName": "Gabriel Nathan dos Santos Pires",
+        "email": "devgabrielnathan@gmail.com",
+    },
     "keyboard": {"keymap": "br", "xkbVariant": "abnt2"},
     "displayManager": "sddm",
     "audio": {"default": "pipewire"},
@@ -54,7 +62,6 @@ PROJECT_DEFAULTS = {
         "maxGenerations": 20,
         "schedule": "weekly",
     },
-    "mobile": {"android": False},
     "printing": True,
     "services": {"gnupg": True, "keyring": True, "polkit": True, "sshd": True},
     "hardware_extra": {"bluetooth": True, "brightness": True, "touchpad": True},
@@ -67,31 +74,54 @@ PROJECT_DEFAULTS = {
     },
 }
 
-SECTION_ORDER = [
-    "networking.hostname",
-    "users.userName",
-    "locale",
-    "timezone",
-    "theme.name",
-    "hardware",
-    "keyboard",
-    "audio",
-    "boot",
-    "desktop",
-    "displayManager",
-    "displays",
-    "gc",
-    "mobile",
-    "printing",
-    "services",
-    "env",
-    "mise",
-    "flatpak.apps",
-    "packages.extra",
-    "webapps",
-    "programs.core",
-    "programs.optionals",
+HOST_FILES = [
+    (
+        "config/system.nix",
+        [
+            "networking.hostname",
+            "users",
+            "locale",
+            "timezone",
+            "theme.name",
+            "gc",
+            "printing",
+            "services",
+        ],
+    ),
+    ("config/hardware.nix", ["hardware", "keyboard", "audio", "boot"]),
+    (
+        "config/desktop.nix",
+        [
+            "desktop",
+            "displayManager",
+            "displays",
+            "env",
+            "mise",
+            "flatpak.apps",
+            "packages.extra",
+            "webapps",
+        ],
+    ),
+    ("config/programs-core.nix", ["programs.core"]),
+    ("config/programs-optionals.nix", ["programs.optionals"]),
 ]
+
+HOST_FILE_ORDER = [
+    "configuration.nix",
+    "config/system.nix",
+    "config/hardware.nix",
+    "config/desktop.nix",
+    "config/programs-core.nix",
+    "config/programs-optionals.nix",
+    "config/home.nix",
+]
+
+FILE_HEADERS = {
+    "config/desktop.nix": "{pkgs, ...}",
+    "config/home.nix": "{config, ...}",
+}
+
+FILE_DEFAULT_HEADER = "_"
 
 
 def die(msg, hint=""):
@@ -548,7 +578,48 @@ def nix_render(value, indent):
     raise TypeError(f"cannot render {value!r}")
 
 
-def render_configuration(a, universes):
+def render_section(section, tree, env, webapps):
+    if section == "env":
+        return [
+            "    env = {",
+            *(f"      {key} = pkgs.{env[key]};" for key in ("editor", "browser", "terminal", "filemanager")),
+            "    };",
+            "",
+        ]
+    if section == "users":
+        return ["    users = " + nix_render(tree["users"], 2) + ";", ""]
+    if section == "webapps" and not webapps:
+        return []
+    parts = section.split(".")
+    node = tree
+    for part in parts:
+        node = node[part]
+    if len(parts) > 1:
+        line = f"    {parts[0]}.{'.'.join(parts[1:])} = {nix_render(node, 2)};"
+    else:
+        line = f"    {nix_key(parts[0])} = {nix_render(node, 2)};"
+    return [line, ""]
+
+
+def render_configuration_nix():
+    return """_: {
+  imports = [
+    ../../modules/nixos/core
+    ../../modules/nixos/desktops
+    ../../modules/nixos/programs
+    ./hardware-configuration.nix
+    ./config/system.nix
+    ./config/hardware.nix
+    ./config/desktop.nix
+    ./config/programs-core.nix
+    ./config/programs-optionals.nix
+    ./config/home.nix
+  ];
+}
+"""
+
+
+def render_host(a, universes):
     name = a["hostname"]
     enable = list(a.get("enable", []))
     if a.get("nas") and "services.samba" not in enable:
@@ -598,7 +669,11 @@ def render_configuration(a, universes):
 
     tree = {
         "networking": {"hostname": name},
-        "users": {"userName": a["username"]},
+        "users": {
+            "userName": a["username"],
+            "fullName": a.get("fullName") or PROJECT_DEFAULTS["users"]["fullName"],
+            "email": a.get("email") or PROJECT_DEFAULTS["users"]["email"],
+        },
         "locale": a.get("locale") or PROJECT_DEFAULTS["locale"],
         "timezone": a.get("timezone") or PROJECT_DEFAULTS["timezone"],
         "theme": {"name": a.get("theme") or PROJECT_DEFAULTS["theme"]},
@@ -617,7 +692,6 @@ def render_configuration(a, universes):
         },
         "displays": displays,
         "gc": PROJECT_DEFAULTS["gc"],
-        "mobile": PROJECT_DEFAULTS["mobile"],
         "printing": PROJECT_DEFAULTS["printing"],
         "services": PROJECT_DEFAULTS["services"],
         "env": {key: f"pkgs.{env[key]}" for key in ("editor", "browser", "terminal", "filemanager")},
@@ -629,51 +703,50 @@ def render_configuration(a, universes):
     if webapps:
         tree["webapps"] = webapps
 
-    lines = [
-        "{",
-        "  config,",
-        "  pkgs,",
-        "  ...",
-        "}: {",
-        "  imports = [",
-        "    ../../modules/nixos/core",
-        "    ../../modules/nixos/desktops",
-        "    ../../modules/nixos/programs",
-        "    ./hardware-configuration.nix",
-        "  ];",
-        "",
-        "  hamra = {",
-    ]
-    for section in SECTION_ORDER:
-        if section == "env":
-            lines.append("    env = {")
-            for key in ("editor", "browser", "terminal", "filemanager"):
-                lines.append(f"      {key} = pkgs.{env[key]};")
-            lines.append("    };")
-            lines.append("")
+    files = {}
+    for filename, sections in HOST_FILES:
+        header = FILE_HEADERS.get(filename, FILE_DEFAULT_HEADER)
+        body = []
+        for section in sections:
+            body += render_section(section, tree, env, webapps)
+        if not body:
             continue
-        if section == "webapps" and not webapps:
-            continue
-        parts = section.split(".")
-        node = tree
-        for part in parts:
-            node = node[part]
-        if len(parts) > 1:
-            lines.append(f"    {parts[0]}.{'.'.join(parts[1:])} = {nix_render(node, 2)};")
-        else:
-            lines.append(f"    {nix_key(parts[0])} = {nix_render(node, 2)};")
-        lines.append("")
-    if lines[-1] == "":
-        lines.pop()
-    lines += [
-        "  };",
-        "",
+        if body[-1] == "":
+            body.pop()
+        files[filename] = (
+            header
+            + ": {\n  hamra = {\n"
+            + "\n".join(body)
+            + "\n  };\n}\n"
+        )
+    files["config/home.nix"] = (
+        "{config, ...}: {\n"
         "  home-manager.users.${config.hamra.users.userName}.hamra.home.programs = "
         + nix_render(home, 1)
-        + ";",
-        "}",
-    ]
-    return "\n".join(lines) + "\n", auto
+        + ";\n}\n"
+    )
+    ordered = {"configuration.nix": render_configuration_nix()}
+    for filename in HOST_FILE_ORDER[1:]:
+        if filename in files:
+            ordered[filename] = files[filename]
+    return ordered, auto
+
+
+def print_files(hostname, files):
+    for filename in HOST_FILE_ORDER:
+        if filename not in files:
+            continue
+        print(f"\n===== hosts/{hostname}/{filename} =====")
+        print(files[filename], end="")
+
+
+def write_files(directory, files):
+    directory = Path(directory)
+    for filename in HOST_FILE_ORDER:
+        if filename in files:
+            target = directory / filename
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(files[filename])
 
 
 def check_user(username):
@@ -733,18 +806,15 @@ def gate(name, cmd, repo):
 
 
 def run_gates(repo, hostname, offer_rebuild):
+    lint = " && ".join(
+        f"alejandra --check hosts/{hostname}/{filename} "
+        f"&& statix check hosts/{hostname}/{filename} "
+        f"&& deadnix hosts/{hostname}/{filename}"
+        for filename in HOST_FILE_ORDER
+    )
     gate(
         "format + lint",
-        [
-            "nix",
-            "develop",
-            "--command",
-            "sh",
-            "-c",
-            f"alejandra --check hosts/{hostname}/configuration.nix "
-            f"&& statix check hosts/{hostname}/configuration.nix "
-            f"&& deadnix hosts/{hostname}/configuration.nix",
-        ],
+        ["nix", "develop", "--command", "sh", "-c", lint],
         repo,
     )
     gate("nix flake check", ["nix", "flake", "check"], repo)
@@ -780,13 +850,13 @@ def run_gates(repo, hostname, offer_rebuild):
         print(f"  sudo nixos-rebuild test --flake .#{hostname}")
 
 
-def write_host(repo, hostname, configuration, hardware):
+def write_host(repo, hostname, files, hardware):
     final = repo / "hosts" / hostname
     if final.exists():
         die(f"hosts/{hostname} already exists — write-once rule; nothing was written")
     tmp = Path(tempfile.mkdtemp(dir=repo / "hosts", prefix=f".{hostname}.tmp-"))
     try:
-        (tmp / "configuration.nix").write_text(configuration)
+        write_files(tmp, files)
         (tmp / "hardware-configuration.nix").write_text(hardware)
         os.replace(tmp, final)
     except BaseException:
@@ -919,7 +989,12 @@ def main():
     p.add_argument(
         "--render-only",
         action="store_true",
-        help="print only configuration.nix to stdout (golden-test mode; no hardware, no writes)",
+        help="print the host files to stdout (golden-test mode; no hardware, no writes)",
+    )
+    p.add_argument(
+        "--render-into",
+        metavar="DIR",
+        help="write the host files (no hardware-configuration.nix) into DIR",
     )
     p.add_argument("--check", action="store_true", help="read-only environment audit")
     p.add_argument("--gates-only", metavar="HOST", help="re-run the validation gates for an existing host")
@@ -948,7 +1023,7 @@ def main():
         run_gates(REPO, args.gates_only, offer_rebuild=True)
         return
 
-    if not args.render_only and not args.dry_run:
+    if not args.render_only and not args.dry_run and not args.render_into:
         ensure_flakes_user()
 
     enums = load_enums(REPO)
@@ -970,10 +1045,14 @@ def main():
         a = collect_answers(enums, existing, args)
         validate_answers(a, enums, existing, universes)
 
-    configuration, auto = render_configuration(a, universes)
+    files, auto = render_host(a, universes)
 
     if args.render_only:
-        print(configuration, end="")
+        print_files(a["hostname"], files)
+        return
+
+    if args.render_into:
+        write_files(args.render_into, files)
         return
 
     hardware, hw_source = hardware_config_source(REPO)
@@ -984,8 +1063,7 @@ def main():
         info(f"auto-adjusted: {note}")
 
     if args.dry_run:
-        print("\n===== hosts/%s/configuration.nix =====" % a["hostname"])
-        print(configuration, end="")
+        print_files(a["hostname"], files)
         print("\n===== hosts/%s/hardware-configuration.nix =====" % a["hostname"])
         print(hardware, end="")
         print("\n(dry-run: nothing was written, gates not run)")
@@ -998,7 +1076,7 @@ def main():
     if a.get("nas"):
         sops_gate(REPO)
 
-    write_host(REPO, a["hostname"], configuration, hardware)
+    write_host(REPO, a["hostname"], files, hardware)
     run_gates(REPO, a["hostname"], offer_rebuild=True)
     print_git_hint(a["hostname"])
 

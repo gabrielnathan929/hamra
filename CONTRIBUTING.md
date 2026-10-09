@@ -15,7 +15,9 @@ boots each machine comes from.
 
 Hosts **never flow upstream**. Each host is an atomic personal unit:
 
-- `hosts/<machine>/configuration.nix` and `hardware-configuration.nix` —
+- `hosts/<machine>/` (`configuration.nix` import shim, `config/system.nix`,
+  `config/hardware.nix`, `config/desktop.nix`, `config/programs-core.nix`,
+  `config/programs-optionals.nix`, `config/home.nix`) and `hardware-configuration.nix` —
   machine identity, choices and toggles. Yours alone. Keep them in your fork
   and never submit them in a PR.
 - Contributions are the library and its documentation: `modules/`,
