@@ -100,7 +100,7 @@ Apps can be pre-set in Nix (can be used alongside the imperative mode):
 | Option | What it does | Format |
 |---|---|---|
 | `hamra.mise.tools` | mise tools (via HM `globalConfig`) | `{ go = "latest"; node = ["lts" "22"]; }` |
-| `hamra.mise.env` | mise `[env]` section | `{ _.path = ["~/.opencode/bin"]; }` |
+| `hamra.mise.env` | mise `[env]` section | `{ _.path = ["~/bin"]; }` |
 | `hamra.mise.settings` | mise `[settings]` section | `{ github_attestations = false; }` |
 | `hamra.flatpak.apps` | installs via `hamra-flatpak` oneshot on activation | `[ "app.dvd.DVDStyler" ]` |
 | `hamra.webapps` | generates a wrapper + `.desktop` for a web app | `{ notion = { url = "..."; desktopName = "Notion"; }; }` |

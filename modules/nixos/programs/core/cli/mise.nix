@@ -50,7 +50,7 @@ in {
         inherit (tomlFormat) type;
         default = {};
         example = {
-          "_.path" = ["~/.opencode/bin"];
+          "_.path" = ["~/bin"];
         };
         description = ''
           Declare mise environment configuration globally
