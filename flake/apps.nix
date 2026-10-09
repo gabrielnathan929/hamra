@@ -63,7 +63,7 @@
 in {
   ${system} =
     (mkApps mkDeployApp "deploy"
-    // mkApps mkBuildApp "build")
+      // mkApps mkBuildApp "build")
     // {
       hamra-init = {
         type = "app";

@@ -162,6 +162,8 @@ cursor (Bibata) are fixed parts of the base theme.
 | `nix develop` | shell with statix, deadnix, sops, age, ssh-to-age |
 | `nix run .#build-<host>` | build without applying (saved in `./result`) |
 | `nix run .#deploy-<host>` | `nix flake check` + `nixos-rebuild switch` |
+| `nix run .#foundry` | Foundry — shape your machine visually (Rust + GTK4) |
+| `nix run .#hamra-init` | CLI engine that generates a new host |
 | `hamra-keybinds [context]` | keybinds of the active WM, `tmux`, `herdr` or `all` |
 
 On the desktop, `SUPER+K` opens the compositor keybinds in an interactive

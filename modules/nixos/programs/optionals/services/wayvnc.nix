@@ -16,6 +16,10 @@
 
   headlessDisplays = config.hamra.displays.headless or {};
   headlessNames = builtins.attrNames headlessDisplays;
+  headlessFallback =
+    if headlessNames == []
+    then {}
+    else headlessDisplays.${lib.head headlessNames};
 
   wayvncDaemon = pkgs.writeShellScript "wayvnc-daemon" ''
     set -e
@@ -53,12 +57,12 @@
       if [ -n "$SWAYSOCK" ]; then
         info "  SWAYSOCK        = $SWAYSOCK"
       else
-        info "  SWAYSOCK        = (nao encontrado)"
+        info "  SWAYSOCK        = (not found)"
       fi
     }
 
     wait_compositor() {
-      info "Aguardando compositor (timeout: $TIMEOUT sec)..."
+      info "Waiting for compositor (timeout: $TIMEOUT sec)..."
       for _ in $(seq 1 "$TIMEOUT"); do
         if ${hyprctl} monitors >/dev/null 2>&1; then
           info "Compositor: hyprland"
@@ -72,11 +76,11 @@
         fi
         sleep "$SLEEP"
       done
-      error "Nenhum compositor apos $TIMEOUT sec"
+      error "No compositor after $TIMEOUT sec"
       return 1
     }
 
-    # Nomes headless declarados na config (ex: HEADLESS-1).
+    # Headless names declared in the config (e.g. HEADLESS-1).
     WANTED_NAMES="${lib.concatStringsSep " " headlessNames}"
 
     # Hyprland 0.55 ignores explicit names when creating headless outputs and
@@ -89,27 +93,33 @@
     }
 
     monitor_rule_for() {
-      # Aplica mode/position/scale da config ao output real detectado.
+      # Applies the configured mode/position/scale to the detected real output.
       local name=$1
       local rule
-      rule=$(${pkgs.jq}/bin/jq -n \
+      if ! rule=$(${pkgs.jq}/bin/jq -n \
         --arg name "$name" \
         --argjson displays '${builtins.toJSON headlessDisplays}' \
-        -r '.displays[$name] // (.displays[keys[0]] // {}) | "\(.mode // "1920x1080@60") \(.position // "1920x0") \(.scale // 1)"' 2>/dev/null)
+        --argjson fallback '${builtins.toJSON headlessFallback}' \
+        -r '$displays[$name] // $fallback | "\(.mode // "1920x1080@60") \(.position // "1920x0") \(.scale // 1)"' 2>/dev/null); then
+        warn "Hyprland: could not resolve monitor rule for $name, using defaults"
+        rule="1920x1080@60 1920x0 1"
+      fi
       read -r h_mode h_position h_scale <<<"$rule"
-      info "Hyprland: aplicando regra para $name (''${h_mode} em ''${h_position}, scale ''${h_scale})"
-      ${hyprctl} eval "hl.monitor({ output = \"$name\", mode = \"''${h_mode}\", position = \"''${h_position}\", scale = ''${h_scale} })" >/dev/null 2>&1 || true
+      info "Hyprland: applying rule for $name (''${h_mode} at ''${h_position}, scale ''${h_scale})"
+      if ! ${hyprctl} eval "hl.monitor({ output = \"$name\", mode = \"''${h_mode}\", position = \"''${h_position}\", scale = ''${h_scale} })" >/dev/null 2>&1; then
+        warn "Hyprland: failed to apply monitor rule for $name"
+      fi
     }
 
     move_workspaces() {
-      # Workspaces 6-10 para o monitor headless real.
-      # API Lua 0.55: cria o workspace (focus) antes de mover, pois
-      # moveworkspacetomonitor falha se o workspace nao existe.
+      # Workspaces 6-10 to the real headless monitor.
+      # Lua API 0.55: create the workspace (focus) before moving, since
+      # moveworkspacetomonitor fails if the workspace does not exist.
       for ws in 6 7 8 9 10; do
         ${hyprctl} eval "hl.dispatch(hl.dsp.focus({ workspace = $ws }))" >/dev/null 2>&1 || true
         ${hyprctl} eval "hl.dispatch(hl.dsp.workspace.move({ workspace = $ws, monitor = '$1' }))" >/dev/null 2>&1 || true
       done
-      info "Hyprland: workspaces 6-10 movidos para $1"
+      info "Hyprland: workspaces 6-10 moved to $1"
     }
 
     setup_headless() {
@@ -117,18 +127,18 @@
 
       case "$compositor" in
         hyprland)
-          # Se ja existe um headless (ex: sessao anterior), reutiliza.
+          # Reuse a headless output if one already exists (e.g. previous session).
           local real
           real=$(detect_hyprland_headless)
           if [ -n "$real" ]; then
-            info "Hyprland: output headless existente: $real"
+            info "Hyprland: existing headless output: $real"
             monitor_rule_for "$real"
             move_workspaces "$real"
             echo "$real"
             return 0
           fi
 
-          info "Hyprland: criando output headless (sem nome explicito)..."
+          info "Hyprland: creating headless output (no explicit name)..."
           ${hyprctl} output create headless >/dev/null 2>&1 || true
           for _ in $(seq 1 15); do
             real=$(detect_hyprland_headless)
@@ -139,11 +149,11 @@
           done
 
           if [ -z "$real" ]; then
-            error "Hyprland: falha ao criar output headless"
+            error "Hyprland: failed to create headless output"
             return 1
           fi
 
-          info "Hyprland: output criado: $real"
+          info "Hyprland: output created: $real"
           monitor_rule_for "$real"
           move_workspaces "$real"
           echo "$real"
@@ -159,7 +169,7 @@
           done
 
           if [ -z "$real" ]; then
-            info "Sway: criando output headless ..."
+            info "Sway: creating headless output ..."
             ${swaymsg} create_output >/dev/null 2>&1 || true
             for _ in $(seq 1 15); do
               for name in $WANTED_NAMES; do
@@ -174,11 +184,11 @@
           fi
 
           if [ -z "$real" ]; then
-            error "Sway: falha ao criar $WANTED_NAMES"
+            error "Sway: failed to create $WANTED_NAMES"
             return 1
           fi
 
-          info "Sway: output headless: $real"
+          info "Sway: headless output: $real"
           echo "$real"
           ;;
       esac
@@ -189,7 +199,7 @@
       mkdir -p "$state_dir"
       chmod 700 "$state_dir"
       if [ ! -f "$state_dir/tls.crt" ] || [ ! -f "$state_dir/tls.key" ] || [ ! -f "$state_dir/rsa.pem" ]; then
-        info "Gerando certificado TLS autoassinado em $state_dir ..."
+        info "Generating self-signed TLS certificate in $state_dir ..."
         ${openssl} req -x509 -newkey rsa:2048 -keyout "$state_dir/tls.key" -out "$state_dir/tls.crt" -days 825 -nodes -subj "/CN=hamra-vnc" 2>/dev/null
         ${openssl} genrsa -out "$state_dir/rsa.pem" 2048 2>/dev/null
         chmod 600 "$state_dir/tls.key" "$state_dir/rsa.pem"
@@ -201,13 +211,13 @@
       secret_file=$1
       state_dir=$2
       if [ ! -f "$secret_file" ]; then
-        error "Segredo vnc-password ausente em $secret_file (sops)."
-        error "Gere com: nix develop --command sops secrets/vnc.yaml"
+        error "vnc-password secret missing at $secret_file (sops)."
+        error "Create it with: nix develop --command sops secrets/vnc.yaml"
         return 1
       fi
       pw=$(tr -d '\n\r' <"$secret_file")
       if [ -z "$pw" ]; then
-        error "Segredo vnc-password vazio."
+        error "vnc-password secret is empty."
         return 1
       fi
       conf="$XDG_RUNTIME_DIR/wayvnc.conf"
@@ -230,7 +240,7 @@
       tls_dir=$(ensure_tls)
       auth_conf=$(write_auth_config "${config.sops.secrets."vnc-password".path}" "$tls_dir") || exit 1
 
-      info "Iniciando wayvnc no output '$output' (porta $VNC_ADDR:5900, auth TLS)..."
+      info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, TLS auth)..."
       exec ${lib.getExe pkgs.wayvnc} \
         --config="$auth_conf" \
         "$VNC_ADDR" \
@@ -244,7 +254,7 @@ in {
   options.hamra.programs.optionals.services.wayvnc = mkOption {
     type = types.bool;
     default = false;
-    description = "Habilitar WayVNC (porta 5900, auth com senha via sops + TLS). Requer Hyprland ou Sway.";
+    description = "Enable WayVNC (port 5900, sops password + TLS auth). Requires Hyprland or Sway.";
   };
 
   config = mkIf (cfg && supported) {

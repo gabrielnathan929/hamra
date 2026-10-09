@@ -40,6 +40,13 @@ automated: the installer enables flakes for your user, and with typed
 confirmation backs up the installer's `/etc/nixos` to `/etc/nixos.pre-hamra`
 and symlinks the checkout in its place.
 
+Alternatively, **Foundry** (the graphical machine configurator) can do the
+same from a desktop:
+
+```bash
+nix --extra-experimental-features "nix-command flakes" run .#foundry
+```
+
 The checkout lives in your user, at any path — `~/Projetos/hamra`,
 `~/src/nixos`, `~/dev/hamra`, whatever you prefer. The `/etc/nixos` symlink
 points to it and is pure convenience: `nixos-rebuild` without `--flake` and

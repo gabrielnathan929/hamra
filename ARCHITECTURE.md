@@ -92,6 +92,8 @@ input changes go through a PR like anything else.
 | `hosts/common/` | shared machine baseline (no personal values) |
 | `hosts/profiles/` | personal profiles, one folder per owner |
 | `modules/` | the whole library (lib, nixos, home) |
+| `apps/foundry/` | Foundry — visual machine configurator (Rust + GTK4) |
+| `scripts/` | CLI engine (hamra-init), golden tests, NAS wizard |
 | `scripts/` | assistants (e.g. setup-nas) |
 | `secrets/` | encrypted secrets |
 | `docs/` | guides (NAS for beginners, firewall) |
