@@ -32,11 +32,11 @@
         gh = "latest";
         go = "latest";
         java = "latest";
-        opencode = "latest";
         python = "latest";
 
         "github:herdrdev/herdr" = "latest";
         "github:google-antigravity/antigravity-cli" = "latest";
+        "npm:@opencode/cli" = "latest";
       };
 
       settings = {
