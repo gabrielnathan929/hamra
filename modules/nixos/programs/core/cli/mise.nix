@@ -106,7 +106,7 @@ in {
 
       restartTriggers = [toolsHash];
 
-      path = [pkgs.nodejs];
+      path = [pkgs.bash pkgs.nodejs];
 
       serviceConfig = {
         Type = "oneshot";
