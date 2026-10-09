@@ -7,12 +7,15 @@
   inherit (lib) mkOption mkIf types;
 
   cfg = config.hamra.programs.optionals.services.wayvnc;
+  noAuth = config.hamra.programs.optionals.services."wayvnc-no-auth";
+  authSecret = lib.optionalString (!noAuth) config.sops.secrets."vnc-password".path;
   supported = builtins.elem config.hamra.desktop.default ["hyprland" "sway"];
   userName = config.hamra.users.userName;
 
   hyprctl = "${pkgs.hyprland}/bin/hyprctl";
   swaymsg = "${pkgs.swayfx}/bin/swaymsg";
   openssl = "${pkgs.openssl}/bin/openssl";
+  ssh-keygen = "${pkgs.openssh}/bin/ssh-keygen";
 
   headlessDisplays = config.hamra.displays.headless or {};
   headlessNames = builtins.attrNames headlessDisplays;
@@ -114,28 +117,19 @@
         || warn "Hyprland: failed to apply monitor rule for $name"
     }
 
-      workspaces_on() {
-        ${hyprctl} monitors -j 2>/dev/null \
-          | ${pkgs.jq}/bin/jq -r --arg mon "$1" \
-            '[.[] | select(.name == $mon) | .activeWorkspace.id] | join(" ")' || true
-      }
-
       move_workspaces() {
-        local target=$1 ws shown
+        local target=$1 ws cur
+        cur=$(${hyprctl} activeworkspace -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.id // empty')
         for ws in 6 7 8 9 10; do
-          ${hyprctl} eval "hl.dispatch(hl.dsp.focus({ workspace = $ws }))" >/dev/null 2>&1 || true
           ${hyprctl} dispatch moveworkspacetomonitor "$ws,$target" >/dev/null 2>&1 \
             || warn "Hyprland: failed to move workspace $ws to $target"
           ${hyprctl} eval "hl.workspace_rule({ workspace = \"$ws\", monitor = '$target', persistent = true })" >/dev/null 2>&1 \
             || warn "Hyprland: failed to bind workspace $ws to $target"
         done
-        ${hyprctl} eval "hl.dispatch(hl.dsp.focus({ workspace = 6 }))" >/dev/null 2>&1 || true
-        ${hyprctl} eval "hl.dispatch(hl.dsp.focus({ workspace = 1 }))" >/dev/null 2>&1 || true
-        info "Hyprland: workspaces 6-10 moved to $target (showing 6), focus back on 1"
-        shown=$(workspaces_on "$target")
-        if [ "$shown" != "6" ]; then
-          warn "Hyprland: $target shows workspace ($shown), expected 6"
+        if [ -n "$cur" ]; then
+          ${hyprctl} dispatch workspace "$cur" >/dev/null 2>&1 || true
         fi
+        info "Hyprland: workspaces 6-10 moved to $target (kept focus on $cur)"
       }
 
       setup_headless() {
@@ -215,11 +209,16 @@
         state_dir="''${XDG_STATE_HOME:-$HOME/.local/state}/wayvnc"
         mkdir -p "$state_dir"
         chmod 700 "$state_dir"
-        if [ ! -f "$state_dir/tls.crt" ] || [ ! -f "$state_dir/tls.key" ] || [ ! -f "$state_dir/rsa.pem" ]; then
+        if [ ! -f "$state_dir/tls.crt" ] || [ ! -f "$state_dir/tls.key" ]; then
           info "Generating self-signed TLS certificate in $state_dir ..."
           ${openssl} req -x509 -newkey rsa:2048 -keyout "$state_dir/tls.key" -out "$state_dir/tls.crt" -days 825 -nodes -subj "/CN=hamra-vnc" 2>/dev/null
-          ${openssl} genrsa -out "$state_dir/rsa.pem" 2048 2>/dev/null
-          chmod 600 "$state_dir/tls.key" "$state_dir/rsa.pem"
+          chmod 600 "$state_dir/tls.key"
+        fi
+        if ! grep -q "BEGIN RSA PRIVATE KEY" "$state_dir/rsa.pem" 2>/dev/null; then
+          info "Generating RSA key for wayvnc in $state_dir ..."
+          rm -f "$state_dir/rsa.pem"
+          ${ssh-keygen} -m pem -t rsa -b 2048 -N "" -f "$state_dir/rsa.pem" -q
+          chmod 600 "$state_dir/rsa.pem"
         fi
         echo "$state_dir"
       }
@@ -254,8 +253,15 @@
         setup_env
         compositor=$(wait_compositor) || exit 1
         output=$(setup_headless "$compositor") || exit 1
+        if [ "$1" = "--open" ]; then
+          info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, no auth)..."
+          exec ${lib.getExe pkgs.wayvnc} \
+            "$VNC_ADDR" \
+            --max-fps="$VNC_FPS" \
+            --output="$output"
+        fi
         tls_dir=$(ensure_tls)
-        auth_conf=$(write_auth_config "${config.sops.secrets."vnc-password".path}" "$tls_dir") || exit 1
+        auth_conf=$(write_auth_config "${authSecret}" "$tls_dir") || exit 1
 
         info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, TLS auth)..."
         exec ${lib.getExe pkgs.wayvnc} \
@@ -274,26 +280,35 @@ in {
     description = "Enable WayVNC (port 5900, sops password + TLS auth). Requires Hyprland or Sway.";
   };
 
-  config = mkIf (cfg && supported) {
-    programs.wayvnc.enable = true;
-    networking.firewall.allowedTCPPorts = [5900];
-
-    sops.age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
-
-    sops.secrets."vnc-password" = {
-      sopsFile = ../../../../../secrets/vnc.yaml;
-      owner = userName;
-      mode = "0400";
-    };
-
-    systemd.user.services.wayvnc = {
-      description = "WayVNC — Remote Desktop (Hyprland/Sway)";
-      serviceConfig = {
-        Type = "simple";
-        Restart = "on-failure";
-        RestartSec = 10;
-        ExecStart = "${wayvncDaemon}";
-      };
-    };
+  options.hamra.programs.optionals.services."wayvnc-no-auth" = mkOption {
+    type = types.bool;
+    default = false;
+    description = "Expose WayVNC without password or TLS. Anyone on the network can control the desktop.";
   };
+
+  config = mkIf (cfg && supported) (lib.mkMerge [
+    {
+      programs.wayvnc.enable = true;
+      networking.firewall.allowedTCPPorts = [5900];
+
+      systemd.user.services.wayvnc = {
+        description = "WayVNC — Remote Desktop (Hyprland/Sway)";
+        serviceConfig = {
+          Type = "simple";
+          Restart = "on-failure";
+          RestartSec = 10;
+          ExecStart = "${wayvncDaemon}${lib.optionalString noAuth " --open"}";
+        };
+      };
+    }
+    (lib.mkIf (!noAuth) {
+      sops.age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
+
+      sops.secrets."vnc-password" = {
+        sopsFile = ../../../../../secrets/vnc.yaml;
+        owner = userName;
+        mode = "0400";
+      };
+    })
+  ]);
 }
