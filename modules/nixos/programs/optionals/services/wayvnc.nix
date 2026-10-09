@@ -115,11 +115,18 @@
       # Workspaces 6-10 to the real headless monitor.
       # Lua API 0.55: create the workspace (focus) before moving, since
       # moveworkspacetomonitor fails if the workspace does not exist.
+      # Static config only knows the declared HEADLESS-1 name, so rebind
+      # 6-10 to the real output here; otherwise a reload drops them on eDP.
       for ws in 6 7 8 9 10; do
         ${hyprctl} eval "hl.dispatch(hl.dsp.focus({ workspace = $ws }))" >/dev/null 2>&1 || true
         ${hyprctl} eval "hl.dispatch(hl.dsp.workspace.move({ workspace = $ws, monitor = '$1' }))" >/dev/null 2>&1 || true
+        ${hyprctl} eval "hl.workspace_rule({ workspace = \"$ws\", monitor = '$1', persistent = true })" >/dev/null 2>&1 \
+          || warn "Hyprland: failed to bind workspace $ws to $1"
       done
-      info "Hyprland: workspaces 6-10 moved to $1"
+      # VNC lands on 6; hand focus back to physical workspace 1.
+      ${hyprctl} eval "hl.dispatch(hl.dsp.focus({ workspace = 6 }))" >/dev/null 2>&1 || true
+      ${hyprctl} eval "hl.dispatch(hl.dsp.focus({ workspace = 1 }))" >/dev/null 2>&1 || true
+      info "Hyprland: workspaces 6-10 moved to $1 (showing 6), focus back on 1"
     }
 
     setup_headless() {
