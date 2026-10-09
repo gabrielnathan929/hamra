@@ -16,6 +16,7 @@
   swaymsg = "${pkgs.swayfx}/bin/swaymsg";
   openssl = "${pkgs.openssl}/bin/openssl";
   ssh-keygen = "${pkgs.openssh}/bin/ssh-keygen";
+  flock = "${pkgs.util-linux}/bin/flock";
 
   headlessDisplays = config.hamra.displays.headless or {};
   headlessNames = builtins.attrNames headlessDisplays;
@@ -252,10 +253,16 @@
 
       main() {
         setup_env
+        exec 9>"$XDG_RUNTIME_DIR/wayvnc-setup.lock"
+        if ! ${flock} -n 9; then
+          info "Another setup in progress, retrying later..."
+          exit 1
+        fi
         compositor=$(wait_compositor) || exit 1
         output=$(setup_headless "$compositor") || exit 1
         if [ "$1" = "--open" ]; then
           info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, no auth)..."
+          ${flock} -u 9
           exec ${lib.getExe pkgs.wayvnc} \
             "$VNC_ADDR" \
             --max-fps="$VNC_FPS" \
@@ -265,6 +272,7 @@
         auth_conf=$(write_auth_config "${authSecret}" "$tls_dir") || exit 1
 
         info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, TLS auth)..."
+        ${flock} -u 9
         exec ${lib.getExe pkgs.wayvnc} \
           --config="$auth_conf" \
           "$VNC_ADDR" \
