@@ -92,24 +92,22 @@
         | tail -1 || true
     }
 
-    monitor_rule_for() {
-      # Applies the configured mode/position/scale to the detected real output.
-      local name=$1
-      local rule
-      if ! rule=$(${pkgs.jq}/bin/jq -n \
-        --arg name "$name" \
-        --argjson displays '${builtins.toJSON headlessDisplays}' \
-        --argjson fallback '${builtins.toJSON headlessFallback}' \
-        -r '$displays[$name] // $fallback | "\(.mode // "1920x1080@60") \(.position // "1920x0") \(.scale // 1)"' 2>/dev/null); then
-        warn "Hyprland: could not resolve monitor rule for $name, using defaults"
-        rule="1920x1080@60 1920x0 1"
-      fi
-      read -r h_mode h_position h_scale <<<"$rule"
-      info "Hyprland: applying rule for $name (''${h_mode} at ''${h_position}, scale ''${h_scale})"
-      if ! ${hyprctl} eval "hl.monitor({ output = \"$name\", mode = \"''${h_mode}\", position = \"''${h_position}\", scale = ''${h_scale} })" >/dev/null 2>&1; then
-        warn "Hyprland: failed to apply monitor rule for $name"
-      fi
-    }
+  monitor_rule_for() {
+    # Applies the configured mode/position/scale for the detected real output.
+    # headlessDisplays from the flake config serialized at build time.
+    local name=$1
+    ${pkgs.jq}/bin/jq -n \
+      --arg name "$name" \
+      --argjson displays ${builtins.toJSON headlessDisplays} \
+      --argjson fallback ${builtins.toJSON headlessFallback} \
+      -r '$displays[$name] // $fallback | "\(.mode // "1920x1080@60") \(.position // "1920x0") \(.scale)"' |
+    while IFS= read -r line; do
+      eval "$line"
+    done
+    if [ -z "$real" ]; then
+      echo "1920x1080@60 1920x0 1"
+    fi
+  }
 
     move_workspaces() {
       # Workspaces 6-10 to the real headless monitor.
