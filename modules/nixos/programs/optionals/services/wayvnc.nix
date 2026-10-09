@@ -105,34 +105,55 @@
         done
       }
 
-    monitor_rule_for() {
-      local name=$1 spec mode position scale
-      spec=$(${pkgs.jq}/bin/jq -n -r \
+    hyprland_spec_for() {
+      local name=$1
+      ${pkgs.jq}/bin/jq -n -r \
         --arg name "$name" \
         --argjson displays '${builtins.toJSON headlessDisplays}' \
         --argjson fallback '${builtins.toJSON headlessFallback}' \
-        '$displays[$name] // $fallback | "\(.mode // "1920x1080@60") \(.position // "1920x0") \(.scale // 1.0)"')
-      read -r mode position scale <<<"$spec"
-      info "Hyprland: monitor rule: $name,$mode,$position,$scale"
-      if ! out=$(${hyprctl} eval "hl.monitor({ output = '$name', mode = '$mode', position = '$position', scale = $scale })" 2>&1); then
-        warn "Hyprland: failed to apply monitor rule for $name: $out"
+        '$displays[$name] // $fallback | "\(.mode // "1920x1080@60") \(.position // "1920x0") \(.scale // 1.0)"'
+    }
+
+    apply_hyprland_rules() {
+      local target=$1 mode=$2 position=$3 scale=$4 ws cur out
+      cur=$(${hyprctl} activeworkspace -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.id // empty')
+      info "Hyprland: monitor rule: $target,$mode,$position,$scale"
+      if ! out=$(${hyprctl} eval "hl.monitor({ output = '$target', mode = '$mode', position = '$position', scale = $scale })" 2>&1); then
+        warn "Hyprland: failed to apply monitor rule for $target: $out"
+      fi
+      for ws in 6 7 8 9 10; do
+        ${hyprctl} dispatch moveworkspacetomonitor "$ws,$target" >/dev/null 2>&1 \
+          || warn "Hyprland: failed to move workspace $ws to $target"
+        ${hyprctl} eval "hl.workspace_rule({ workspace = \"$ws\", monitor = '$target', persistent = true })" >/dev/null 2>&1 \
+          || warn "Hyprland: failed to bind workspace $ws to $target"
+      done
+      if [ -n "$cur" ]; then
+        ${hyprctl} dispatch workspace "$cur" >/dev/null 2>&1 || true
       fi
     }
 
-      move_workspaces() {
-        local target=$1 ws cur
-        cur=$(${hyprctl} activeworkspace -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.id // empty')
-        for ws in 6 7 8 9 10; do
-          ${hyprctl} dispatch moveworkspacetomonitor "$ws,$target" >/dev/null 2>&1 \
-            || warn "Hyprland: failed to move workspace $ws to $target"
-          ${hyprctl} eval "hl.workspace_rule({ workspace = \"$ws\", monitor = '$target', persistent = true })" >/dev/null 2>&1 \
-            || warn "Hyprland: failed to bind workspace $ws to $target"
-        done
-        if [ -n "$cur" ]; then
-          ${hyprctl} dispatch workspace "$cur" >/dev/null 2>&1 || true
+    hyprland_settled() {
+      local target=$1 scale=$2 ok
+      ok=$(${hyprctl} monitors -j 2>/dev/null | ${pkgs.jq}/bin/jq -r --arg mon "$target" --argjson want "$scale" '[.[] | select(.name == $mon)] | length == 1 and .[0].scale == $want')
+      [ "$ok" = "true" ] || return 1
+      ok=$(${hyprctl} workspaces -j 2>/dev/null | ${pkgs.jq}/bin/jq -r --arg mon "$target" '[.[] | select(.monitor == $mon) | .id] as $ids | [6,7,8,9,10] - $ids | length == 0')
+      [ "$ok" = "true" ]
+    }
+
+    settle_hyprland() {
+      local target=$1 mode position scale i
+      read -r mode position scale <<<"$(hyprland_spec_for "$target")"
+      for i in $(seq 1 6); do
+        apply_hyprland_rules "$target" "$mode" "$position" "$scale"
+        if hyprland_settled "$target" "$scale"; then
+          info "Hyprland: output $target settled (scale $scale, workspaces 6-10 present)"
+          return 0
         fi
-        info "Hyprland: workspaces 6-10 moved to $target (kept focus on $cur)"
-      }
+        info "Hyprland: output $target not settled yet, re-applying..."
+        sleep 2
+      done
+      warn "Hyprland: output $target did not settle, continuing anyway"
+    }
 
       setup_headless() {
         local compositor=$1
@@ -144,8 +165,7 @@
             if [ -n "$real" ]; then
               info "Hyprland: existing headless output: $real"
               prune_hyprland_headless "$real"
-              monitor_rule_for "$real"
-              move_workspaces "$real"
+              settle_hyprland "$real"
               echo "$real"
               return 0
             fi
@@ -167,8 +187,7 @@
 
             info "Hyprland: output created: $real"
             prune_hyprland_headless "$real"
-            monitor_rule_for "$real"
-            move_workspaces "$real"
+            settle_hyprland "$real"
             echo "$real"
             ;;
 
