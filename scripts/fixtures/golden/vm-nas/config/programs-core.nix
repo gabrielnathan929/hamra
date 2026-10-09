@@ -52,7 +52,7 @@ _: {
       scripts = {
         apps = true;
         keybinds = true;
-        "setup-nas" = true;
+        "setup-nas" = false;
       };
       services = {
         gtk = true;

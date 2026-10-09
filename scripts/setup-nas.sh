@@ -363,7 +363,7 @@ create_host() {
 }
 ANSWERS
 
-  HAMRA_REPO="$REPO" python3 "$REPO/scripts/hamra-init.py" \
+  HAMRA_REPO="$REPO" bash "$REPO/scripts/hamra-init.sh" \
     --answers "$answers" --render-into "$HOST_DIR" \
     || { rm -f "$answers"; die "hamra-init could not render the host files."; }
   rm -f "$answers"

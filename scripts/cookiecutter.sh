@@ -182,4 +182,4 @@ trap 'rm -f "$ANSWERS"' EXIT
 } > "$ANSWERS"
 
 gum style --foreground 2 "Answers ready — handing over to hamra-init."
-HAMRA_REPO="$REPO" python3 "$REPO/scripts/hamra-init.py" --answers "$ANSWERS"
+HAMRA_REPO="$REPO" bash "$REPO/scripts/hamra-init.sh" --answers "$ANSWERS"

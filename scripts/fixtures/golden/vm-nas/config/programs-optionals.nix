@@ -41,7 +41,7 @@ _: {
         discord = false;
         drawio = false;
         "ente-auth" = false;
-        firefox = true;
+        firefox = false;
         "google-chrome" = false;
         helium = false;
         insomnia = false;
@@ -59,7 +59,7 @@ _: {
         upscayl = false;
         vesktop = false;
         "virt-manager" = false;
-        vscode = false;
+        vscode = true;
         wireshark = false;
       };
       media = {
@@ -78,7 +78,7 @@ _: {
       };
       services = {
         appimage = false;
-        docker = false;
+        docker = true;
         "docker-compose" = false;
         samba = true;
         tigervnc = false;
@@ -88,8 +88,8 @@ _: {
       tui = {
         cliamp = false;
         lazydocker = false;
-        lazygit = false;
-        yazi = false;
+        lazygit = true;
+        yazi = true;
       };
     };
   };

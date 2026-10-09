@@ -39,7 +39,7 @@ _: {
       gui = {
         imv = true;
         mpv = true;
-        thunar = false;
+        thunar = true;
         zathura = true;
       };
       noctalia = {

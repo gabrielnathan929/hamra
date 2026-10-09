@@ -86,7 +86,7 @@ input changes go through a PR like anything else.
 | `flake/` | hosts, apps (deploy/build), devshell |
 | `hosts/<machine>/` | atomic unit: identity, choices, full menus + hardware |
 | `modules/` | the whole library (lib, nixos, home) |
-| `apps/cookiecutter/` | CookieCutter — TUI machine shaper (bash + gum + fzf, no compilation) |
+| `scripts/cookiecutter.sh` | CookieCutter — TUI machine shaper (bash + gum + fzf, no compilation) |
 | `scripts/` | CLI engine (hamra-init), golden tests, NAS wizard |
 | `scripts/` | assistants (e.g. setup-nas) |
 | `secrets/` | encrypted secrets |

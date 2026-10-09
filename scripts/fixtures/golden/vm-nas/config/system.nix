@@ -1,11 +1,11 @@
 _: {
   hamra = {
-    networking.hostname = "test-vm";
+    networking.hostname = "vm-nas";
 
     users = {
-      email = "devgabrielnathan@gmail.com";
-      fullName = "Gabriel Nathan dos Santos Pires";
-      userName = "tester";
+      email = "nas@hamra.local";
+      fullName = "VM NAS";
+      userName = "gabrielnathan";
     };
 
     locale = "en_US.UTF-8";
@@ -28,6 +28,25 @@ _: {
       keyring = true;
       polkit = true;
       sshd = true;
+    };
+
+    firewall = {
+      enable = true;
+      ports = {
+        dev = false;
+        http = false;
+        https = false;
+        jellyfin = false;
+        kdeconnect = false;
+        mosh = false;
+        mpd = false;
+        printer = false;
+        rdp = false;
+        samba = false;
+        ssh = true;
+        syncthing = false;
+        vnc = false;
+      };
     };
   };
 }

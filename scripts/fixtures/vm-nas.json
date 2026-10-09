@@ -1,6 +1,8 @@
 {
-  "hostname": "test-vm",
-  "username": "tester",
+  "hostname": "vm-nas",
+  "username": "gabrielnathan",
+  "fullName": "VM NAS",
+  "email": "nas@hamra.local",
   "locale": "en_US.UTF-8",
   "timezone": "UTC",
   "theme": "dragon-ball",
@@ -20,6 +22,19 @@
     "terminal": "foot",
     "filemanager": "thunar"
   },
-  "enable": ["gui.firefox", "media.davinci-resolve"],
-  "disable": ["gui.wireshark", "services.appimage"]
+  "enable": [
+    "gui.vscode",
+    "services.docker",
+    "tui.yazi",
+    "tui.lazygit",
+    "media.davinci-resolve",
+    "packaging.gearlever"
+  ],
+  "disable": [
+    "services.appimage",
+    "gui.wireshark"
+  ],
+  "core_disable": [
+    "scripts.setup-nas"
+  ]
 }

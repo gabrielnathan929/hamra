@@ -9,7 +9,7 @@
       zsh = true;
     };
     terminals = {
-      alacritty = false;
+      alacritty = true;
       foot = true;
       kitty = false;
     };

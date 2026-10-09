@@ -59,7 +59,7 @@ _: {
         upscayl = false;
         vesktop = false;
         "virt-manager" = false;
-        vscode = false;
+        vscode = true;
         wireshark = false;
       };
       media = {
@@ -87,7 +87,7 @@ _: {
       };
       tui = {
         cliamp = false;
-        lazydocker = false;
+        lazydocker = true;
         lazygit = false;
         yazi = false;
       };

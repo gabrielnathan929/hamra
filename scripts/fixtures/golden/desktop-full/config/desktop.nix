@@ -39,12 +39,25 @@
 
     mise = {
       env = {};
-      settings = {};
-      tools = {};
+      settings = {
+        github_attestations = false;
+      };
+      tools = {
+        gh = "latest";
+        go = "latest";
+        "npm:@opencode/cli" = "latest";
+      };
     };
 
     flatpak.apps = [];
 
     packages.extra = [];
+
+    webapps = {
+      github = {
+        desktopName = "GitHub";
+        url = "https://github.com";
+      };
+    };
   };
 }

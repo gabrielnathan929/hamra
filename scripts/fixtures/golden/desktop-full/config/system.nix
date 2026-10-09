@@ -1,16 +1,16 @@
 _: {
   hamra = {
-    networking.hostname = "test-desktop";
+    networking.hostname = "desktop-full";
 
     users = {
       email = "devgabrielnathan@gmail.com";
       fullName = "Gabriel Nathan dos Santos Pires";
-      userName = "tester";
+      userName = "gabrielnathan";
     };
 
-    locale = "en_US.UTF-8";
+    locale = "pt_BR.UTF-8";
 
-    timezone = "UTC";
+    timezone = "America/Sao_Paulo";
 
     theme.name = "dragon-ball";
 
@@ -28,6 +28,25 @@ _: {
       keyring = true;
       polkit = true;
       sshd = true;
+    };
+
+    firewall = {
+      enable = true;
+      ports = {
+        dev = false;
+        http = false;
+        https = false;
+        jellyfin = false;
+        kdeconnect = false;
+        mosh = false;
+        mpd = false;
+        printer = false;
+        rdp = false;
+        samba = false;
+        ssh = true;
+        syncthing = false;
+        vnc = false;
+      };
     };
   };
 }
