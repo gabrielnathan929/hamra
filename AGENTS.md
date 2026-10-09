@@ -202,12 +202,37 @@ The acer host sets `browser = pkgs.chromium` (the module
 default in `envs/env.nix` is `pkgs.helium`). To change it on a host:
 `hamra.env.browser = pkgs.firefox;`
 
+### Firewall and ports
+
+`hamra.firewall` (in `config/system.nix`) is the named-port menu:
+
+| Port | Opens |
+|---|---|
+| `ssh` (default `true`) | TCP 22 |
+| `mosh` | UDP 60000-61000 |
+| `http` | TCP 80 |
+| `https` | TCP 443 |
+| `dev` | TCP 3000/5173/8000/8080 — test a local dev server from the phone (bind it to 0.0.0.0, e.g. `vite --host`) |
+| `vnc` | TCP 5900 |
+| `rdp` | TCP 3389 |
+| `samba` | TCP 139/445 + UDP 137/138 |
+| `syncthing` | TCP 8384/22000 + UDP 21027 |
+| `kdeconnect` | TCP+UDP 1714-1764 |
+| `jellyfin` | TCP 8096/8920 + UDP 1900/7359 |
+| `printer` | TCP 631 + UDP 5353 |
+| `mpd` | TCP 6600 |
+
+`enable = false` disables the firewall (everything opens). Unknown names fail
+the build (assertion in `core/firewall.nix`). The `wayvnc`, `samba` and
+`localsend` toggles open their own ports when enabled — the menu is for
+everything else.
+
 ### Build-time assertions
 
-Validations in `core/assertions.nix`: bootloader, GPU, firmware, audio,
+Validations: bootloader, GPU, firmware, audio,
 desktop and display manager within their ranges; theme exists in the list;
 locale with `.UTF-8`; required fields filled in; WayVNC only with Hyprland
-or Sway.
+or Sway; firewall port names within the registry (`core/firewall.nix`).
 
 ### NAS / Samba
 

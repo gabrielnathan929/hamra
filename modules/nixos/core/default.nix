@@ -3,6 +3,7 @@
     ./assertions.nix
     ./boot
     ./envs
+    ./firewall.nix
     ./fonts.nix
     ./hardware
     ./home-manager.nix
