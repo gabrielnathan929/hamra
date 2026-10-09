@@ -1,21 +1,21 @@
 _: {
   hamra.programs.optionals = {
     cli = {
-      ffmpeg = true;
+      ffmpeg = false;
       gcc = true;
       gnumake = true;
       go = true;
-      imagemagick = true;
-      inetutils = true;
+      imagemagick = false;
+      inetutils = false;
       jdk = true;
-      mtr = true;
+      mtr = false;
       nodejs = true;
-      powertop = true;
+      powertop = false;
       python3 = true;
-      rclone = true;
+      rclone = false;
       ripgrep = true;
-      strace = true;
-      traceroute = true;
+      strace = false;
+      traceroute = false;
     };
     games = {
       gamemode = false;

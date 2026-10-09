@@ -29,5 +29,23 @@ _: {
       polkit = true;
       sshd = true;
     };
+    firewall = {
+      enable = true;
+      ports = {
+        ssh = true;
+        mosh = false;
+        http = false;
+        https = false;
+        dev = false;
+        vnc = false;
+        rdp = false;
+        samba = false;
+        syncthing = false;
+        kdeconnect = false;
+        jellyfin = false;
+        printer = false;
+        mpd = false;
+      };
+    };
   };
 }

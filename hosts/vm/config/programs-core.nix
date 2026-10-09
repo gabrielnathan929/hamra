@@ -3,8 +3,8 @@ _: {
     cli = {
       bat = true;
       curl = true;
-      dnsutils = true;
-      duf = true;
+      dnsutils = false;
+      duf = false;
       eza = true;
       fd = true;
       file = true;
@@ -12,23 +12,23 @@ _: {
       git = true;
       grim = true;
       jq = true;
-      lsof = true;
+      lsof = false;
       mise = true;
-      netcat = true;
+      netcat = false;
       "nix-search" = true;
       nom = true;
-      "ocr-screenshot" = true;
+      "ocr-screenshot" = false;
       p7zip = true;
       pciutils = true;
       psmisc = true;
       rsync = true;
       slurp = true;
-      tesseract = true;
+      tesseract = false;
       "trash-cli" = true;
       tree = true;
       unrar = true;
       unzip = true;
-      usbutils = true;
+      usbutils = false;
       wget = true;
       "wl-clipboard" = true;
       yq = true;
@@ -37,7 +37,7 @@ _: {
     };
     gui = {
       imv = true;
-      mpv = true;
+      mpv = false;
       thunar = true;
       zathura = true;
     };
