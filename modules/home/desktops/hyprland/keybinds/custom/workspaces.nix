@@ -9,6 +9,9 @@ _: ''
     if ws == nil or ws.monitor == nil then
       return nil
     end
+    if type(ws.monitor) == "string" then
+      return ws.monitor
+    end
     return ws.monitor.name
   end
 
@@ -23,7 +26,7 @@ _: ''
     for _, ws in ipairs(hl.get_workspaces()) do
       if ws.id ~= nil and not ws.special and ws.windows > 0 and ws.id ~= current then
         local ws_monitor = ws_monitor_name(ws)
-        if active_monitor == nil or ws_monitor == nil or ws_monitor == active_monitor then
+        if active_monitor == nil or (ws_monitor ~= nil and ws_monitor == active_monitor) then
           candidates[#candidates + 1] = ws.id
         end
       end
