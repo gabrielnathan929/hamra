@@ -1,8 +1,3 @@
-# ─────────────────────────────────────────────────────────────
-#  Hamra Home Desktops Entrypoint
-#  Conditionally imports the Home Manager configuration
-#  for each desktop environment (Hyprland, Niri, Sway) + Noctalia shell.
-# ─────────────────────────────────────────────────────────────
 {
   lib,
   desktop,

@@ -38,7 +38,7 @@ in {
         shared =
           {
             path = "/data/shared";
-            comment = "Documentos e arquivos gerais";
+            comment = "General documents and files";
             browseable = "yes";
             "read only" = "no";
             "guest ok" = "no";
@@ -50,7 +50,7 @@ in {
         games =
           {
             path = "/data/games";
-            comment = "Instaladores, ROMs e jogos arquivados (storage frio)";
+            comment = "Installers, ROMs and archived games (cold storage)";
             browseable = "yes";
             "read only" = "no";
             "guest ok" = "no";
@@ -62,7 +62,7 @@ in {
         backups =
           {
             path = "/data/backups";
-            comment = "Backups dos notebooks";
+            comment = "Notebook backups";
             browseable = "yes";
             "read only" = "no";
             "guest ok" = "no";
@@ -87,8 +87,6 @@ in {
       mode = "0400";
     };
 
-    # Keeps the Samba password in sync with the secret on every rebuild/boot.
-    # Runs after sops-nix setupSecrets (which populates /run/secrets).
     system.activationScripts.sync-samba-password = stringAfter ["setupSecrets"] ''
       ${pkgs.coreutils}/bin/mkdir -p /var/lib/samba/private
       secret="${config.sops.secrets."samba-password".path}"

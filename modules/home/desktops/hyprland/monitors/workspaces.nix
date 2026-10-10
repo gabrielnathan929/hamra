@@ -16,14 +16,12 @@
     then lib.head (builtins.attrNames allHeadless)
     else null;
 
-  # Workspaces 1-5 no monitor fisico
   physicalRules = lib.concatStringsSep "\n" (
     lib.map (i: ''
       hl.workspace_rule({ workspace = "${toString i}", monitor = "${physicalMonitor}", persistent = true })'')
     (lib.genList (x: x + 1) 5)
   );
 
-  # Workspaces 6-10 no monitor headless
   headlessRules =
     if headlessMonitor != null
     then
