@@ -34,6 +34,30 @@ mise etc.) — report those upstream in each project.
   decrypted secrets — nothing passes through the Nix Store.
 - Polkit, keyring, GnuPG, and SSH are `core` modules with explicit toggles.
 
+## SSH access
+
+Every host runs OpenSSH (`hamra.services.sshd`, firewall port `ssh` = TCP
+22): root login off, only the declared user, `fail2ban` on. Password login
+is accepted — the password is your user password (the same as `sudo`).
+Test from another machine on the LAN:
+
+```bash
+ssh <user>@<host-ip>   # asks for your login password
+```
+
+To switch to key-only login, first make passwordless entry work from the
+client, then harden the server:
+
+```bash
+ssh-keygen -t ed25519                        # on the client, once
+ssh-copy-id <user>@<host-ip>                 # installs your public key
+ssh -o PreferredAuthentications=publickey <user>@<host-ip>   # must enter clean
+```
+
+Only after that test passes, set `PasswordAuthentication = false` in
+`modules/nixos/core/services/security/sshd.nix` and rebuild. Never flip
+it before the key works or you lock yourself out.
+
 ## Honest limitations
 
 - The Samba shares' trash bin (VFS recycle) is a buffer against accidents
