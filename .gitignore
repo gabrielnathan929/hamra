@@ -2,3 +2,4 @@ result
 .maestri/
 .freebuff/
 __pycache__/
+secrets/.tmp-*

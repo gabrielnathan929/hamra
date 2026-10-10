@@ -15,11 +15,13 @@
 #   ./scripts/setup-nas.sh              assistente completo (recomendado)
 #   ./scripts/setup-nas.sh --check      environment check only (changes nothing)
 #   ./scripts/setup-nas.sh --mostrar-senha   esqueceu a senha do NAS
-#   ./scripts/setup-nas.sh --reset-password    force creating a new password
+#   ./scripts/setup-nas.sh --reset-senha    force creating a new password
 #   ./scripts/setup-nas.sh --ajuda      esta ajuda
 #
 # Tip: run `nix develop` first — the environment already ships sops, age and ssh-to-age.
 set -uo pipefail
+
+trap '[[ -n "${REPO:-}" ]] && rm -f "$REPO/secrets/.tmp-samba.yaml"' EXIT INT TERM
 
 # ---------------------------------------------------------------------------
 # Colors (only when attached to a terminal)
@@ -424,7 +426,7 @@ Se preciso:  sudo chown -R \$(whoami):users secrets"
     die "Cannot write to secrets/."
   }
   rm -f "$tmpf"
-  printf 'samba-password: %s\n' "$NAS_PASSWORD" > "$tmpf"
+  printf "samba-password: '%s'\n" "${NAS_PASSWORD//\'/\'\'}" > "$tmpf"
   chmod 600 "$tmpf"
 
   if ! sops --encrypt --input-type yaml --output-type yaml \
@@ -576,7 +578,7 @@ collect_tools
 FORCE_RESET=0
 
 case "${1:-}" in
-  -h|--ajuda|help) ajuda; exit 0 ;;
+  -h|--ajuda|--help|help) ajuda; exit 0 ;;
   --check) detect_repo; check_env; exit 0 ;;
   --mostrar-senha) require_tools; show_password; exit 0 ;;
   --reset-senha) FORCE_RESET=1 ;;
