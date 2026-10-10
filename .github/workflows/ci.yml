@@ -111,6 +111,8 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache
       - run: nix build --accept-flake-config --print-build-logs .#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel
       - name: Push closures to cachix
         if: env.CACHIX_TOKEN != ''
