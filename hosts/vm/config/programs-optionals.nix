@@ -27,6 +27,7 @@ _: {
       mangohud = false;
       pcsx2 = false;
       steam = false;
+      wine = false;
     };
     gui = {
       "android-studio" = false;
