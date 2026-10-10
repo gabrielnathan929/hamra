@@ -124,7 +124,7 @@ nix develop
 It registers this PC's keys in `.sops.yaml`, stores the NAS password
 encrypted for the registered PCs and offers the rebuild. On a new machine,
 let it create/reset the password — the file must be re-encrypted with this
-PC's key (`./scripts/setup-nas.sh --ajuda`, `SETUP.md` section 3).
+PC's key (`./scripts/setup-nas.sh --help`, `SETUP.md` section 3).
 
 Or, if this machine is not the NAS, simply do not enable Samba on the host.
 

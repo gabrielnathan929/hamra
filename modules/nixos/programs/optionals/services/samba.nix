@@ -95,7 +95,7 @@ in {
         echo "This host age key cannot decrypt secrets/samba.yaml." >&2
         echo "Run on the host: cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age" >&2
         echo "Register the key in .sops.yaml and run: nix develop --command sops updatekeys secrets/samba.yaml" >&2
-        echo "Onboarding: ./scripts/setup-nas.sh --ajuda (or SETUP.md section 3)" >&2
+        echo "Onboarding: ./scripts/setup-nas.sh --help (or SETUP.md section 3)" >&2
         exit 1
       fi
       ${pkgs.coreutils}/bin/printf '%s\n%s\n' \

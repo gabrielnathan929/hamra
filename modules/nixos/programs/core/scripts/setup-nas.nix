@@ -17,7 +17,7 @@
     fi
     if [[ -z $script ]]; then
       echo "setup-nas: repository not found (looked in \$HAMRA_REPO and /etc/nixos)." >&2
-      echo "Aponte HAMRA_REPO para o checkout ou crie o symlink: sudo ln -s <checkout> /etc/nixos" >&2
+      echo "Point HAMRA_REPO at the checkout or create the symlink: sudo ln -s <checkout> /etc/nixos" >&2
       exit 1
     fi
     exec bash "$script" "$@"

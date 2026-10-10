@@ -3,7 +3,7 @@
 # setup-nas — Wizard to install/recreate the NAS (Samba + secrets) on ANY PC
 # using this Hamra repository.
 #
-# O que ele faz, em ordem:
+# What it does, in order:
 #   1. Checks that the required tools exist.
 #   2. Ensures this PC has a "host" registered in the repository.
 #   3. Generates the secrets editing key (if it does not exist yet).
@@ -11,12 +11,12 @@
 #   5. Creates/renews the NAS password (it lives encrypted in secrets/samba.yaml).
 #   6. Applies the configuration on this PC (optional).
 #
-# Modos:
-#   ./scripts/setup-nas.sh              assistente completo (recomendado)
+# Modes:
+#   ./scripts/setup-nas.sh              full wizard (recommended)
 #   ./scripts/setup-nas.sh --check      environment check only (changes nothing)
-#   ./scripts/setup-nas.sh --mostrar-senha   esqueceu a senha do NAS
-#   ./scripts/setup-nas.sh --reset-senha    force creating a new password
-#   ./scripts/setup-nas.sh --ajuda      esta ajuda
+#   ./scripts/setup-nas.sh --show-password   forgot the NAS password
+#   ./scripts/setup-nas.sh --reset-password   force creating a new password
+#   ./scripts/setup-nas.sh --help       this help
 #
 # Tip: run `nix develop` first — the environment already ships sops, age and ssh-to-age.
 set -uo pipefail
@@ -47,21 +47,21 @@ die() {
   local help_msg="${_HELP:-}"
   fail "$1"
   if [[ -n $help_msg ]]; then
-    printf "\n%sCOMO RESOLVER:%s\n" "$_B" "$_N"
+    printf "\n%sHOW TO FIX:%s\n" "$_B" "$_N"
     printf "%s\n" "$help_msg"
   fi
-  printf "\nStill stuck? Run ./scripts/setup-nas.sh --ajuda\n"
+  printf "\nStill stuck? Run ./scripts/setup-nas.sh --help\n"
   printf "or look for the \"NAS / Samba\" section in AGENTS.md.\n"
   exit "${2:-1}"
 }
 
 yesno() {
-  local q="${1:-Continuar?}" d="${2:-s}" r
+  local q="${1:-Continue?}" d="${2:-y}" r
   printf "%s? [%s/n] " "$q" "$d"
   read -r r
   case "${r:-$d}" in
-    [nN]|[nN][oO]) return 1 ;;
-    *) return 0 ;;
+    [yY]|[yY][eE][sS]) return 0 ;;
+    *) return 1 ;;
   esac
 }
 
@@ -92,24 +92,24 @@ require_tools() {
     (( TOOLS[$t] )) || missing+=("$t")
   done
   if ((${#missing[@]})); then
-    _HELP="Rode o comando:  nix develop
+    _HELP="Run:  nix develop
 (this repository's devShell already installs anything missing.)
 Then run again:  ./scripts/setup-nas.sh"
-    die "Faltam ferramentas: ${missing[*]}"
+    die "Missing tools: ${missing[*]}"
   fi
 }
 
 # Report (--check mode, changes nothing)
 check_env() {
-  title "Environment check --check"
+  title "Environment check"
   printf "  Repository  : %s\n" "$REPO"
   printf "  Directory   : %s\n" "$(pwd)"
-  printf "\n  %-18s %s\n" "Ferramenta" "Status"
+  printf "\n  %-18s %s\n" "Tool" "Status"
   for t in nix sops age age-keygen ssh-to-age python3 git nixos-rebuild sudo; do
     if (( TOOLS[$t] )); then
       printf "  %-18s %s\n" "$t" "ok ✔"
     else
-      printf "  %-18s %s\n" "$t" "ausente ✖"
+      printf "  %-18s %s\n" "$t" "missing ✖"
     fi
   done
   printf "\n  %sTip:%s run  nix develop  to get anything missing.\n" "$_B" "$_N"
@@ -132,7 +132,7 @@ detect_repo() {
 
   if [[ ! -f "$dir/scripts/setup-nas.sh" ]]; then
     _HELP="Clone the repository on this PC first. E.g.:
-  git clone <url-do-repo> ~/Projetos/hamra
+  git clone <repo-url> ~/Projetos/hamra
   sudo ln -s ~/Projetos/hamra /etc/nixos
 Then run:  cd ~/Projetos/hamra && nix develop && ./scripts/setup-nas.sh"
     die "Could not find the Hamra repository at: $dir"
@@ -291,7 +291,7 @@ ask_host() {
   title "Your PC in the Hamra repository"
   local cur name gpu firmware desktop user
 
-  cur="$(hostname 2>/dev/null || echo meu-pc)"
+  cur="$(hostname 2>/dev/null || echo my-pc)"
   ask "Name of this PC inside the repository" "$cur"
   name="$REPLY"
   [[ $name =~ ^[a-zA-Z0-9-]+$ ]] || die "Invalid name (use only letters, numbers and hyphens)."
@@ -338,18 +338,18 @@ ask_host() {
 create_host() {
   mkdir -p "$HOST_DIR" || die "Could not create hosts/$HOST_NAME"
 
-  info "Gerando hardware-configuration.nix (detecta CPU, placa, discos...)..."
+  info "Generating hardware-configuration.nix (detecting CPU, board, disks...)..."
   if (( EUID != 0 )) && (( TOOLS[sudo] )); then
     # The redirect is done by the shell (file stays owned by the user); only the detection needs root.
     # shellcheck disable=SC2024
     sudo -p "Sudo password to detect the hardware: " \
       nixos-generate-config --show-hardware-config > "$HOST_DIR/hardware-configuration.nix" \
-      || die "Falha ao gerar o hardware-configuration.nix (sudo)."
+      || die "Failed to generate hardware-configuration.nix (sudo)."
   else
     nixos-generate-config --show-hardware-config > "$HOST_DIR/hardware-configuration.nix" \
-      || die "Falha ao gerar o hardware-configuration.nix."
+      || die "Failed to generate hardware-configuration.nix."
   fi
-  ok "hardware-configuration.nix criado."
+  ok "hardware-configuration.nix created."
 
   local answers
   answers="$(mktemp)" || die "Could not create temp answers file."
@@ -382,7 +382,7 @@ ensure_samba_enabled() {
   fi
   if grep -q 'samba' "$cfg"; then
     sed -i '0,/samba[[:space:]]*=[[:space:]]*false/s//samba = true/' "$cfg"
-    ok "Samba ativado no host \"$HOST_NAME\"."
+    ok "Samba enabled on host \"$HOST_NAME\"."
     return 0
   fi
   warn "Could not find the 'samba' line in the host file."
@@ -422,7 +422,7 @@ write_secret() {
   [[ -w secrets ]] || {
     _HELP="The secrets/ directory is not writable. Check its owner:
   ls -ld secrets
-Se preciso:  sudo chown -R \$(whoami):users secrets"
+If needed:  sudo chown -R \$(whoami):users secrets"
     die "Cannot write to secrets/."
   }
   rm -f "$tmpf"
@@ -469,8 +469,8 @@ handle_password() {
   write_secret
 
   if [[ -f $secret_file ]]; then
-    info "Syncing recipients (for every registered PC"
-    info "conseguirem decriptar no boot)..."
+    info "Syncing recipients (so every registered PC"
+    info "can decrypt at boot)..."
     printf 'y\n' | sops updatekeys secrets/samba.yaml >/dev/null \
       || warn "updatekeys failed — other machines may fail to apply."
     ok "Recipients synced."
@@ -478,10 +478,10 @@ handle_password() {
 }
 
 # ---------------------------------------------------------------------------
-# Aplicar no PC (opcional)
+# Apply on this PC (optional)
 # ---------------------------------------------------------------------------
 deploy() {
-  title "Aplicar no PC (nixos-rebuild)"
+  title "Apply on this PC (nixos-rebuild)"
   if [[ ${TOOLS[nixos-rebuild]} == 0 ]]; then
     warn "This PC has no nixos-rebuild (NixOS only)."
     warn "This machine may be JUST A NAS CLIENT (reads/writes the files)."
@@ -507,7 +507,7 @@ deploy() {
   fi
 
   if (( rc != 0 )); then
-    _HELP="O rebuild falhou. Leia o erro acima. Causas comuns:
+    _HELP="The rebuild failed. Read the error above. Common causes:
   • hardware-configuration.nix with wrong UUID/device (do not change UUIDs).
   • NAS password too short for the server to accept.
 After fixing, run again: sudo nixos-rebuild switch --flake $REPO#$HOST_NAME"
@@ -517,23 +517,23 @@ After fixing, run again: sudo nixos-rebuild switch --flake $REPO#$HOST_NAME"
 }
 
 # ---------------------------------------------------------------------------
-# Resumo final
+# Final summary
 # ---------------------------------------------------------------------------
 summary() {
-  title "Resumo — tudo pronto"
+  title "Summary — all done"
   if [[ -n ${NAS_PASSWORD:-} ]]; then
     info "NAS password for this repository (yours, just created):"
     printf "\n    %s%s%s\n\n" "$_B" "$NAS_PASSWORD" "$_N"
   fi
 
   printf "  %sNAS usage:%s\n" "$_B" "$_N"
-  printf "    - Linux (mount):    \\\\acer\\shared in the file manager (user + NAS password)\n"
+  printf "    - Linux (mount):    \\\\%s\\shared in the file manager (user + NAS password)\n" "$HOST_NAME"
   printf "    - Windows:  open \\\\\\\\<host-ip>\\\\shared in File Explorer\n"
-  printf "    - Mac:      Conectar ao servidor -> smb://<ip-do-host>/shared\n"
-  printf "  %sGerenciar:%s\n" "$_B" "$_N"
-  printf "    - Ver a senha de novo:   ./scripts/setup-nas.sh --mostrar-senha\n"
-  printf "    - Trocar a senha:        ./scripts/setup-nas.sh --reset-senha\n"
-  printf "    - Adicionar outro PC:    rode este script de novo NAQUELE PC\n"
+  printf "    - Mac:      Connect to server -> smb://<host-ip>/shared\n"
+  printf "  %sManage:%s\n" "$_B" "$_N"
+  printf "    - Show the password again:   ./scripts/setup-nas.sh --show-password\n"
+  printf "    - Change the password:       ./scripts/setup-nas.sh --reset-password\n"
+  printf "    - Add another PC:            run this script again ON THAT PC\n"
   printf "  %sPublish to the repository:%s\n" "$_B" "$_N"
   printf "    git add -A && git commit -m \"Add NAS setup\" && git push\n"
   NAS_PASSWORD=""
@@ -564,11 +564,11 @@ this PC's key and run:  printf 'y\\n' | sops updatekeys secrets/samba.yaml"
 }
 
 # ---------------------------------------------------------------------------
-# Ajuda
+# Help
 # ---------------------------------------------------------------------------
-ajuda() {
-  title "setup-nas — ajuda"
-  sed -n '2,28p' "$0"
+show_help() {
+  title "setup-nas — help"
+  sed -n '2,21p' "$0"
 }
 
 # ---------------------------------------------------------------------------
@@ -578,10 +578,10 @@ collect_tools
 FORCE_RESET=0
 
 case "${1:-}" in
-  -h|--ajuda|--help|help) ajuda; exit 0 ;;
+  -h|--help|help) show_help; exit 0 ;;
   --check) detect_repo; check_env; exit 0 ;;
-  --mostrar-senha) require_tools; show_password; exit 0 ;;
-  --reset-senha) FORCE_RESET=1 ;;
+  --show-password) require_tools; show_password; exit 0 ;;
+  --reset-password) FORCE_RESET=1 ;;
 esac
 
 require_tools

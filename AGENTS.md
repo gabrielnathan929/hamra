@@ -261,8 +261,8 @@ To replicate the NAS on ANY PC without knowing encryption/NixOS, there is
 generates/registers keys in `.sops.yaml`, creates the user's own password in
 `secrets/samba.yaml` (encrypted) and applies the rebuild — explaining each
 step and how to fix errors. The generated host folder is a full
-atomic host (see "Hosts are atomic units"). Modes: `--check`, `--mostrar-senha`, `--reset-senha`,
-`--ajuda`. Onboarding: `./scripts/setup-nas.sh --ajuda`; details in the
+atomic host (see "Hosts are atomic units"). Modes: `--check`, `--show-password`, `--reset-password`,
+`--help`. Onboarding: `./scripts/setup-nas.sh --help`; details in the
 `README.md`/NAS section and `SETUP.md` section 3.
 
 ### Secrets (sops-nix)

@@ -63,7 +63,7 @@ in {
       assertion =
         cfg.boot.loader != "grub" || (cfg.boot.grub.device != "" && cfg.boot.grub.device != null);
       message =
-        "hamra.boot.loader = \"grub\" requer " + "hamra.boot.grub.device definido (ex: \"/dev/sda\").";
+        "hamra.boot.loader = \"grub\" requires " + "hamra.boot.grub.device set (e.g. \"/dev/sda\").";
     }
 
     {
@@ -83,8 +83,8 @@ in {
     {
       assertion = lib.hasSuffix ".UTF-8" cfg.locale;
       message =
-        "hamra.locale = \"${cfg.locale}\" deve terminar com \".UTF-8\" "
-        + "(ex: \"pt_BR.UTF-8\", \"en_US.UTF-8\").";
+        "hamra.locale = \"${cfg.locale}\" must end with \".UTF-8\" "
+        + "(e.g. \"pt_BR.UTF-8\", \"en_US.UTF-8\").";
     }
 
     {
@@ -110,19 +110,19 @@ in {
           "sway"
         ];
       message =
-        "hamra.programs.optionals.services.wayvnc = true requer hamra.desktop.default = "
-        + "\"hyprland\" ou \"sway\" (atual: \"${cfg.desktop.default}\"). "
+        "hamra.programs.optionals.services.wayvnc = true requires hamra.desktop.default = "
+        + "\"hyprland\" or \"sway\" (current: \"${cfg.desktop.default}\"). "
         + "Niri does not support headless output for WayVNC.";
     }
 
     {
       assertion = cfg.flatpak.apps == [] || cfg.programs.optionals.packaging.flatpak;
-      message = "hamra.flatpak.apps requer hamra.programs.optionals.packaging.flatpak = true.";
+      message = "hamra.flatpak.apps requires hamra.programs.optionals.packaging.flatpak = true.";
     }
 
     {
       assertion = !cfg.programs.optionals.packaging.gearlever || cfg.programs.optionals.services.appimage;
-      message = "hamra.programs.optionals.packaging.gearlever requer hamra.programs.optionals.services.appimage = true.";
+      message = "hamra.programs.optionals.packaging.gearlever requires hamra.programs.optionals.services.appimage = true.";
     }
 
     {
@@ -134,7 +134,7 @@ in {
           "nvidia"
         ];
       message =
-        "hamra.programs.optionals.media.davinci-resolve requer GPU real (intel, amd ou nvidia) com OpenCL; "
+        "hamra.programs.optionals.media.davinci-resolve requires a real GPU (intel, amd or nvidia) with OpenCL; "
         + "virtio is not supported (current: \"${cfg.hardware.gpu}\"). Disable this toggle on this host.";
     }
 
@@ -142,12 +142,12 @@ in {
       assertion =
         (cfg.mise.tools == {} && cfg.mise.env == {} && cfg.mise.settings == {})
         || cfg.programs.core.cli.mise;
-      message = "hamra.mise.{tools,env,settings} requer hamra.programs.core.cli.mise = true.";
+      message = "hamra.mise.{tools,env,settings} requires hamra.programs.core.cli.mise = true.";
     }
 
     {
       assertion = lib.all (app: app.icon == null || app.iconHash != null) (lib.attrValues cfg.webapps);
-      message = "hamra.webapps.<nome>.icon requer hamra.webapps.<nome>.iconHash (sha256-...).";
+      message = "hamra.webapps.<name>.icon requires hamra.webapps.<name>.iconHash (sha256-...).";
     }
   ];
 }

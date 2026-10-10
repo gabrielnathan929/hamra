@@ -1,10 +1,10 @@
 keys:
-  # Chave de edição (máquina onde você roda `sops secrets/...`)
+  # Editing key (machine where you run `sops secrets/...`)
   - &user age1sq570spnk7jm72zzyqa9h264pxulx0xqu8m2hj0ka3u27ca3uycsk3xfhu
-  # Chaves de decriptação por host (derivadas da chave SSH de cada máquina).
-  # Para obter a chave de um host, execute nele (uma vez):
+  # Per-host decryption keys (derived from each machine's SSH key).
+  # To get a host key, run once on that host:
   #   cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age
-  # Depois descomente a linha correspondente e cole o resultado no lugar do `age1...`.
+  # Then uncomment the matching line and paste the result over `age1...`.
   - &host-samsung age1jke3vagr84utrxqsd89m3vpxmr9wgcr44tycngm4lf0570h4tsdqvr23yf
   - &user2 age1r323pqtxklkhn2pm9npneltwf97s0l20nhzmpla5znq2jj5rraksz0uwxc
   # - &host-acer age1...

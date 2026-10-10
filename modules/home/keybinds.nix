@@ -12,6 +12,6 @@ in {
         }
       ];
     };
-    description = "Atalhos por contexto, exibidos pelo keys via /etc/hamra/keybinds.json.";
+    description = "Shortcuts by context, shown by keys via /etc/hamra/keybinds.json.";
   };
 }

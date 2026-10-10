@@ -174,12 +174,12 @@ does the whole onboarding (host files, keys, password, rebuild):
 nix develop
 ./scripts/setup-nas.sh              # guided assistant
 ./scripts/setup-nas.sh --check      # environment audit, changes nothing
-./scripts/setup-nas.sh --mostrar-senha
-./scripts/setup-nas.sh --reset-senha
-./scripts/setup-nas.sh --ajuda
+./scripts/setup-nas.sh --show-password
+./scripts/setup-nas.sh --reset-password
+./scripts/setup-nas.sh --help
 ```
 
-Full guide: `./scripts/setup-nas.sh --ajuda` and `SETUP.md` section 3.
+Full guide: `./scripts/setup-nas.sh --help` and `SETUP.md` section 3.
 
 ## Further reading
 

@@ -17,12 +17,12 @@
       manifest=/etc/hamra/keybinds.json
 
       usage() {
-        printf '%s\n' 'Uso: keys [contexto]'
+        printf '%s\n' 'Usage: keys [context]'
         printf '\n'
         printf '%s\n' \
-          '  keys            atalhos do window manager ativo' \
-          '  keys <contexto> atalhos de um contexto (hyprland, sway, niri, tmux, herdr, all)' \
-          '  keys -h         mostra esta ajuda'
+          '  keys            shortcuts of the active window manager' \
+          '  keys <context>  shortcuts of one context (hyprland, sway, niri, tmux, herdr, all)' \
+          '  keys -h         show this help'
       }
 
       detect_context() {
@@ -45,7 +45,7 @@
         rows=$(jq -r --arg ctx "$ctx" '(.[$ctx] // [])[] | "\(.key)\t\(.action)"' "$manifest")
         printf '\n%s\n' "''${ctx^}"
         if [[ -z $rows ]]; then
-          printf '  (nenhum atalho declarado para este contexto)\n'
+          printf '  (no shortcuts declared for this context)\n'
           return 0
         fi
         while IFS=$'\t' read -r key action; do
@@ -71,17 +71,17 @@
             usage
             exit 1
           fi
-          printf 'Atalhos — %s\n' "$context"
+          printf 'Shortcuts — %s\n' "$context"
           print_context "$context"
           ;;
         all)
-          printf 'Atalhos por contexto\n'
+          printf 'Shortcuts by context\n'
           while read -r ctx; do
             print_context "$ctx"
           done < <(jq -r 'keys[]' "$manifest")
           ;;
         *)
-          printf 'Atalhos — %s\n' "$context"
+          printf 'Shortcuts — %s\n' "$context"
           print_context "$context"
           ;;
       esac
@@ -91,7 +91,7 @@ in {
   options.hamra.programs.core.scripts.keybinds = mkOption {
     type = types.bool;
     default = true;
-    description = "Enable keys (atalhos por contexto: WM ativo, tmux, herdr).";
+    description = "Enable keys (shortcuts by context: active WM, tmux, herdr).";
   };
 
   config = mkIf cfg {

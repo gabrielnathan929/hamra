@@ -39,13 +39,13 @@
       manifest=/etc/hamra/apps.json
 
       usage() {
-        printf '%s\n' 'Uso: shelf [termo | -v <ferramenta> | -h]'
+        printf '%s\n' 'Usage: shelf [term | -v <tool> | -h]'
         printf '\n'
         printf '%s\n' \
-          '  shelf            lista apps instalados por fonte (Nix, mise, Flatpak, web)' \
+          '  shelf            list installed apps by source (Nix, mise, Flatpak, web)' \
           '  shelf <term>      filter the list by name (case-insensitive)' \
           '  shelf -v <tool>  show available versions in the mise registry' \
-          '  shelf -h         mostra esta ajuda'
+          '  shelf -h         show this help'
       }
 
       if [[ ! -f $manifest ]]; then
@@ -147,7 +147,7 @@
           continue
         fi
         if ! printf '%s\n' "$flatpakIds" | grep -qFx -- "$appId"; then
-          flatpakRows+="$appId"$'\t'"(declarado, pendente)"$'\n'
+          flatpakRows+="$appId"$'\t'"(declared, pending)"$'\n'
         fi
       done < <(jq -r '.flatpak[]' "$manifest")
 
@@ -180,9 +180,9 @@
       }
 
       if [[ -z $query ]]; then
-        printf 'Apps instalados por fonte\n'
+        printf 'Apps installed by source\n'
       else
-        printf 'Apps por fonte: filtro "%s"\n' "$query"
+        printf 'Apps by source: filter "%s"\n' "$query"
       fi
 
       section "Nix" "$nixRows"
@@ -192,9 +192,9 @@
 
       if [[ $printed -eq 0 ]]; then
         if [[ -z $query ]]; then
-          echo "Nenhum app encontrado."
+          echo "No apps found."
         else
-          echo "Nenhum app encontrado para \"$query\"."
+          echo "No apps found for \"$query\"."
         fi
       fi
     '';
