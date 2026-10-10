@@ -5,7 +5,7 @@
     };
 
     displayManager = {
-      default = "greetd";
+      default = "sddm";
       sddm = {
         preset = "catppuccin-mocha";
         theme = "silent";
