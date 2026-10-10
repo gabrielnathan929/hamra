@@ -36,7 +36,7 @@ _: {
         mosh = false;
         http = false;
         https = false;
-        dev = false;
+        dev = true;
         vnc = false;
         rdp = false;
         samba = false;

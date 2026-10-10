@@ -37,7 +37,7 @@ _: {
         http = false;
         https = false;
         dev = true;
-        vnc = false;
+        vnc = true;
         rdp = false;
         samba = false;
         syncthing = false;
