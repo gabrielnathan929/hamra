@@ -130,7 +130,7 @@ Rules:
 - `flake/hosts.nix` discovers every directory under `hosts/` automatically.
 - **Host role ≠ personal preference:** `samba`, `wayvnc`, `tigervnc` say
   *who the machine is* (NAS, VNC server) and are plain values on that host
-  (e.g. the home server carries `services.samba = true`). A new host created
+  (e.g. `acer` is the NAS → `services.samba = true` on it). A new host created
   by `setup-nas.sh` must NOT become a NAS by accident.
 
 Fork contract: hosts **never flow upstream**. Forks keep their own

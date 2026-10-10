@@ -79,7 +79,7 @@ _: {
       appimage = true;
       docker = true;
       "docker-compose" = true;
-      samba = false;
+      samba = true;
       tigervnc = false;
       wayvnc = true;
       "wayvnc-no-auth" = true;
