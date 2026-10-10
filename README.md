@@ -164,7 +164,9 @@ host on each push.
 ## NAS
 
 The `services.samba` toggle turns a host into an SMB NAS (shares `shared`,
-`games`, `backups`, each with an automatic `.trash` recycle bin). The password
+`games`, `backups`, each with an automatic `.trash` recycle bin). Only the
+machine that **serves** the files enables it — clients just mount the shares
+and need nothing enabled. The password
 lives encrypted in `secrets/samba.yaml` (sops-nix). On any PC, `setup-nas`
 does the whole onboarding (host files, keys, password, rebuild):
 

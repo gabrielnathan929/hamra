@@ -169,6 +169,9 @@ the same summary as the script header.
 
 ## 6. Using the NAS from other PCs (clients)
 
+Client PCs need nothing enabled in Hamra — only the machine that serves
+the files carries `services.samba = true`. Clients just mount:
+
 ### Linux (Arch/any distro)
 
 Create the credentials file (once):
