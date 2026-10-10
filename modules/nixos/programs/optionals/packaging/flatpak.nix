@@ -10,7 +10,7 @@
   userName = config.hamra.users.userName;
   userHome = config.users.users.${userName}.home;
 
-  flatpakInstall = pkgs.writeShellScript "hamra-flatpak-install" ''
+  flatpakInstall = pkgs.writeShellScript "flatpak-sync" ''
     set -euo pipefail
     flatpak=${pkgs.flatpak}/bin/flatpak
     "$flatpak" remote-add --system --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
@@ -45,7 +45,7 @@ in {
       gnome-software
     ];
 
-    systemd.services.hamra-flatpak = {
+    systemd.services.flatpak-sync = {
       description = "Ensure Flathub remote and install declared Flatpak apps (hamra.flatpak.apps)";
       wantedBy = ["multi-user.target"];
       wants = ["network-online.target"];

@@ -25,13 +25,7 @@ On the first boot, as the user created during installation:
 nix-shell -p git
 git clone https://github.com/gabrielnathan929/hamra ~/Projetos/hamra
 cd ~/Projetos/hamra
-nix --extra-experimental-features "nix-command flakes" run .#hamra-setup
-```
-
-Or, if you prefer the terminal:
-
-```bash
-nix --extra-experimental-features "nix-command flakes" run .#hamra-init
+nix --extra-experimental-features "nix-command flakes" run .#cookiecutter
 ```
 
 The bootstrap flag is only needed for that single launch — a fresh NixOS
@@ -52,10 +46,10 @@ installer's original configuration with
 `sudo rm /etc/nixos && sudo mv /etc/nixos.pre-hamra /etc/nixos` — and delete
 the backup once Hamra is stable.
 
-### Fast path: `hamra-init`
+### Fast path: `cookiecutter`
 
 ```bash
-nix run .#hamra-init
+nix run .#cookiecutter
 ```
 
 The wizard asks for the machine name, user, locale, theme, GPU and firmware
@@ -71,8 +65,8 @@ toplevel. Only after all gates pass does it offer `nixos-rebuild test`, and
 then the switch — both with typed confirmation. It never commits anything
 for you.
 
-Non-interactive: `hamra-init --answers answers.json --dry-run` prints the
-files without writing. Environment audit only: `hamra-init --check`.
+Non-interactive: `cookiecutter --answers answers.json --dry-run` prints the
+files without writing. Environment audit only: `cookiecutter --check`.
 
 ### Manual path (escape hatch)
 

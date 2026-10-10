@@ -88,7 +88,7 @@ jobs:
         run: echo "hosts=$(nix eval --accept-flake-config --json .#nixosConfigurations --apply 'builtins.attrNames')" >> "$GITHUB_OUTPUT"
 
   init-golden:
-    name: hamra-init golden
+    name: cookiecutter golden
     needs: [check]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -120,7 +120,7 @@ jobs:
           authToken: ${{ env.CACHIX_TOKEN }}
 
   apps:
-    name: Apps smoke test (hamra-init)
+    name: Apps smoke test (cookiecutter)
     needs: [check]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -129,7 +129,7 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
-      - run: nix run --accept-flake-config .#hamra-init -- --help
+      - run: nix run --accept-flake-config .#cookiecutter -- --help
       - name: Push apps to cachix
         if: env.CACHIX_TOKEN != ''
         uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866

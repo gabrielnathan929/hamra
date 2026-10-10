@@ -232,7 +232,7 @@
         chmod 700 "$state_dir"
         if [ ! -f "$state_dir/tls.crt" ] || [ ! -f "$state_dir/tls.key" ]; then
           info "Generating self-signed TLS certificate in $state_dir ..."
-          ${openssl} req -x509 -newkey rsa:2048 -keyout "$state_dir/tls.key" -out "$state_dir/tls.crt" -days 825 -nodes -subj "/CN=hamra-vnc" 2>/dev/null
+          ${openssl} req -x509 -newkey rsa:2048 -keyout "$state_dir/tls.key" -out "$state_dir/tls.crt" -days 825 -nodes -subj "/CN=vnc" 2>/dev/null
           chmod 600 "$state_dir/tls.key"
         fi
         if ! grep -q "BEGIN RSA PRIVATE KEY" "$state_dir/rsa.pem" 2>/dev/null; then

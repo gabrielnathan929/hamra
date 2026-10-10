@@ -32,24 +32,24 @@
       config.hamra.webapps;
   };
 
-  hamra-apps = pkgs.writeShellApplication {
-    name = "hamra-apps";
+  shelf = pkgs.writeShellApplication {
+    name = "shelf";
     runtimeInputs = [pkgs.jq pkgs.coreutils pkgs.gnugrep pkgs.gnused];
     text = ''
       manifest=/etc/hamra/apps.json
 
       usage() {
-        printf '%s\n' 'Uso: hamra-apps [termo | -v <ferramenta> | -h]'
+        printf '%s\n' 'Uso: shelf [termo | -v <ferramenta> | -h]'
         printf '\n'
         printf '%s\n' \
-          '  hamra-apps            lista apps instalados por fonte (Nix, mise, Flatpak, web)' \
-          '  hamra-apps <term>      filter the list by name (case-insensitive)' \
-          '  hamra-apps -v <tool>  show available versions in the mise registry' \
-          '  hamra-apps -h         mostra esta ajuda'
+          '  shelf            lista apps instalados por fonte (Nix, mise, Flatpak, web)' \
+          '  shelf <term>      filter the list by name (case-insensitive)' \
+          '  shelf -v <tool>  show available versions in the mise registry' \
+          '  shelf -h         mostra esta ajuda'
       }
 
       if [[ ! -f $manifest ]]; then
-        echo "hamra-apps: manifest not found: $manifest" >&2
+        echo "shelf: manifest not found: $manifest" >&2
         exit 1
       fi
 
@@ -78,7 +78,7 @@
 
       if [[ $mode == versions ]]; then
         if ! command -v mise >/dev/null 2>&1; then
-          echo "hamra-apps: mise not found in PATH." >&2
+          echo "shelf: mise not found in PATH." >&2
           exit 1
         fi
         installed=$(mise ls --json 2>/dev/null | jq -r '
@@ -90,7 +90,7 @@
         versions=$(mise ls-remote "$query" 2>/dev/null | tail -n 25 || true)
         printf '%s installed: %s\n' "$query" "''${installed:-not installed}"
         if [[ -z $versions ]]; then
-          echo "hamra-apps: no versions of \"$query\" in the mise registry." >&2
+          echo "shelf: no versions of \"$query\" in the mise registry." >&2
           exit 1
         fi
         echo
@@ -203,11 +203,11 @@ in {
   options.hamra.programs.core.scripts.apps = mkOption {
     type = types.bool;
     default = true;
-    description = "Enable hamra-apps (installed apps listing by source: Nix, mise, Flatpak, web apps).";
+    description = "Enable shelf (installed apps listing by source: Nix, mise, Flatpak, web apps).";
   };
 
   config = mkIf cfg {
-    environment.systemPackages = [hamra-apps];
+    environment.systemPackages = [shelf];
 
     environment.etc."hamra/apps.json".text = manifest;
   };

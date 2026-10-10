@@ -363,9 +363,9 @@ create_host() {
 }
 ANSWERS
 
-  HAMRA_REPO="$REPO" bash "$REPO/scripts/hamra-init.sh" \
+  HAMRA_REPO="$REPO" bash "$REPO/scripts/cookiecutter.sh" \
     --answers "$answers" --render-into "$HOST_DIR" \
-    || { rm -f "$answers"; die "hamra-init could not render the host files."; }
+    || { rm -f "$answers"; die "cookiecutter could not render the host files."; }
   rm -f "$answers"
 
   ok "host \"$HOST_NAME\" created (hosts under hosts/ are discovered by scan; no manual registration). Files:"

@@ -16,11 +16,11 @@ in ''
 
   Mod+Ctrl+Print         { spawn-sh "ocr-screenshot"; }
 
-  Mod+Alt+T               { spawn-sh "${terminal} --app-id=hamra-tui -e btop"; }
+  Mod+Alt+T               { spawn-sh "${terminal} --app-id=console -e btop"; }
   Mod+Shift+H             { spawn-sh "${terminal} -e herdr"; }
   Mod+Shift+T             { spawn-sh "${terminal} -e tmux new-session -A -s main"; }
 
-  Mod+Shift+D             { spawn-sh "${terminal} --app-id=hamra-tui -e lazydocker"; }
+  Mod+Shift+D             { spawn-sh "${terminal} --app-id=console -e lazydocker"; }
 
-  Mod+Shift+G             { spawn-sh "${terminal} --app-id=hamra-tui -e lazygit"; }
+  Mod+Shift+G             { spawn-sh "${terminal} --app-id=console -e lazygit"; }
 ''

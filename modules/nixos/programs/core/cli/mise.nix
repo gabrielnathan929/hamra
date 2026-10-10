@@ -42,7 +42,7 @@ in {
         };
         description = ''
           Declare mise tools globally (~/.config/mise/config.toml).
-          hamra-mise-install installs them on activation.
+          mise-sync installs them on activation.
         '';
       };
 
@@ -89,7 +89,7 @@ in {
         inherit globalConfig;
       };
 
-    systemd.services.hamra-mise-install = mkIf (tools != {}) {
+    systemd.services.mise-sync = mkIf (tools != {}) {
       description = "Install declared mise tools (hamra.mise.tools)";
 
       wantedBy = ["multi-user.target"];

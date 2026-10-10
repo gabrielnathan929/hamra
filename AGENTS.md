@@ -74,11 +74,11 @@ install it via mise — the Nix toggle serves as the base/fallback.
 
 ### Apps by source (Nix, mise, flatpak, webapps)
 
-The **`hamra-apps`** command (toggle `core/scripts/apps`, default `true`)
+The **`shelf`** command (toggle `core/scripts/apps`, default `true`)
 lists what is installed and what can be installed, with the source of each
 item:
 
-- `hamra-apps` — everything; `hamra-apps -v go` — filter by name; `hamra-apps --help`
+- `shelf` — everything; `shelf -v go` — filter by name; `shelf --help`
 - Installed via Nix: NixOS packages + Home Manager `home.packages` (read from
   the `/etc/hamra/apps.json` manifest, generated at build)
 - Available via mise: `mise ls --json` + the catalog declared in `hamra.mise.tools`
@@ -91,7 +91,7 @@ Apps can be pre-set in Nix (can be used alongside the imperative mode):
 | `hamra.mise.tools` | mise tools (via HM `globalConfig`) | `{ go = "latest"; node = ["lts" "22"]; }` |
 | `hamra.mise.env` | mise `[env]` section | `{ _.path = ["~/bin"]; }` |
 | `hamra.mise.settings` | mise `[settings]` section | `{ github_attestations = false; }` |
-| `hamra.flatpak.apps` | installs via `hamra-flatpak` oneshot on activation | `[ "app.dvd.DVDStyler" ]` |
+| `hamra.flatpak.apps` | installs via `flatpak-sync` oneshot on activation | `[ "app.dvd.DVDStyler" ]` |
 | `hamra.webapps` | generates a wrapper + `.desktop` for a web app | `{ notion = { url = "..."; desktopName = "Notion"; }; }` |
 
 The mise options require the `core/cli/mise` toggle enabled (build assertion);
@@ -124,7 +124,7 @@ from shared layers — repetition across hosts is normal and expected.
 Rules:
 - Each line in a host file is a decision — the files are the full menu, not a
   delta. Disabled toggles stay visible as `= false`.
-- Never hand-write host files: generate them with `hamra-init` (answers file,
+- Never hand-write host files: generate them with `cookiecutter` (answers file,
   wizard or `--from <host>` to inherit another host's optionals), which reads
   the toggle universes from the module files themselves.
 - `flake/hosts.nix` discovers every directory under `hosts/` automatically.

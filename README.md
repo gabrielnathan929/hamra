@@ -35,7 +35,7 @@ this in `system.nix` (then the complete `programs.core`,
 }
 ```
 
-Never hand-write them: `hamra-init` generates the
+Never hand-write them: `cookiecutter` generates the
 files from the toggle modules themselves, so the menu never goes stale.
 
 Three toggle families:
@@ -66,12 +66,12 @@ like, with a message explaining why.
 
 ## What is installed
 
-The `hamra-apps` command lists everything, by source:
+The `shelf` command lists everything, by source:
 
 ```bash
-hamra-apps              # Nix, mise, Flatpak and web apps, with versions
-hamra-apps <term>       # filter by name (case-insensitive)
-hamra-apps -v <tool>    # versions of <tool> available in the mise registry
+shelf              # Nix, mise, Flatpak and web apps, with versions
+shelf <term>       # filter by name (case-insensitive)
+shelf -v <tool>    # versions of <tool> available in the mise registry
 ```
 
 The Nix part comes from a manifest (`/etc/hamra/apps.json`) generated at
@@ -84,7 +84,7 @@ Flatpak).
 | Option | What it does |
 |---|---|
 | `hamra.mise.tools` | mise tools in `~/.config/mise/config.toml` (via HM) |
-| `hamra.flatpak.apps` | installs Flathub IDs through the `hamra-flatpak` service |
+| `hamra.flatpak.apps` | installs Flathub IDs through the `flatpak-sync` service |
 | `hamra.webapps` | wrapper + `.desktop` that open the site in its own window |
 
 Each one requires the corresponding module enabled (build-time assertion).
@@ -127,7 +127,7 @@ Package in the NixOS layer, user config in `modules/home/`. `scanPaths`
 discovers the file on its own, no manual import. Enable it in the host file.
 Loose package without a module: `hamra.packages.extra = [pkgs.foo];`.
 
-Forking for personal use: generate your hosts with `hamra-init`
+Forking for personal use: generate your hosts with `cookiecutter`
 and keep the `hosts/<machine>/` folders in your fork.
 Your hosts are yours alone and never flow upstream — CI blocks PRs
 that touch them — and your fork is their version control (see
@@ -151,8 +151,8 @@ cursor (Bibata) are fixed parts of the base theme.
 | `nix develop` | shell with statix, deadnix, sops, age, ssh-to-age |
 | `nix run .#build-<host>` | build without applying (saved in `./result`) |
 | `nix run .#deploy-<host>` | `nix flake check` + `nixos-rebuild switch` |
-| `nix run .#hamra-init` | wizard that generates a new host (gum/fzf when available, `--from <host>` inherits its optionals) |
-| `hamra-keybinds [context]` | keybinds of the active WM, `tmux`, `herdr` or `all` |
+| `nix run .#cookiecutter` | wizard that generates a new host (gum/fzf when available, `--from <host>` inherits its optionals) |
+| `keys [context]` | keybinds of the active WM, `tmux`, `herdr` or `all` |
 
 On the desktop, `SUPER+K` opens the compositor keybinds in an interactive
 search; `SUPER+CTRL+K` and `SUPER+ALT+K` bring the Herdr and Tmux menus.

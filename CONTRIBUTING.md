@@ -27,7 +27,7 @@ CI enforces this: a PR that touches anything under `hosts/` fails the
 `personal-layer guard` check. A maintainer may still merge an intentional
 change by adding the `personal-layer` label.
 
-In your fork everything is yours — generate hosts with `hamra-init` and edit
+In your fork everything is yours — generate hosts with `cookiecutter` and edit
 them freely; pulling upstream updates stays conflict-free because your files
 do not exist upstream.
 

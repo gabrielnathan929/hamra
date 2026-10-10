@@ -55,7 +55,7 @@ diff` shows exactly what differs between machines.
 ## Apps outside Nix
 
 `hamra.mise.*` (tools, env, settings) generate `~/.config/mise/config.toml`
-via HM; the `hamra-mise-install` service installs the declared tools on
+via HM; the `mise-sync` service installs the declared tools on
 activation (oneshot, `after home-manager-<user>.service`, re-runs when the
 tools change). Flatpaks and webapps follow the same module pattern.
 
@@ -86,8 +86,8 @@ input changes go through a PR like anything else.
 | `flake/` | hosts, apps (deploy/build), devshell |
 | `hosts/<machine>/` | atomic unit: identity, choices, full menus + hardware |
 | `modules/` | the whole library (lib, nixos, home) |
-| `scripts/hamra-init.sh` | hamra-init — wizard that shapes a new machine (bash + gum/fzf when available, no compilation) |
-| `scripts/` | CLI engine (hamra-init), golden tests, NAS wizard |
+| `scripts/cookiecutter.sh` | cookiecutter — wizard that shapes a new machine (bash + gum/fzf when available, no compilation) |
+| `scripts/` | CLI engine (cookiecutter), golden tests, NAS wizard |
 | `scripts/` | assistants (e.g. setup-nas) |
 | `secrets/` | encrypted secrets |
 | `docs/` | guides (NAS for beginners, firewall) |

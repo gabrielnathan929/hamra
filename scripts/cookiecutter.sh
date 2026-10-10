@@ -6,23 +6,23 @@
 #  ██║  ██║██║  ██║██║ ╚████║██║  ██║
 #  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝
 #
-#  hamra-init — generate an atomic Hamra host, validate it, guide the rebuild.
+#  cookiecutter — generate an atomic Hamra host, validate it, guide the rebuild.
 #
 #  Each host is self-contained: hosts/<name>/ carries identity, system choices
 #  and the full true/false menus, split by toggle type under config/. Toggle
 #  universes and their defaults come from the module files themselves via
-#  scripts/hamra-render.nix (a single nix eval), so generation can never drift
+#  scripts/recipe.nix (a single nix eval), so generation can never drift
 #  from the toggle modules.
 #
 #  Usage:
-#    hamra-init                       interactive wizard (gum/fzf when available)
-#    hamra-init --from <host>         wizard pre-loaded with a host's enabled optionals
-#    hamra-init --answers a.json      non-interactive
-#    hamra-init --dry-run             print the files, write nothing
-#    hamra-init --render-only         print the files to stdout (golden-test mode)
-#    hamra-init --render-into DIR     write the host files into DIR
-#    hamra-init --check               read-only environment audit
-#    hamra-init --gates-only <host>   re-run the validation gates for a host
+#    cookiecutter                       interactive wizard (gum/fzf when available)
+#    cookiecutter --from <host>         wizard pre-loaded with a host's enabled optionals
+#    cookiecutter --answers a.json      non-interactive
+#    cookiecutter --dry-run             print the files, write nothing
+#    cookiecutter --render-only         print the files to stdout (golden-test mode)
+#    cookiecutter --render-into DIR     write the host files into DIR
+#    cookiecutter --check               read-only environment audit
+#    cookiecutter --gates-only <host>   re-run the validation gates for a host
 
 set -u
 
@@ -206,7 +206,7 @@ ask_app_list() {
 }
 
 render_expr() {
-    printf "import %s/scripts/hamra-render.nix { answersFile = \"%s\"; repoPath = \"%s\"; }" "$REPO" "$1" "$REPO"
+    printf "import %s/scripts/recipe.nix { answersFile = \"%s\"; repoPath = \"%s\"; }" "$REPO" "$1" "$REPO"
 }
 
 run_renderer() {
@@ -241,7 +241,7 @@ check_dirty_targets() {
     hostname="$1"
     [ -d "$REPO/.git" ] || return 0
     if [ -n "$(git -C "$REPO" status --porcelain -- "hosts/$hostname")" ]; then
-        die "target files have uncommitted changes — hamra-init refuses to risk your work" \
+        die "target files have uncommitted changes — cookiecutter refuses to risk your work" \
             "git status -- hosts/$hostname is not clean. Commit or stash them first."
     fi
 }
@@ -368,7 +368,7 @@ ask_hostname() {
         esac
         case "$hostname" in common|profiles) warn "'common' and 'profiles' are reserved"; continue ;; esac
         if grep -qx "$hostname" <<<"$existing"; then
-            warn "hosts/$hostname already exists — hamra-init never overwrites (write-once)"; continue
+            warn "hosts/$hostname already exists — cookiecutter never overwrites (write-once)"; continue
         fi
         printf "%s" "$hostname"
         return 0
@@ -449,7 +449,7 @@ validate_answers() {
     esac
     case "$hostname" in common|profiles) die "'common' and 'profiles' are reserved names" ;; esac
     if [ -d "$REPO/hosts/$hostname" ]; then
-        die "hosts/$hostname already exists — hamra-init never overwrites (write-once)"
+        die "hosts/$hostname already exists — cookiecutter never overwrites (write-once)"
     fi
     case "$username" in
         ""|*[!a-z0-9_-]*) die "invalid username '$username'" ;;
@@ -620,16 +620,16 @@ offer_etc_nixos_symlink() {
 print_git_hint() {
     printf "\n%b\n" "When you are happy with the result, commit it yourself:
   ${CBL}git add hosts/$1${CNC}
-  ${CBL}git commit -m \"feat(hosts): add $1 (hamra-init)\"${CNC}"
+  ${CBL}git commit -m \"feat(hosts): add $1 (cookiecutter)\"${CNC}"
 }
 
 cmd_check() {
-    printf "hamra-init --check (read-only audit)\n"
+    printf "cookiecutter --check (read-only audit)\n"
     check_disk
     printf "  repo: %s\n" "$REPO"
     printf "  hosts: %s\n" "$(scanned_hosts | tr '\n' ' ')"
     dummy=$(mktemp)
-    printf '{"hostname":"hamra-init-check","username":"check","gpu":"intel","firmware":"uefi","desktop":"hyprland","nas":false,"vnc":false}' > "$dummy"
+    printf '{"hostname":"cookiecutter-check","username":"check","gpu":"intel","firmware":"uefi","desktop":"hyprland","nas":false,"vnc":false}' > "$dummy"
     json=$(run_renderer "$dummy") || { rm -f "$dummy"; die "could not read toggle universes"; }
     rm -f "$dummy"
     counts=$(jq -r '.counts | "core: \(.core) + optionals: \(.optionals) + home: \(.home)"' <<<"$json")
@@ -655,7 +655,7 @@ cmd_check() {
     else
         warn "/etc/nixos does not exist (the wizard can create the symlink)"
     fi
-    printf "\nEnvironment ready for hamra-init.\n"
+    printf "\nEnvironment ready for cookiecutter.\n"
 }
 
 main() {

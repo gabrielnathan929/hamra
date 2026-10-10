@@ -5,7 +5,7 @@ _: ''
   }
 
   window-rule {
-    match app-id="hamra-tui"
+    match app-id="console"
     open-floating true
     default-column-width {
       fixed 1100

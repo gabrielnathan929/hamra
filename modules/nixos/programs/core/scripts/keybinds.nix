@@ -10,19 +10,19 @@
 
   manifest = builtins.toJSON config.home-manager.users.${userName}.hamra.keybinds;
 
-  hamra-keybinds = pkgs.writeShellApplication {
-    name = "hamra-keybinds";
+  keys = pkgs.writeShellApplication {
+    name = "keys";
     runtimeInputs = [pkgs.jq];
     text = ''
       manifest=/etc/hamra/keybinds.json
 
       usage() {
-        printf '%s\n' 'Uso: hamra-keybinds [contexto]'
+        printf '%s\n' 'Uso: keys [contexto]'
         printf '\n'
         printf '%s\n' \
-          '  hamra-keybinds            atalhos do window manager ativo' \
-          '  hamra-keybinds <contexto> atalhos de um contexto (hyprland, sway, niri, tmux, herdr, all)' \
-          '  hamra-keybinds -h         mostra esta ajuda'
+          '  keys            atalhos do window manager ativo' \
+          '  keys <contexto> atalhos de um contexto (hyprland, sway, niri, tmux, herdr, all)' \
+          '  keys -h         mostra esta ajuda'
       }
 
       detect_context() {
@@ -54,7 +54,7 @@
       }
 
       if [[ ! -f $manifest ]]; then
-        echo "hamra-keybinds: manifest not found: $manifest" >&2
+        echo "keys: manifest not found: $manifest" >&2
         exit 1
       fi
 
@@ -91,11 +91,11 @@ in {
   options.hamra.programs.core.scripts.keybinds = mkOption {
     type = types.bool;
     default = true;
-    description = "Enable hamra-keybinds (atalhos por contexto: WM ativo, tmux, herdr).";
+    description = "Enable keys (atalhos por contexto: WM ativo, tmux, herdr).";
   };
 
   config = mkIf cfg {
-    environment.systemPackages = [hamra-keybinds];
+    environment.systemPackages = [keys];
 
     environment.etc."hamra/keybinds.json".text = manifest;
   };

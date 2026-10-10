@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Golden tests for hamra-init: determinism + golden comparison.
+# Golden tests for cookiecutter: determinism + golden comparison.
 #
 # Renders every fixture in scripts/fixtures/*.json twice with the engine in
 # --render-into mode (pure generation, no hardware probing, no writes outside
@@ -9,7 +9,7 @@
 set -u
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
-ENGINE="$REPO/scripts/hamra-init.sh"
+ENGINE="$REPO/scripts/cookiecutter.sh"
 FIXTURES="$REPO/scripts/fixtures"
 GOLDEN="$FIXTURES/golden"
 

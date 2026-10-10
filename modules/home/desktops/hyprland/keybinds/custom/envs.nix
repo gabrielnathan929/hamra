@@ -50,18 +50,18 @@ in ''
   -- Btop
   hl.bind(
     "SUPER+ALT+T",
-    hl.dsp.exec_cmd("${terminal} --app-id=hamra-tui -e btop")
+    hl.dsp.exec_cmd("${terminal} --app-id=console -e btop")
   )
 
   -- Lazydocker
   hl.bind(
     "SUPER+SHIFT+D",
-    hl.dsp.exec_cmd("${terminal} --app-id=hamra-tui -e lazydocker")
+    hl.dsp.exec_cmd("${terminal} --app-id=console -e lazydocker")
   )
 
   -- Lazygit
   hl.bind(
     "SUPER+SHIFT+G",
-    hl.dsp.exec_cmd("${terminal} --app-id=hamra-tui -e lazygit")
+    hl.dsp.exec_cmd("${terminal} --app-id=console -e lazygit")
   )
 ''

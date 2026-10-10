@@ -14,7 +14,7 @@
       config = {};
       inherit lib;
       pkgs = {};
-      hostName = "hamra-init";
+      hostName = "cookiecutter";
       inherit (flake) inputs self;
       inherit hamraLib;
     };
@@ -63,7 +63,7 @@
         app = lib.concatStringsSep "." (lib.drop 3 p);
       in
         if !builtins.isBool d
-        then throw "toggle ${tree}.${cat}.${app} has non-bool default ${toString d} — hamra-init only generates bool toggles"
+        then throw "toggle ${tree}.${cat}.${app} has non-bool default ${toString d} — cookiecutter only generates bool toggles"
         else acc // {toggles = acc.toggles // {${cat} = (acc.toggles.${cat} or {}) // {${app} = d;};};};
   in
     lib.foldl step {

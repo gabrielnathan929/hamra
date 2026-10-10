@@ -1,7 +1,7 @@
 _: ''
   hl.window_rule({
-    name = "hamra-tui-float",
-    match = { class = "hamra-tui" },
+    name = "console-float",
+    match = { class = "console" },
     float = true,
     size = "1100 700",
     center = true,

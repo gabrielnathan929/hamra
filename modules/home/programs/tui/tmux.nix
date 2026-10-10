@@ -158,7 +158,7 @@
     set -g prefix2 C-b
     bind -N "Send prefix" C-Space send-prefix
     bind -N "Reload configuration" q source-file ~/.config/tmux/tmux.conf \; display "Configuration reloaded"
-    bind -N "Show Tmux keybindings" ? display-popup -E -w 80% -h 70% -T "Tmux keybindings" "hamra-keybinds tmux | less -R"
+    bind -N "Show Tmux keybindings" ? display-popup -E -w 80% -h 70% -T "Tmux keybindings" "keys tmux | less -R"
 
     setw -g mode-keys vi
     bind -N "Begin selection" -T copy-mode-vi v send -X begin-selection

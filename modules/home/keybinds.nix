@@ -12,6 +12,6 @@ in {
         }
       ];
     };
-    description = "Atalhos por contexto, exibidos pelo hamra-keybinds via /etc/hamra/keybinds.json.";
+    description = "Atalhos por contexto, exibidos pelo keys via /etc/hamra/keybinds.json.";
   };
 }

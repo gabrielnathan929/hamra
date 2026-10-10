@@ -4,7 +4,7 @@
   self,
 }: let
   mkDeployApp = host: let
-    script = pkgs.writeShellScript "hamra-deploy-${host}" ''
+    script = pkgs.writeShellScript "deploy-${host}" ''
       set -euo pipefail
 
       HOST="${host}"
@@ -21,12 +21,12 @@
     program = "${script}";
     meta = {
       description = "Deploy NixOS configuration for ${host}";
-      mainProgram = "hamra-deploy-${host}";
+      mainProgram = "deploy-${host}";
     };
   };
 
   mkBuildApp = host: let
-    script = pkgs.writeShellScript "hamra-build-${host}" ''
+    script = pkgs.writeShellScript "build-${host}" ''
       set -euo pipefail
 
       HOST="${host}"
@@ -42,14 +42,14 @@
     program = "${script}";
     meta = {
       description = "Build NixOS configuration for ${host}";
-      mainProgram = "hamra-build-${host}";
+      mainProgram = "build-${host}";
     };
   };
 
   hosts = builtins.attrNames self.nixosConfigurations;
 
-  hamraInit = pkgs.stdenv.mkDerivation {
-    pname = "hamra-init";
+  cookiecutter = pkgs.stdenv.mkDerivation {
+    pname = "cookiecutter";
     version = "0.1.0";
     dontUnpack = true;
 
@@ -57,7 +57,7 @@
 
     installPhase = ''
       mkdir -p $out/bin
-      makeWrapper ${../scripts/hamra-init.sh} $out/bin/hamra-init \
+      makeWrapper ${../scripts/cookiecutter.sh} $out/bin/cookiecutter \
         --prefix PATH : ${
         pkgs.lib.makeBinPath [
           pkgs.bash
@@ -75,7 +75,7 @@
 
     meta = {
       description = "Generate and validate a new Hamra host (CLI engine)";
-      mainProgram = "hamra-init";
+      mainProgram = "cookiecutter";
     };
   };
 
@@ -90,12 +90,12 @@ in {
     (mkApps mkDeployApp "deploy"
       // mkApps mkBuildApp "build")
     // {
-      hamra-init = {
+      cookiecutter = {
         type = "app";
-        program = "${hamraInit}/bin/hamra-init";
+        program = "${cookiecutter}/bin/cookiecutter";
         meta = {
           description = "Generate and validate a new Hamra host (CLI engine)";
-          mainProgram = "hamra-init";
+          mainProgram = "cookiecutter";
         };
       };
     };
