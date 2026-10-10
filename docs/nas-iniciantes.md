@@ -162,7 +162,8 @@ nix develop
 ```
 
 Lists what exists and what's missing. Great for diagnosing before
-running the assistant.
+running the assistant. `./scripts/setup-nas.sh --ajuda` (or `-h`) prints
+the same summary as the script header.
 
 ---
 

@@ -137,9 +137,8 @@ conflict-free and your choices stay yours.
 ## Theme
 
 `hamra.theme.name` switches wallpaper, profile icon and videos at once — the
-profile icon feeds the login screen, the wallpaper the shell. Themes:
-`dragon-ball`, `evangelion`, `resident-evil` (each one is a folder in
-`modules/nixos/core/theme/themes/`). The window icon theme (Papirus) and the
+profile icon feeds the login screen, the wallpaper the shell. Each theme is a
+folder in `modules/nixos/core/theme/themes/` (currently `dragon-ball`). The window icon theme (Papirus) and the
 cursor (Bibata) are fixed parts of the base theme.
 
 ## Commands
@@ -159,8 +158,26 @@ search; `SUPER+CTRL+K` and `SUPER+ALT+K` bring the Herdr and Tmux menus.
 Inside tmux, `Prefix + ?` opens the same panel in a popup.
 
 Registered hosts: `samsung`, `acer`, `vm` (`x86_64-linux` only). CI runs
-formatting, lint (`statix` + `deadnix`), evaluation and the build of every
+formatting, lint (`statix` + `deadnix --fail`), evaluation and the build of every
 host on each push.
+
+## NAS
+
+The `services.samba` toggle turns a host into an SMB NAS (shares `shared`,
+`games`, `backups`, each with an automatic `.trash` recycle bin). The password
+lives encrypted in `secrets/samba.yaml` (sops-nix). On any PC, `setup-nas`
+does the whole onboarding (host files, keys, password, rebuild):
+
+```bash
+nix develop
+./scripts/setup-nas.sh              # guided assistant
+./scripts/setup-nas.sh --check      # environment audit, changes nothing
+./scripts/setup-nas.sh --mostrar-senha
+./scripts/setup-nas.sh --reset-senha
+./scripts/setup-nas.sh --ajuda
+```
+
+Full guide: [`docs/nas-iniciantes.md`](docs/nas-iniciantes.md).
 
 ## Further reading
 

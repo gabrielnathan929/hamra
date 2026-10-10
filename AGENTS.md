@@ -3,7 +3,7 @@
 Hamra is a NixOS + Home Manager **configuration library**. Each program is a
 "book on the shelf": a self-contained file that declares its boolean option
 and its implementation. To use one, just enable the toggle in
-`hosts/<host>/programs-optionals.nix` (or `programs-core.nix`).
+`hosts/<host>/config/programs-optionals.nix` (or `config/programs-core.nix`).
 
 ---
 
@@ -55,7 +55,7 @@ Toggle modules are categorized into two tiers:
 
 | Tier | `default` | Criterion |
 |---|---|---|
-| **Core** (infrastructure) | `true` | Dependency of scripts, called in keybinds, recurring desktop utility, part of the environment's base. Exceptions with `false`: `cli/git`, `gui/thunar` |
+| **Core** (infrastructure) | `true` | Dependency of scripts, called in keybinds, recurring desktop utility, part of the environment's base. Exception with `false`: `gui/thunar` |
 | **Optional** (personal choice) | `false` | Nothing breaks if turned off — AI agents, games, IDEs, media players, security tools |
 
 Core programs can be explicitly disabled by anyone wanting a leaner
@@ -130,7 +130,7 @@ Rules:
 - `flake/hosts.nix` discovers every directory under `hosts/` automatically.
 - **Host role ≠ personal preference:** `samba`, `wayvnc`, `tigervnc` say
   *who the machine is* (NAS, VNC server) and are plain values on that host
-  (e.g. `acer` is the NAS → `services.samba = true` on it). A new host created
+  (e.g. the home server carries `services.samba = true`). A new host created
   by `setup-nas.sh` must NOT become a NAS by accident.
 
 Fork contract: hosts **never flow upstream**. Forks keep their own
@@ -194,13 +194,15 @@ declared in specific modules, not in a central `options.nix`.
 
 Each theme defines wallpaper + profile icon for Noctalia and Silent SDDM.
 The `hamra.theme.name` toggle switches everything automatically. Default
-theme: `resident-evil`.
+theme: `dragon-ball`.
 
 ### Default browser
 
 The acer host sets `browser = pkgs.chromium` (the module
 default in `envs/env.nix` is `pkgs.helium`). To change it on a host:
 `hamra.env.browser = pkgs.firefox;`
+New hosts from `cookiecutter` start opinionated: `chromium` + `thunar`
+(`scripts/recipe.nix` env starters), matching the existing hosts.
 
 ### Firewall and ports
 
@@ -275,13 +277,17 @@ atomic host (see "Hosts are atomic units"). Modes: `--check`, `--mostrar-senha`,
 
 ## CI and quality
 
-The repository has three checks on GitHub Actions:
+GitHub Actions (`ci.yml`) runs: personal-layer guard (PRs only), format
+(`alejandra --check .`), lint (`statix check . && deadnix --fail .`),
+evaluation (`nix flake check`), host discovery, cookiecutter golden test,
+per-host builds (with a disk-cleanup step — full desktop closures exceed
+the stock runner space otherwise) and the cookiecutter apps smoke test.
 
 | Check | What it does | How to avoid failure |
 |---|---|---|
 | Formatting | `alejandra --check .` | `nix fmt` before committing |
 | Evaluation | `nix flake check` | `nix flake check` locally |
-| Lint | `statix` + `deadnix` | `nix develop --command statix check . && nix develop --command deadnix .` |
+| Lint | `statix check . && deadnix --fail .` | same command via `nix develop`; no unused bindings |
 
 ### Tips
 

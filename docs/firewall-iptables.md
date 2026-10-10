@@ -267,12 +267,14 @@ Rules added manually with `iptables` are **volatile** — they disappear when th
 
 ### Ways to persist them
 
-#### 1. NixOS
+#### 1. NixOS (this repo — preferred)
+
+Declare it in the host firewall menu instead of raw ports, so the
+registry assertion keeps working (`modules/nixos/core/firewall.nix`):
 
 ```nix
 {
-  networking.firewall.allowedTCPPorts = [ 8080 3000 ];
-  networking.firewall.allowedUDPPorts = [ 5353 ];
+  hamra.firewall.ports.dev = true;
 }
 ```
 
@@ -280,6 +282,16 @@ Apply with:
 
 ```bash
 sudo nixos-rebuild switch
+```
+
+Raw `networking.firewall.allowedTCPPorts` still works, but bypasses the
+named-port registry and its unknown-name assertion:
+
+```nix
+{
+  networking.firewall.allowedTCPPorts = [ 8080 3000 ];
+  networking.firewall.allowedUDPPorts = [ 5353 ];
+}
 ```
 
 #### 2. iptables-persistent (Debian/Ubuntu)
