@@ -14,7 +14,7 @@
 
     displays = {
       headless = {
-        "HEADLESS-1" = {
+        "HEADLESS-2" = {
           mode = "1920x1080@60";
           position = "1920x0";
           scale = 1.0;

@@ -84,7 +84,11 @@
         return 1
       }
 
-      WANTED_NAMES="${lib.concatStringsSep " " headlessNames}"
+      WANTED="${
+      if headlessNames == []
+      then ""
+      else lib.head headlessNames
+    }"
 
       detect_hyprland_headless_all() {
         ${hyprctl} monitors all 2>/dev/null \
@@ -105,7 +109,7 @@
         done
       }
 
-    hyprland_spec_for() {
+    spec_for() {
       local name=$1
       ${pkgs.jq}/bin/jq -n -r \
         --arg name "$name" \
@@ -115,20 +119,32 @@
     }
 
     apply_hyprland_rules() {
-      local target=$1 mode=$2 position=$3 scale=$4 ws cur out
-      cur=$(${hyprctl} activeworkspace -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.id // empty')
+      local target=$1 mode=$2 position=$3 scale=$4 ws out
       info "Hyprland: monitor rule: $target,$mode,$position,$scale"
       if ! out=$(${hyprctl} eval "hl.monitor({ output = '$target', mode = '$mode', position = '$position', scale = $scale })" 2>&1); then
         warn "Hyprland: failed to apply monitor rule for $target: $out"
       fi
       for ws in 6 7 8 9 10; do
-        ${hyprctl} dispatch moveworkspacetomonitor "$ws,$target" >/dev/null 2>&1 \
-          || warn "Hyprland: failed to move workspace $ws to $target"
         ${hyprctl} eval "hl.workspace_rule({ workspace = \"$ws\", monitor = '$target', persistent = true })" >/dev/null 2>&1 \
           || warn "Hyprland: failed to bind workspace $ws to $target"
       done
+    }
+
+    focus_hyprland_start() {
+      local target=$1 cur shown
+      shown=$(${hyprctl} monitors -j 2>/dev/null | ${pkgs.jq}/bin/jq -r --arg mon "$target" '[.[] | select(.name == $mon)][0].activeWorkspace.id // empty')
+      case "$shown" in
+        6 | 7 | 8 | 9 | 10)
+          info "Hyprland: $target already showing workspace $shown"
+          return 0
+          ;;
+      esac
+      cur=$(${hyprctl} activeworkspace -j 2>/dev/null | ${pkgs.jq}/bin/jq -r '.id // empty')
+      info "Hyprland: showing workspace 6 on $target"
+      ${hyprctl} dispatch 'hl.dsp.focus({workspace = "6"})' >/dev/null 2>&1 \
+        || warn "Hyprland: failed to show workspace 6 on $target"
       if [ -n "$cur" ]; then
-        ${hyprctl} dispatch workspace "$cur" >/dev/null 2>&1 || true
+        ${hyprctl} dispatch "hl.dsp.focus({workspace = \"$cur\"})" >/dev/null 2>&1 || true
       fi
     }
 
@@ -142,11 +158,12 @@
 
     settle_hyprland() {
       local target=$1 mode position scale i
-      read -r mode position scale <<<"$(hyprland_spec_for "$target")"
+      read -r mode position scale <<<"$(spec_for "$target")"
       for i in $(seq 1 6); do
         apply_hyprland_rules "$target" "$mode" "$position" "$scale"
         if hyprland_settled "$target" "$scale"; then
           info "Hyprland: output $target settled (scale $scale, workspaces 6-10 present)"
+          focus_hyprland_start "$target"
           return 0
         fi
         info "Hyprland: output $target not settled yet, re-applying..."
@@ -160,67 +177,103 @@
 
         case "$compositor" in
           hyprland)
-            local real
+            local real name named
             real=$(detect_hyprland_headless)
-            if [ -n "$real" ]; then
-              info "Hyprland: existing headless output: $real"
-              prune_hyprland_headless "$real"
-              settle_hyprland "$real"
-              echo "$real"
-              return 0
-            fi
-
-            info "Hyprland: creating headless output (no explicit name)..."
-            ${hyprctl} output create headless >/dev/null 2>&1 || true
-            for _ in $(seq 1 15); do
-              real=$(detect_hyprland_headless)
-              if [ -n "$real" ]; then
-                break
+            named=0
+            if [ -n "$WANTED" ] && [ "$real" != "$WANTED" ]; then
+              info "Hyprland: recreating headless output as $WANTED..."
+              for name in $(detect_hyprland_headless_all); do
+                info "Hyprland: removing stale headless output: $name"
+                ${hyprctl} output remove "$name" >/dev/null 2>&1 || warn "Hyprland: failed to remove $name"
+              done
+              real=""
+              if ${hyprctl} output create headless "$WANTED" >/dev/null 2>&1; then
+                named=1
+              else
+                ${hyprctl} output create headless >/dev/null 2>&1 || true
               fi
-              sleep "$SLEEP"
-            done
+            elif [ -z "$real" ]; then
+              info "Hyprland: creating headless output..."
+              ${hyprctl} output create headless >/dev/null 2>&1 || true
+            else
+              info "Hyprland: existing headless output: $real"
+            fi
+            if [ -z "$real" ]; then
+              for _ in $(seq 1 15); do
+                if [ "$named" = 1 ]; then
+                  real=$(detect_hyprland_headless_all | grep -xF "$WANTED" || true)
+                else
+                  real=$(detect_hyprland_headless)
+                fi
+                if [ -n "$real" ]; then
+                  break
+                fi
+                sleep "$SLEEP"
+              done
+            fi
 
             if [ -z "$real" ]; then
               error "Hyprland: failed to create headless output"
               return 1
             fi
 
-            info "Hyprland: output created: $real"
+            info "Hyprland: output ready: $real"
             prune_hyprland_headless "$real"
             settle_hyprland "$real"
             echo "$real"
             ;;
 
           sway)
-            local real=""
-            for name in $WANTED_NAMES; do
-              if ${swaymsg} -t get_outputs 2>/dev/null | grep -q "$name"; then
-                real=$name
-                break
-              fi
-            done
-
+            local real mode position pos scale ws cur shown
+            real=""
+            if [ -n "$WANTED" ] && ${swaymsg} -t get_outputs 2>/dev/null | grep -q "\"$WANTED\""; then
+              real=$WANTED
+            fi
             if [ -z "$real" ]; then
-              info "Sway: creating headless output ..."
+              info "Sway: creating headless output..."
               ${swaymsg} create_output >/dev/null 2>&1 || true
               for _ in $(seq 1 15); do
-                for name in $WANTED_NAMES; do
-                  if ${swaymsg} -t get_outputs 2>/dev/null | grep -q "$name"; then
-                    real=$name
-                    break
-                  fi
-                done
-                [ -n "$real" ] && break
+                if [ -n "$WANTED" ] && ${swaymsg} -t get_outputs 2>/dev/null | grep -q "\"$WANTED\""; then
+                  real=$WANTED
+                  break
+                fi
+                real=$(${swaymsg} -t get_outputs 2>/dev/null | ${pkgs.jq}/bin/jq -r '[.[].name | select(test("^HEADLESS-[0-9]+$"))] | last // empty')
+                if [ -n "$real" ]; then
+                  break
+                fi
                 sleep "$SLEEP"
               done
             fi
 
             if [ -z "$real" ]; then
-              error "Sway: failed to create $WANTED_NAMES"
+              error "Sway: failed to create headless output"
               return 1
             fi
 
             info "Sway: headless output: $real"
+            cur=$(${swaymsg} -t get_workspaces 2>/dev/null | ${pkgs.jq}/bin/jq -r '[.[] | select(.focused == true)][0].name // empty')
+            read -r mode position scale <<<"$(spec_for "$real")"
+            pos=$(printf '%s' "$position" | tr 'x' ' ')
+            info "Sway: output config: $real mode $mode position $pos scale $scale"
+            ${swaymsg} output "$real" mode "$mode" position "$pos" scale "$scale" >/dev/null 2>&1 \
+              || warn "Sway: failed to configure output $real"
+            for ws in 6 7 8 9 10; do
+              ${swaymsg} workspace "$ws" >/dev/null 2>&1
+              ${swaymsg} move workspace to output "$real" >/dev/null 2>&1 \
+                || warn "Sway: failed to move workspace $ws to $real"
+            done
+            info "Sway: showing workspace 6 on $real"
+            shown=$(${swaymsg} -t get_outputs 2>/dev/null | ${pkgs.jq}/bin/jq -r --arg out "$real" '[.[] | select(.name == $out)][0].current_workspace // empty')
+            case "$shown" in
+              6 | 7 | 8 | 9 | 10) info "Sway: $real already showing workspace $shown" ;;
+              *)
+                ${swaymsg} workspace 6 >/dev/null 2>&1 \
+                  || warn "Sway: failed to show workspace 6 on $real"
+                if [ -n "$cur" ]; then
+                  ${swaymsg} workspace "$cur" >/dev/null 2>&1 || true
+                fi
+                ;;
+            esac
             echo "$real"
             ;;
         esac
@@ -338,5 +391,13 @@ in {
         mode = "0400";
       };
     })
+    {
+      assertions = [
+        {
+          assertion = headlessNames != [];
+          message = "hamra.programs.optionals.services.wayvnc requires a configured hamra.displays.headless output (e.g. \"HEADLESS-2\").";
+        }
+      ];
+    }
   ]);
 }

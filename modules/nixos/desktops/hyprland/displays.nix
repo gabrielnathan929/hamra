@@ -20,7 +20,7 @@ lib.mkIf (config.hamra.desktop.default == "hyprland") {
       };
     };
     headless = lib.mkIf config.hamra.programs.optionals.services.wayvnc {
-      "HEADLESS-1" = {
+      "HEADLESS-2" = {
         mode = lib.mkDefault "1920x1080@60";
         position = lib.mkDefault "1920x0";
         scale = lib.mkDefault 1.0;

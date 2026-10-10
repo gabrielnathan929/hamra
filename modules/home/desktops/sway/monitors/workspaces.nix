@@ -11,7 +11,7 @@
 
   headlessMonitor =
     if (displays.headless or {}) != {}
-    then "HEADLESS-1"
+    then lib.head (builtins.attrNames (displays.headless or {}))
     else null;
 
   primaryRules = lib.concatStringsSep "\n" (
