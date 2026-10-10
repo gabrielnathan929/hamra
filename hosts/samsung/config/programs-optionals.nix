@@ -82,7 +82,7 @@ _: {
       samba = false;
       tigervnc = false;
       wayvnc = true;
-      "wayvnc-no-auth" = true;
+      "wayvnc-no-auth" = false;
     };
     tui = {
       cliamp = true;
