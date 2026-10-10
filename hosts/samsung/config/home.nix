@@ -9,9 +9,9 @@
       zsh = true;
     };
     terminals = {
-      alacritty = true;
+      alacritty = false;
       foot = true;
-      kitty = true;
+      kitty = false;
     };
     tui = {
       herdr = true;

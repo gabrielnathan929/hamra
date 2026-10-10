@@ -35,7 +35,7 @@ _: {
       brmodelo = false;
       bruno = false;
       "camunda-modeler" = false;
-      chromium = false;
+      chromium = true;
       dbeaver = false;
       discord = false;
       drawio = false;

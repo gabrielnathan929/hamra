@@ -23,7 +23,7 @@ _: {
       gamescope = true;
       heroic = false;
       hydralauncher = true;
-      lutris = true;
+      lutris = false;
       mangohud = true;
       pcsx2 = true;
       steam = true;
@@ -31,7 +31,7 @@ _: {
     gui = {
       "android-studio" = true;
       bitwarden = true;
-      boxes = true;
+      boxes = false;
       brmodelo = true;
       bruno = true;
       "camunda-modeler" = true;
@@ -81,8 +81,8 @@ _: {
       "docker-compose" = true;
       samba = true;
       tigervnc = false;
-      wayvnc = true;
-      "wayvnc-no-auth" = true;
+      wayvnc = false;
+      "wayvnc-no-auth" = false;
     };
     tui = {
       cliamp = true;
