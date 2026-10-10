@@ -23,7 +23,10 @@ in {
         "image/avif" = "imv.desktop";
         "image/bmp" = "imv.desktop";
         "image/gif" = "imv.desktop";
+        "image/heic" = "imv.desktop";
+        "image/heif" = "imv.desktop";
         "image/jpeg" = "imv.desktop";
+        "image/jxl" = "imv.desktop";
         "image/png" = "imv.desktop";
         "image/svg+xml" = "imv.desktop";
         "image/tiff" = "imv.desktop";

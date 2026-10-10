@@ -20,12 +20,16 @@ in {
     home-manager.users.${userName}.xdg.mimeApps = {
       enable = true;
       defaultApplications = {
+        "application/epub+zip" = "org.pwmt.zathura.desktop";
+        "application/oxps" = "org.pwmt.zathura.desktop";
         "application/pdf" = "org.pwmt.zathura.desktop";
         "application/postscript" = "org.pwmt.zathura.desktop";
         "application/x-cb7" = "org.pwmt.zathura.desktop";
         "application/x-cbr" = "org.pwmt.zathura.desktop";
         "application/x-cbt" = "org.pwmt.zathura.desktop";
         "application/x-cbz" = "org.pwmt.zathura.desktop";
+        "application/x-fictionbook" = "org.pwmt.zathura.desktop";
+        "application/x-mobipocket-ebook" = "org.pwmt.zathura.desktop";
         "application/x-pdf" = "org.pwmt.zathura.desktop";
         "image/vnd.djvu" = "org.pwmt.zathura.desktop";
       };

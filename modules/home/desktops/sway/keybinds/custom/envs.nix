@@ -5,7 +5,7 @@
 }: let
   terminal = lib.getExe env.terminal;
   browser = lib.getExe env.browser;
-  filemanager = lib.getExe env.filemanager;
+  filemanager = env.filemanager.meta.mainProgram or env.filemanager.pname;
   editor = lib.getExe env.editor;
 in ''
   bindsym $mod+Return       exec ${terminal}

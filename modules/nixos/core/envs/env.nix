@@ -8,6 +8,7 @@
 
   binName = name: pkg: pkg.meta.mainProgram or pkg.pname or name;
   sessionVars = builtins.mapAttrs binName env;
+  filemanagerFromToggle = config.hamra.programs.core.gui.thunar && env.filemanager == pkgs.thunar;
 in {
   options.hamra.env = {
     editor = lib.mkOption {
@@ -41,7 +42,11 @@ in {
         TERMINAL = sessionVars.terminal;
         FILE_MANAGER = sessionVars.filemanager;
       };
-    environment.systemPackages = builtins.attrValues env;
+    environment.systemPackages = builtins.attrValues (
+      if filemanagerFromToggle
+      then builtins.removeAttrs env ["filemanager"]
+      else env
+    );
 
     programs.git = {
       enable = true;

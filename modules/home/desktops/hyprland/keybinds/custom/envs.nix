@@ -5,7 +5,7 @@
 }: let
   terminal = lib.getExe env.terminal;
   browser = lib.getExe env.browser;
-  filemanager = lib.getExe env.filemanager;
+  filemanager = env.filemanager.meta.mainProgram or env.filemanager.pname;
   editor = lib.getExe env.editor;
 in ''
   -- Envs
@@ -37,14 +37,14 @@ in ''
   )
   -- Herdr
   hl.bind(
-    "SUPER+H",
-    hl.dsp.exec_cmd("${terminal} -e herdr")
+    "CTRL+SHIFT+Return",
+    hl.dsp.exec_cmd("${terminal} --app-id=console -e herdr")
   )
 
   -- Tmux
   hl.bind(
-    "SUPER+SHIFT+T",
-    hl.dsp.exec_cmd("${terminal} -e tmux new-session -A -s main")
+    "SUPER+CTRL+Return",
+    hl.dsp.exec_cmd("${terminal} --app-id=console -e tmux new-session -A -s main")
   )
 
   -- Btop

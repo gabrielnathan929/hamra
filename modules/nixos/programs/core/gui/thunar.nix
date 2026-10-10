@@ -61,6 +61,7 @@ in {
         "application/vnd.rar" = "org.gnome.FileRoller.desktop";
         "application/x-7z-compressed" = "org.gnome.FileRoller.desktop";
         "application/x-bzip2" = "org.gnome.FileRoller.desktop";
+        "application/x-cd-image" = "org.gnome.FileRoller.desktop";
         "application/x-gzip" = "org.gnome.FileRoller.desktop";
         "application/x-rar-compressed" = "org.gnome.FileRoller.desktop";
         "application/x-tar" = "org.gnome.FileRoller.desktop";

@@ -6,6 +6,13 @@
 }: let
   cfg = config.hamra.programs.optionals.gui.nautilus;
   inherit (lib) mkOption mkIf types;
+  nautilusExtensions = pkgs.symlinkJoin {
+    name = "nautilus-extensions";
+    paths = with pkgs; [
+      nautilus
+      file-roller
+    ];
+  };
 in {
   options.hamra.programs.optionals.gui.nautilus = mkOption {
     type = types.bool;
@@ -13,5 +20,12 @@ in {
     description = "Enable Nautilus.";
   };
 
-  config.environment.systemPackages = mkIf cfg (with pkgs; [nautilus]);
+  config = mkIf cfg {
+    environment.systemPackages = with pkgs; [
+      nautilus
+      file-roller
+    ];
+
+    environment.sessionVariables.NAUTILUS_4_EXTENSION_DIR = "${nautilusExtensions}/lib/nautilus/extensions-4";
+  };
 }
