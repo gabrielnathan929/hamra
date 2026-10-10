@@ -459,12 +459,13 @@
     };
 
   countToggles = u: lib.foldl (acc: cat: acc + lib.length (builtins.attrNames u.${cat})) 0 (builtins.attrNames u);
-in {
-  inherit files autoNotes;
-  skipped = coreUniverse.skipped ++ optionalsUniverse.skipped;
-  counts = {
-    core = countToggles coreUniverse.toggles;
-    optionals = countToggles optionalsUniverse.toggles;
-    home = countToggles homeUniverse;
-  };
-}
+in
+  assert lib.all (x: x == null) webappCheck; {
+    inherit files autoNotes;
+    skipped = coreUniverse.skipped ++ optionalsUniverse.skipped;
+    counts = {
+      core = countToggles coreUniverse.toggles;
+      optionals = countToggles optionalsUniverse.toggles;
+      home = countToggles homeUniverse;
+    };
+  }
