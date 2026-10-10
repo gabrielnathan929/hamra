@@ -19,6 +19,12 @@ in {
       core.editor = lib.getExe config.hamra.env.editor;
       init.defaultBranch = "main";
       pull.rebase = true;
+      alias = {
+        co = "checkout";
+        br = "branch";
+        ci = "commit";
+        st = "status";
+      };
     };
   };
 }
