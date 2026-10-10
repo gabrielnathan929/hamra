@@ -244,7 +244,8 @@ SMB NAS (3 shares: `shared`, `games`, `backups`). Folders are created via
 `recycle`): files deleted over SMB go to the hidden `.trash` folder of each
 share, keeping the structure and file versions. Limitations: it does not
 protect against a direct `rm` on the server; it is a bumper against
-accidents, not a backup. Guide: section 9 of `docs/nas-iniciantes.md`.
+accidents, not a backup. The shares expose an automatic `.trash` recycle
+bin; see the NAS section in `README.md`.
 
 The Samba password is managed by **sops-nix**: the secret in
 `secrets/samba.yaml` (encrypted) is applied automatically by
@@ -261,7 +262,8 @@ generates/registers keys in `.sops.yaml`, creates the user's own password in
 `secrets/samba.yaml` (encrypted) and applies the rebuild — explaining each
 step and how to fix errors. The generated host folder is a full
 atomic host (see "Hosts are atomic units"). Modes: `--check`, `--mostrar-senha`, `--reset-senha`,
-`--ajuda`. Full guide: `docs/nas-iniciantes.md`.
+`--ajuda`. Onboarding: `./scripts/setup-nas.sh --ajuda`; details in the
+`README.md`/NAS section and `SETUP.md` section 3.
 
 ### Secrets (sops-nix)
 

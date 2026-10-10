@@ -50,7 +50,7 @@ die() {
     printf "\n%sCOMO RESOLVER:%s\n" "$_B" "$_N"
     printf "%s\n" "$help_msg"
   fi
-  printf "\nStill stuck? Read docs/nas-iniciantes.md\n"
+  printf "\nStill stuck? Run ./scripts/setup-nas.sh --ajuda\n"
   printf "or look for the \"NAS / Samba\" section in AGENTS.md.\n"
   exit "${2:-1}"
 }
@@ -527,7 +527,7 @@ summary() {
   fi
 
   printf "  %sNAS usage:%s\n" "$_B" "$_N"
-  printf "    - Linux (mount):    see docs/nas-iniciantes.md (Linux Client section)\n"
+  printf "    - Linux (mount):    \\\\acer\\shared in the file manager (user + NAS password)\n"
   printf "    - Windows:  open \\\\\\\\<host-ip>\\\\shared in File Explorer\n"
   printf "    - Mac:      Conectar ao servidor -> smb://<ip-do-host>/shared\n"
   printf "  %sGerenciar:%s\n" "$_B" "$_N"
@@ -609,8 +609,8 @@ info "Adding the editing key and this PC key to .sops.yaml..."
 if out=$(patch_sops_yaml "[{\"name\":\"user\",\"key\":\"$EDIT_PUB\"},{\"name\":\"host-$HOST_NAME\",\"key\":\"$HOST_PUB\"}]"); then
   ok ":: $out"
 else
-  _HELP="Error editing .sops.yaml. See the commented template
-in docs/nas-iniciantes.md and adjust manually if needed."
+  _HELP="Error editing .sops.yaml. See the key-registration notes
+in SETUP.md (section 3) and adjust manually if needed."
   die "Could not modify .sops.yaml."
 fi
 

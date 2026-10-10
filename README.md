@@ -179,7 +179,7 @@ nix develop
 ./scripts/setup-nas.sh --ajuda
 ```
 
-Full guide: [`docs/nas-iniciantes.md`](docs/nas-iniciantes.md).
+Full guide: `./scripts/setup-nas.sh --ajuda` and `SETUP.md` section 3.
 
 ## Further reading
 
@@ -187,8 +187,6 @@ Full guide: [`docs/nas-iniciantes.md`](docs/nas-iniciantes.md).
 - [`SETUP.md`](SETUP.md) — install NixOS and bring up Hamra on a new machine
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — Git Flow, local validation, golden rules
 - [`SECURITY.md`](SECURITY.md) — secrets (sops) and vulnerability reporting
-- [`docs/nas-iniciantes.md`](docs/nas-iniciantes.md) — set up the NAS (Samba + secrets) on any PC
-- [`docs/firewall-iptables.md`](docs/firewall-iptables.md) — iptables firewall / advanced rules
 - [`AGENTS.md`](AGENTS.md) — repo rules: layers, categories, toggle modules
 
 ## License

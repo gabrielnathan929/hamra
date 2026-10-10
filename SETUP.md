@@ -97,7 +97,7 @@ hamra = {
 - `hardware.gpu` — `intel` | `amd` | `nvidia` | `virtio`
 - `hardware.firmware` — `uefi` | `bios`
 - `desktop.default` — `hyprland` | `niri` | `sway` | `gnome` | `plasma`
-- `theme.name` (optional) — `dragon-ball` | `evangelion` | `resident-evil`
+- `theme.name` (optional) — `dragon-ball`
 
 Every choice lives in the host file itself — identity, system defaults and
 the full true/false toggle menus (e.g. `hamra.programs.optionals.services.samba =
@@ -124,7 +124,7 @@ nix develop
 It registers this PC's keys in `.sops.yaml`, stores the NAS password
 encrypted for the registered PCs and offers the rebuild. On a new machine,
 let it create/reset the password — the file must be re-encrypted with this
-PC's key. Full guide: [`docs/nas-iniciantes.md`](docs/nas-iniciantes.md).
+PC's key (`./scripts/setup-nas.sh --ajuda`, `SETUP.md` section 3).
 
 Or, if this machine is not the NAS, simply do not enable Samba on the host.
 
