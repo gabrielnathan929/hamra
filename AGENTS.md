@@ -212,7 +212,7 @@ default in `envs/env.nix` is `pkgs.helium`). To change it on a host:
 | `mosh` | UDP 60000-61000 |
 | `http` | TCP 80 |
 | `https` | TCP 443 |
-| `dev` | TCP 3000/5173/8000/8080 — test a local dev server from the phone (bind it to 0.0.0.0, e.g. `vite --host`) |
+| `dev` | TCP 3000-3001/4000/4200/5000-5001/5173-5174/8000-8001/8080-8082/9000/19000-19002 — test a local dev server from the phone (bind it to 0.0.0.0, e.g. `vite --host`) |
 | `vnc` | TCP 5900 |
 | `rdp` | TCP 3389 |
 | `samba` | TCP 139/445 + UDP 137/138 |
