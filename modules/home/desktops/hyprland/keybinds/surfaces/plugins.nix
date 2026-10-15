@@ -13,4 +13,5 @@ _: ''
   hl.bind("SUPER+ALT+B", hl.dsp.exec_cmd("noctalia msg panel-toggle launcher '/bw '"))
   hl.bind("SUPER+ALT+PRINT", hl.dsp.exec_cmd("noctalia msg panel-toggle oldirtty/color_picker:panel"))
   hl.bind("SUPER+CTRL+ALT+PRINT", hl.dsp.exec_cmd("noctalia msg plugin noctalia/screen_recorder:service all replay-save"))
+  hl.bind("CTRL+SPACE", hl.dsp.exec_cmd("pkill -USR2 -x handy"))
 ''

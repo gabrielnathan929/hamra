@@ -12,4 +12,5 @@ _: ''
   bindsym Alt+Print exec $ipc plugin noctalia/screen_recorder:service all toggle
   bindsym $mod+Alt+Print exec $ipc panel-toggle oldirtty/color_picker:panel
   bindsym $mod+Ctrl+Alt+Print exec $ipc plugin noctalia/screen_recorder:service all replay-save
+  bindsym Ctrl+space exec pkill -USR2 -x handy
 ''

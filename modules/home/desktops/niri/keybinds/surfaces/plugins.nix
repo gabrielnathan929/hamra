@@ -12,4 +12,5 @@ _: ''
   Alt+Print { spawn-sh "noctalia msg plugin noctalia/screen_recorder:service all toggle"; }
   Mod+Alt+Print { spawn-sh "noctalia msg panel-toggle oldirtty/color_picker:panel"; }
   Mod+Ctrl+Alt+Print { spawn-sh "noctalia msg plugin noctalia/screen_recorder:service all replay-save"; }
+  Ctrl+Space { spawn-sh "pkill -USR2 -x handy"; }
 ''

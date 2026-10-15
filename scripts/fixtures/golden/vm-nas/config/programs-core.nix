@@ -32,6 +32,7 @@ _: {
         usbutils = true;
         wget = true;
         "wl-clipboard" = true;
+        wtype = true;
         yq = true;
         zip = true;
         zoxide = true;
