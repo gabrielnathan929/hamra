@@ -27,6 +27,7 @@ _: {
       mangohud = true;
       pcsx2 = true;
       steam = true;
+      umu = true;
       wine = true;
     };
     gui = {

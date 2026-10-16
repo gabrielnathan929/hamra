@@ -12,5 +12,8 @@ in {
     description = "Enable Gamescope (Valve's micro compositor for games, usable from Steam launch options).";
   };
 
-  config.programs.gamescope.enable = mkIf cfg true;
+  config.programs.gamescope = mkIf cfg {
+    enable = true;
+    capSysNice = true;
+  };
 }

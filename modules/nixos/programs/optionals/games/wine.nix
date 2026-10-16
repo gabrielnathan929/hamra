@@ -17,6 +17,8 @@ in {
   config = mkIf cfg {
     environment.systemPackages = with pkgs; [wineWow64Packages.stable winetricks];
 
+    boot.kernelModules = ["ntsync"];
+
     home-manager.users.${userName}.xdg.mimeApps = {
       enable = true;
       defaultApplications = {
