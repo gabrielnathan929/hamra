@@ -134,6 +134,26 @@ that touch them — and your fork is their version control (see
 CONTRIBUTING.md, "Versioning your personal layers"). Pulling updates stays
 conflict-free and your choices stay yours.
 
+## Steam: non-Steam games, Proton and artwork
+
+The `games.steam` toggle ships Proton-GE (`proton-ge-bin` as a
+compatibility tool) and exposes `mangohud`, `gamemode` and `gamescope`
+inside the Steam runtime, so `gamescope ... -- gamemoderun mangohud
+%command%` works as a launch option. A Windows installer that spins
+forever under plain Wine usually runs fine under Proton: add the
+`setup.exe` as a non-Steam game, force GE-Proton in its properties,
+and install into the Steam `compatdata` prefix. The `games.umu`
+toggle provides the same Proton outside Steam (`umu-run` with one
+`WINEPREFIX` per game).
+
+Artwork for non-Steam shortcuts comes from BoilR (`games.boilr`,
+auto-enabled wherever Steam is on). One-time setup: quit Steam, open
+BoilR, paste a free SteamGridDB API key in Settings, set the Steam
+location to `~/.local/share/Steam`, enable stop/start Steam around
+the import, then Import. Repeat the import whenever a new shortcut is
+added; rename the shortcut to the exact title if a game gets the
+wrong art.
+
 ## Theme
 
 `hamra.theme.name` switches wallpaper, profile icon and videos at once — the
