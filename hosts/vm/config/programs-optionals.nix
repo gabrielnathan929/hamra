@@ -81,6 +81,7 @@ _: {
       docker = true;
       "docker-compose" = true;
       samba = false;
+      tailscale = false;
       tigervnc = false;
       wayvnc = false;
       "wayvnc-no-auth" = false;

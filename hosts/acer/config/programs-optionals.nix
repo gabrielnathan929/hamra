@@ -83,6 +83,7 @@ _: {
       "docker-compose" = true;
       samba = true;
       sunshine = true;
+      tailscale = true;
       tigervnc = false;
       wayvnc = false;
       "wayvnc-no-auth" = false;
