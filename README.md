@@ -154,6 +154,22 @@ the import, then Import. Repeat the import whenever a new shortcut is
 added; rename the shortcut to the exact title if a game gets the
 wrong art.
 
+## Game streaming: Sunshine and Moonlight
+
+The pair replaces Parsec when it does not work for you. The machine that
+**serves** the stream enables `services.sunshine` (the host, a daemon that
+captures the screen and streams it); the machine you play **from** enables
+`gui.moonlight` (the client). Both hosts currently have both toggles on, so
+either machine can be the host or the client.
+
+Sunshine opens its own ports (TCP 47984/47989/47990/48010, UDP
+47998-48002/48010) — the firewall menu needs no extra entry. First use is
+done in the web UI: open `https://<host>:47990`, create a user and password,
+add the apps you want to stream (Steam, the desktop, emulators). Pairing is
+from the Moonlight side: it finds the host on the network (avahi) or you type
+the address manually. The `cap_sys_admin` capability is on so the KMS/DRM
+capture works under Hyprland without a screencast portal.
+
 ## Theme
 
 `hamra.theme.name` switches wallpaper, profile icon and videos at once — the

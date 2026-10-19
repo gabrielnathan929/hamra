@@ -226,7 +226,7 @@ New hosts from `cookiecutter` start opinionated: `chromium` + `thunar`
 
 `enable = false` disables the firewall (everything opens). Unknown names fail
 the build (assertion in `core/firewall.nix`). The `wayvnc`, `samba` and
-`localsend` toggles open their own ports when enabled — the menu is for
+`localsend` and `sunshine` toggles open their own ports when enabled — the menu is for
 everything else.
 
 ### Build-time assertions

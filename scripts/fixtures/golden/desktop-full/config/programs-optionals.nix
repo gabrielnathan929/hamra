@@ -19,6 +19,7 @@ _: {
         traceroute = false;
       };
       games = {
+        boilr = false;
         gamemode = false;
         gamepad = false;
         gamescope = false;
@@ -28,6 +29,7 @@ _: {
         mangohud = false;
         pcsx2 = false;
         steam = false;
+        umu = false;
         wine = false;
       };
       gui = {
@@ -50,6 +52,7 @@ _: {
         keepassxc = false;
         localsend = false;
         "mongodb-compass" = false;
+        moonlight = false;
         nautilus = false;
         netbeans = false;
         obsidian = false;
@@ -82,6 +85,7 @@ _: {
         docker = false;
         "docker-compose" = false;
         samba = false;
+        sunshine = false;
         tigervnc = false;
         wayvnc = true;
         "wayvnc-no-auth" = false;
