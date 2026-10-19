@@ -49,6 +49,7 @@ _: {
       keepassxc = false;
       localsend = true;
       "mongodb-compass" = true;
+      moonlight = true;
       nautilus = false;
       netbeans = true;
       obsidian = false;
@@ -81,6 +82,7 @@ _: {
       docker = true;
       "docker-compose" = true;
       samba = true;
+      sunshine = true;
       tigervnc = false;
       wayvnc = false;
       "wayvnc-no-auth" = false;
