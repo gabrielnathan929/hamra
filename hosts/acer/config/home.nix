@@ -1,5 +1,8 @@
 {config, ...}: {
   home-manager.users.${config.hamra.users.userName}.hamra.home.programs = {
+    games = {
+      mangohud = true;
+    };
     editors = {
       neovim = true;
     };

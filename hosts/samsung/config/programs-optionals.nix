@@ -26,6 +26,7 @@ _: {
       lutris = false;
       mangohud = true;
       pcsx2 = true;
+      "protonup-qt" = true;
       steam = true;
       umu = true;
       wine = true;
