@@ -144,7 +144,38 @@ forever under plain Wine usually runs fine under Proton: add the
 `setup.exe` as a non-Steam game, force GE-Proton in its properties,
 and install into the Steam `compatdata` prefix. The `games.umu`
 toggle provides the same Proton outside Steam (`umu-run` with one
-`WINEPREFIX` per game).
+`WINEPREFIX` per game). The toggle also links the `proton-ge-bin`
+build from the nix store into
+`~/.local/share/Steam/compatibilitytools.d`, so a Proton version
+exists even if Steam is never installed.
+
+## Proton builds: Hydra, umu and ProtonUp-Qt
+
+Proton versions are read from
+`~/.local/share/Steam/compatibilitytools.d`, which is shared by
+`umu-run`, Hydra and Steam — Steam itself is not required to be
+running (or installed). The `games.protonup-qt` toggle installs
+ProtonUp-Qt, the GUI that downloads and updates builds
+(GE-Proton, UMU-Proton, Proton-EM and Steam's own) into that
+directory. On the first run keep the default install directory
+(`~/.local/share/Steam/compatibilitytools.d`); the GE-Proton build
+from the nix store is already there whenever `games.umu` is on.
+
+The `games.hydralauncher` toggle installs Hydra through a wrapper
+(`hydra`, also the menu entry) that puts `python3`, `umu-launcher`,
+`gamemoderun`, `mangohud` and `winetricks` on its PATH, so the
+GameMode and MangoHud toggles in Hydra's settings are detected and
+the Winetricks button works. Hydra has no gamescope option; its own
+GameMode/MangoHud switches stay in the app settings (Behavior
+section) and now flip on and off as expected. The wrapper also
+keeps the umu-launcher runtime complete: `~/.local/share/umu/steamrt*`
+must be a real directory owned by umu (it downloads its own Steam
+Linux Runtime from Valve), never a shortcut pointing at Steam's
+copy; a leftover shortcut is removed before launch and umu
+re-installs its own runtime. GameMode runs with the `performance`
+governor (see `programs.gamemode.settings`) and the MangoHud overlay
+layout comes from the `home.programs.games.mangohud` toggle
+(`~/.config/MangoHud/MangoHud.conf`).
 
 Artwork for non-Steam shortcuts comes from BoilR (`games.boilr`,
 auto-enabled wherever Steam is on). One-time setup: quit Steam, open

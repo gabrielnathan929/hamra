@@ -12,5 +12,10 @@ in {
     description = "Enable GameMode (Feral's on-demand performance daemon, activated by games that request it).";
   };
 
-  config.programs.gamemode.enable = mkIf cfg true;
+  config.programs.gamemode = mkIf cfg {
+    enable = true;
+    settings.general = {
+      desiredgov = "performance";
+    };
+  };
 }

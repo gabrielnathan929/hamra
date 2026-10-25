@@ -3,6 +3,9 @@
     editors = {
       neovim = false;
     };
+    games = {
+      mangohud = false;
+    };
     shell = {
       aliases = true;
       starship = true;

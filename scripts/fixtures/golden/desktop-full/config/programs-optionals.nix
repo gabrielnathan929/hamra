@@ -28,6 +28,7 @@ _: {
         lutris = false;
         mangohud = false;
         pcsx2 = false;
+        "protonup-qt" = false;
         steam = false;
         umu = false;
         wine = false;
@@ -86,6 +87,7 @@ _: {
         "docker-compose" = false;
         samba = false;
         sunshine = false;
+        tailscale = false;
         tigervnc = false;
         wayvnc = true;
         "wayvnc-no-auth" = false;
