@@ -68,6 +68,7 @@ in {
           'nix-sops        edit secrets (nix-sops secrets/samba.yaml)' \
           'nix-host        generate a new host with cookiecutter' \
           'setup-nas       NAS wizard (scripts/setup-nas.sh)' \
+          'hamra-saves     keep game saves in ~/Saves (games/saves toggle)' \
           'shelf           list installed and installable apps' \
           'keys            list the keybinds' \
           'aliases         list every shell alias (aliases <name>)'

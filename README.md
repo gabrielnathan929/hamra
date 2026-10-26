@@ -258,6 +258,7 @@ cursor (Bibata) are fixed parts of the base theme.
 | `nix run .#deploy-<host>` | `nix flake check` + `nixos-rebuild switch` |
 | `nix run .#cookiecutter` | wizard that generates a new host (gum/fzf when available, `--from <host>` inherits its optionals) |
 | `keys [context]` | keybinds of the active WM, `tmux`, `herdr` or `all` |
+| `hamra-saves [list\|adopt\|detach\|open]` | keeps each game's saves in `~/Saves` (`games.saves` toggle) |
 | `aliases [name]` | shell aliases as name and command, filterable by `name` |
 
 The `nix-*` aliases (`nix-deploy`, `nix-build`, `nix-deploy-vm`, `nix-build-vm`,
