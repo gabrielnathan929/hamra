@@ -175,11 +175,17 @@ with a check that fails the build if its layout changes, instead of
 silently dropping GameMode). Hydra has no gamescope option; its own
 GameMode/MangoHud switches stay in the app settings (Behavior
 section) and now flip on and off as expected. The wrapper also
-keeps the umu-launcher runtime complete: `~/.local/share/umu/steamrt*`
-must be a real directory owned by umu (it downloads its own Steam
-Linux Runtime from Valve), never a shortcut pointing at Steam's
-copy; a leftover shortcut is removed before launch and umu
-re-installs its own runtime. GameMode runs with the `performance`
+keeps the umu runtime usable: the Steam Linux Runtime 4 that the
+Proton build requires (`require_tool_appid 4183110`) is pinned in
+the module at the same build Steam installs, copied once into
+`~/.local/share/umu/steamrt4` and refreshed when the pinned version
+changes. It has to be a writable copy, because pressure-vessel
+creates `var/` inside it. umu's own runtime updater runs with
+`UMU_RUNTIME_UPDATE=0`: Valve's `latest-public-beta` directory
+served a runtime and a `SHA256SUMS` that do not match each other,
+so the first install aborts with `Digest mismatched` and the
+launcher never starts. Leftover shortcuts under
+`~/.local/share/umu` are still removed before launch. GameMode runs with the `performance`
 governor (see `programs.gamemode.settings`) and the MangoHud overlay
 layout comes from the `home.programs.games.mangohud` toggle
 (`~/.config/MangoHud/MangoHud.conf`).

@@ -15,11 +15,40 @@
     ++ optional games.wine pkgs.wine
     ++ [pkgs.python3 pkgs.winetricks pkgs.coreutils];
 
+  umuSteamrt4 = pkgs.stdenv.mkDerivation {
+    pname = "umu-steamrt4";
+    version = "4.0.20261021.265997";
+    src = pkgs.fetchurl {
+      url = "https://repo.steampowered.com/steamrt4/images/4.0.20261021.265997/SteamLinuxRuntime_4.tar.xz";
+      hash = "sha256-qp3RqrIXPmW2MfquNLheLBf+Mj2UEBMVTd0uHc6KCRA=";
+    };
+    sourceRoot = "SteamLinuxRuntime_4";
+    dontFixup = true;
+    installPhase = ''
+      mkdir -p $out
+      cp -a . $out/
+      ln -s _v2-entry-point $out/umu
+      cat > $out/umu-shim <<'SHIM'
+      #!/bin/sh
+      if [ "''${XDG_CURRENT_DESKTOP}" = "gamescope" ] || [ "''${XDG_SESSION_DESKTOP}" = "gamescope" ]; then
+        if [ "''${STEAM_MULTIPLE_XWAYLANDS}" = "1" ]; then
+          if [ -z "''${DISPLAY}" ]; then
+            export DISPLAY=":1"
+          fi
+        fi
+      fi
+      exec "$@"
+      SHIM
+      chmod 755 $out/umu-shim
+    '';
+  };
+
   wrapper = pkgs.writeShellApplication {
     name = "hydra";
     runtimeInputs = compatTools;
     text = ''
       export XDG_DATA_HOME="''${XDG_DATA_HOME:-$HOME/.local/share}"
+      export UMU_RUNTIME_UPDATE=0
 
       for runtime in steamrt2 steamrt3 steamrt4; do
         runtimePath="$XDG_DATA_HOME/umu/$runtime"
@@ -30,6 +59,17 @@
           ln -s _v2-entry-point "$runtimePath/umu"
         fi
       done
+
+      umuRuntime="$XDG_DATA_HOME/umu/steamrt4"
+      umuRuntimeStamp="$XDG_DATA_HOME/umu/.hamra-steamrt4"
+
+      if [[ "$(cat "$umuRuntimeStamp" 2>/dev/null)" != "${umuSteamrt4.version}" ]]; then
+        rm -rf "$umuRuntime"
+        mkdir -p "$umuRuntime"
+        cp -a ${umuSteamrt4}/. "$umuRuntime/"
+        chmod -R u+w "$umuRuntime"
+        printf '%s\n' "${umuSteamrt4.version}" > "$umuRuntimeStamp"
+      fi
 
       exec ${pkgs.hydralauncher}/bin/hydralauncher --no-sandbox "$@"
     '';
