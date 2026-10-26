@@ -21,15 +21,19 @@ in {
         text_color=FFFFFF
         background_alpha=0.5
 
+        gpu_name
+        engine_version
         fps
         frametime
         frame_timing
         cpu_stats
         cpu_temp
         gpu_stats
+        gpu_core_clock
         gpu_temp
         vram
         ram
+        swap
 
         toggle_hud=Shift_R+F2
         toggle_hud_position=Shift_R+F3
