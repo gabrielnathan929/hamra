@@ -4,12 +4,24 @@
   ...
 }: let
   cfg = config.hamra.home.programs.shell.aliases;
+  flakeDir = config.hamra.home.programs.shell.flakeDir;
   inherit (lib) mkOption mkIf mkAfter types;
+
+  ref =
+    if flakeDir == null
+    then "."
+    else flakeDir;
 in {
   options.hamra.home.programs.shell.aliases = mkOption {
     type = types.bool;
     default = true;
     description = "Enable shell aliases.";
+  };
+
+  options.hamra.home.programs.shell.flakeDir = mkOption {
+    type = types.nullOr types.str;
+    default = null;
+    description = "Path of the hamra flake checkout used by the nix-* aliases, so they also run outside the repository (e.g. \"$HOME/hamra\"). null keeps them relative to the current directory.";
   };
 
   config.programs.zsh = mkIf cfg {
@@ -31,10 +43,35 @@ in {
       nix-switch = "sudo nixos-rebuild switch";
       nix-search = "nix-search";
 
-      nix-deploy = "nix run .#deploy-$(hostname)";
-      nix-deploy-vm = "nix run .#deploy-vm";
-      nix-build = "nix run .#build-$(hostname)";
-      nix-build-vm = "nix run .#build-vm";
+      nix-deploy = "nix run ${ref}#deploy-$(hostname)";
+      nix-deploy-vm = "nix run ${ref}#deploy-vm";
+      nix-build = "nix run ${ref}#build-$(hostname)";
+      nix-build-vm = "nix run ${ref}#build-vm";
+
+      nix-fmt = "(cd ${ref} && nix fmt .)";
+      nix-check = "(cd ${ref} && nix flake check)";
+      nix-lint = "(cd ${ref} && nix develop --command sh -c 'statix check . && deadnix --fail .')";
+      nix-update = "(cd ${ref} && nix flake update)";
+      nix-sops = "(cd ${ref} && nix develop --command sops)";
+      nix-host = "nix run ${ref}#cookiecutter";
+
+      hamra-help = ''
+        printf '%s\n' \
+          'nix-deploy      deploy this host (deploy-<host> alias of the flake)' \
+          'nix-build       build this host without switching' \
+          'nix-deploy-vm   deploy the vm host' \
+          'nix-build-vm    build the vm host' \
+          'nix-fmt         format every .nix with alejandra' \
+          'nix-check       evaluate the whole flake' \
+          'nix-lint        statix check . && deadnix --fail .' \
+          'nix-update      nix flake update' \
+          'nix-sops        edit secrets (nix-sops secrets/samba.yaml)' \
+          'nix-host        generate a new host with cookiecutter' \
+          'setup-nas       NAS wizard (scripts/setup-nas.sh)' \
+          'shelf           list installed and installable apps' \
+          'keys            list the keybinds' \
+          'aliases         list every shell alias (aliases <name>)'
+      '';
 
       ".." = "cd ..";
       "..." = "cd ../..";
