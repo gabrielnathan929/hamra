@@ -17,7 +17,7 @@
       ];
 
       shellHook = ''
-        echo "alejandra  -> nix fmt"
+        echo "alejandra  -> nix fmt ."
         echo "statix     -> linter"
         echo "deadnix    -> dead code"
         echo "sops       -> edit secrets (e.g. sops secrets/samba.yaml)"

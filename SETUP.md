@@ -184,7 +184,7 @@ still needs the target machine.
 ## Validate
 
 ```bash
-nix fmt
+nix fmt .
 nix flake check
 nix develop --command statix check .
 nix develop --command deadnix .

@@ -287,13 +287,13 @@ the stock runner space otherwise) and the cookiecutter apps smoke test.
 
 | Check | What it does | How to avoid failure |
 |---|---|---|
-| Formatting | `alejandra --check .` | `nix fmt` before committing |
+| Formatting | `alejandra --check .` | `nix fmt .` before committing |
 | Evaluation | `nix flake check` | `nix flake check` locally |
 | Lint | `statix check . && deadnix --fail .` | same command via `nix develop`; no unused bindings |
 
 ### Tips
 
-1. **`nix fmt`** before every commit
+1. **`nix fmt .`** before every commit
 2. **Group repeated keys:** prefer `boot = { initrd.availableKernelModules = [...]; kernelModules = [...]; };` over two loose lines
 3. **`hardware-configuration.nix`:** you may restructure it (group keys), but do not change UUIDs/devices
 4. **Empty arguments:** use `_:` instead of `{ }:` when the function takes no arguments
@@ -303,7 +303,7 @@ the stock runner space otherwise) and the cookiecutter apps smoke test.
 
 | Command | What it does |
 |---|---|
-| `nix fmt` | Formats all `.nix` files with alejandra |
+| `nix fmt .` | Formats all `.nix` files with alejandra |
 | `nix develop` | Enters the devShell with tools |
 | `nix flake check` | Evaluates the entire flake |
 | `nix develop --command statix check .` | Runs the linter |

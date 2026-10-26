@@ -251,7 +251,7 @@ cursor (Bibata) are fixed parts of the base theme.
 
 | Command | What it does |
 |---|---|
-| `nix fmt` | formats everything (alejandra) |
+| `nix fmt .` | formats everything (alejandra) |
 | `nix flake check` | evaluates all hosts + assertions |
 | `nix develop` | shell with statix, deadnix, sops, age, ssh-to-age |
 | `nix run .#build-<host>` | build without applying (saved in `./result`) |
@@ -259,6 +259,13 @@ cursor (Bibata) are fixed parts of the base theme.
 | `nix run .#cookiecutter` | wizard that generates a new host (gum/fzf when available, `--from <host>` inherits its optionals) |
 | `keys [context]` | keybinds of the active WM, `tmux`, `herdr` or `all` |
 | `aliases [name]` | shell aliases as name and command, filterable by `name` |
+
+The `nix-*` aliases (`nix-deploy`, `nix-build`, `nix-deploy-vm`, `nix-build-vm`,
+`nix-fmt`, `nix-check`, `nix-lint`, `nix-update`, `nix-sops`, `nix-host`) and
+`hamra-help` come from the `home.programs.shell.aliases` toggle. Set
+`hamra.home.programs.shell.flakeDir` to the checkout path (the wizard writes
+`$HOME/<path>`) and they run from any directory; `null` keeps them relative to
+the current one.
 
 On the desktop, `SUPER+K` opens the compositor keybinds in an interactive
 search; `SUPER+CTRL+K` and `SUPER+ALT+K` bring the Herdr and Tmux menus.
