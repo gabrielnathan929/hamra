@@ -217,9 +217,13 @@ the game or wiping the prefix does not touch it.
   location and keeps the `~/Saves/<game>` copy.
 - `hamra-saves open` opens the folder.
 
-Run `adopt` again after playing a game through another launcher: each
-launcher uses its own Wine prefix, and a save created in a new prefix is
-adopted into the same `~/Saves/<game>` folder. Saves kept in the Windows
+A systemd user timer runs `hamra-saves adopt --auto` one minute after
+login and every two hours, so a save created by a new game ends up in
+`~/Saves` without any manual step. A run is skipped while a game is
+running (it would move files under it) and picked up by the next one;
+`adopt` by hand only when you want it immediately. Each launcher uses
+its own Wine prefix, and the timer adopts a save created in a new prefix
+into the same `~/Saves/<game>` folder. Saves kept in the Windows
 registry are not covered (the command warns when the manifest lists
 them). The folder is not a backup by itself — copy `~/Saves` to another
 disk, the NAS or the cloud whenever you want an off-machine copy.

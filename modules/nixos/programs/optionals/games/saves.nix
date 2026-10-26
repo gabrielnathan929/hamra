@@ -16,6 +16,7 @@
       pkgs.gnused
       pkgs.jq
       pkgs.ludusavi
+      pkgs.procps
       pkgs.rsync
       pkgs.xdg-utils
       (pkgs.python3.withPackages (ps: [ps.plyvel]))
@@ -28,6 +29,7 @@
       luduConfig="$stateDir/ludusavi"
       titles=""
       tmpDir=""
+      quiet=0
 
       cleanup() {
         if [ -n "$tmpDir" ]; then
@@ -44,6 +46,8 @@
         adopt [--yes] [game...] move a game's saves to ~/Saves/<game> and leave
                                 a symlink behind (no game: every game)
         adopt --dry-run [...]   only print what would be done
+        adopt --auto            quiet run used by the timer; skipped while a
+                                game is running
         detach [game...]        move the saves back and keep the ~/Saves copy
         open                    open the ~/Saves folder
       EOF
@@ -144,6 +148,10 @@
         printf '%s' "$1" | jq -e '([(.games // {}) | to_entries[] | (.value.registry // {}) | length] | add // 0) > 0' >/dev/null 2>&1
       }
 
+      gamesRunning() {
+        pgrep -u "$(id -u)" -f 'umu-run|_v2-entry-point|pressure-vessel|wineserver|wine-preloader|proton waitforexitandrun' >/dev/null 2>&1
+      }
+
       fallbackDirs() {
         local title="$1"
         local prefix="$2"
@@ -186,7 +194,9 @@
         local target="$2"
 
         if [ "$(readlink -f -- "$source")" = "$(readlink -f -- "$target")" ]; then
-          echo "  already adopted: $target"
+          if [ "$quiet" -eq 0 ]; then
+            echo "  already adopted: $target"
+          fi
           return 0
         fi
         if [ ! -e "$source" ]; then
@@ -239,6 +249,11 @@
             case "$dir" in
               "$savesDir" | "$savesDir"/*) continue ;;
             esac
+            if [ -L "$dir" ]; then
+              case "$(readlink -f -- "$dir")" in
+                "$savesDir" | "$savesDir"/*) continue ;;
+              esac
+            fi
             if isShared "$dir" "$prefix"; then
               echo "$title: '$dir' is shared, skipping" >&2
               continue
@@ -247,17 +262,39 @@
           done < <(saveDirs "$json")
         fi
 
-        if [ "''${#dirs[@]}" -eq 0 ]; then
-          if [ -s "$stateDir/links/$id" ] || [ -d "$savesDir/$title" ]; then
-            echo "$title: already adopted ($savesDir/$title)"
+        local -a pending=() pendingTargets=()
+        index=0
+        for dir in "''${dirs[@]}"; do
+          index=$((index + 1))
+          if [ "''${#dirs[@]}" -eq 1 ]; then
+            name="$savesDir/$title"
           else
-            echo "$title: no saves found (run the game and create a save first)"
+            name="$(basename -- "$dir")"
+            if [ "$index" -gt 1 ]; then
+              name="$name-$index"
+            fi
+            name="$savesDir/$title/$name"
+          fi
+          if [ "$(readlink -f -- "$dir")" = "$(readlink -f -- "$name")" ]; then
+            continue
+          fi
+          pending+=("$dir")
+          pendingTargets+=("$name")
+        done
+
+        if [ "''${#pending[@]}" -eq 0 ]; then
+          if [ "$quiet" -eq 0 ]; then
+            if [ -s "$stateDir/links/$id" ] || [ -d "$savesDir/$title" ]; then
+              echo "$title: already adopted ($savesDir/$title)"
+            else
+              echo "$title: no saves found (run the game and create a save first)"
+            fi
           fi
           return 0
         fi
 
         echo "$title:"
-        printf '  %s\n' "''${dirs[@]}"
+        printf '  %s\n' "''${pending[@]}"
 
         if hasRegistry "$json"; then
           echo "  warning: this game also writes to the Windows registry; ~/Saves does not cover that" >&2
@@ -279,19 +316,11 @@
           esac
         fi
 
-        if [ "''${#dirs[@]}" -eq 1 ]; then
-          linkDir "''${dirs[0]}" "$savesDir/$title"
-        else
-          index=0
-          for dir in "''${dirs[@]}"; do
-            index=$((index + 1))
-            name="$(basename -- "$dir")"
-            if [ "$index" -gt 1 ]; then
-              name="$name-$index"
-            fi
-            linkDir "$dir" "$savesDir/$title/$name"
-          done
-        fi
+        index=0
+        for dir in "''${pending[@]}"; do
+          linkDir "$dir" "''${pendingTargets[$index]}"
+          index=$((index + 1))
+        done
 
         {
           if [ -f "$stateDir/links/$id" ]; then
@@ -374,14 +403,24 @@
         adopt)
           assumeYes=0
           dryRun=0
+          auto=0
           targets=()
           for argument in "$@"; do
             case "$argument" in
               --yes | -y) assumeYes=1 ;;
               --dry-run | -n) dryRun=1 ;;
+              --auto)
+                auto=1
+                assumeYes=1
+                quiet=1
+                ;;
               *) targets+=("$argument") ;;
             esac
           done
+          if [ "$auto" -eq 1 ] && gamesRunning; then
+            echo "a game is running, skipping this round"
+            exit 0
+          fi
           if [ "''${#targets[@]}" -eq 0 ] && [ -d "$prefixesDir" ]; then
             while IFS= read -r target; do
               targets+=("$target")
@@ -423,5 +462,22 @@ in {
 
   config = mkIf cfg {
     environment.systemPackages = [hamra-saves];
+
+    systemd.user.services.hamra-saves = {
+      description = "Adopt Hydra game saves into ~/Saves";
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${hamra-saves}/bin/hamra-saves adopt --auto";
+      };
+    };
+
+    systemd.user.timers.hamra-saves = {
+      description = "Adopt Hydra game saves into ~/Saves";
+      wantedBy = ["timers.target"];
+      timerConfig = {
+        OnStartupSec = "1min";
+        OnUnitActiveSec = "2h";
+      };
+    };
   };
 }
