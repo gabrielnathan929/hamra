@@ -50,6 +50,7 @@ _: {
       "translate-shell" = true;
     };
     scripts = {
+      aliases = true;
       apps = true;
       keybinds = true;
       "setup-nas" = false;

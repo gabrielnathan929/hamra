@@ -427,4 +427,8 @@
     key = "SUPER + ALT + K";
     action = "Tmux keybinds menu";
   }
+  {
+    key = "SUPER + SHIFT + A";
+    action = "Shell aliases menu";
+  }
 ]

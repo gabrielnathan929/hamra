@@ -9,4 +9,5 @@ in ''
   hl.bind("SUPER+K", hl.dsp.exec_cmd("${terminal} --app-id=console -e bash -c 'keys hyprland | fzf --reverse'"))
   hl.bind("SUPER+CTRL+K", hl.dsp.exec_cmd("${terminal} --app-id=console -e bash -c 'keys herdr | fzf --reverse'"))
   hl.bind("SUPER+ALT+K", hl.dsp.exec_cmd("${terminal} --app-id=console -e bash -c 'keys tmux | fzf --reverse'"))
+  hl.bind("SUPER+SHIFT+A", hl.dsp.exec_cmd("${terminal} --app-id=console -e bash -c 'aliases | fzf --reverse'"))
 ''

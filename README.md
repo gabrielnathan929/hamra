@@ -258,9 +258,11 @@ cursor (Bibata) are fixed parts of the base theme.
 | `nix run .#deploy-<host>` | `nix flake check` + `nixos-rebuild switch` |
 | `nix run .#cookiecutter` | wizard that generates a new host (gum/fzf when available, `--from <host>` inherits its optionals) |
 | `keys [context]` | keybinds of the active WM, `tmux`, `herdr` or `all` |
+| `aliases [name]` | shell aliases as name and command, filterable by `name` |
 
 On the desktop, `SUPER+K` opens the compositor keybinds in an interactive
 search; `SUPER+CTRL+K` and `SUPER+ALT+K` bring the Herdr and Tmux menus.
+`SUPER+SHIFT+A` lists the shell aliases in the same search.
 Inside tmux, `Prefix + ?` opens the same panel in a popup.
 
 Registered hosts: `samsung`, `acer`, `vm` (`x86_64-linux` only). CI runs

@@ -9,4 +9,5 @@ in ''
   Mod+K                    { spawn-sh "${terminal} -e bash -c 'keys niri | fzf --reverse'"; }
   Mod+Ctrl+K               { spawn-sh "${terminal} -e bash -c 'keys herdr | fzf --reverse'"; }
   Mod+Alt+K                { spawn-sh "${terminal} -e bash -c 'keys tmux | fzf --reverse'"; }
+  Mod+Shift+A              { spawn-sh "${terminal} -e bash -c 'aliases | fzf --reverse'"; }
 ''
