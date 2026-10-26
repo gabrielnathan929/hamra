@@ -607,8 +607,19 @@ enable_flakes_root() {
 offer_etc_nixos_symlink() {
     target="/etc/nixos"
     if [ -L "$target" ]; then
-        [ "$(readlink -f "$target")" = "$(readlink -f "$REPO")" ] && return 0
-        warn "/etc/nixos symlinks to $(readlink -f "$target") (not this checkout)"
+        current=$(readlink -f "$target")
+        [ -n "$current" ] || current="$(readlink "$target")"
+        [ "$current" = "$(readlink -f "$REPO")" ] && return 0
+        if [ ! -e "$target" ]; then
+            warn "$target points to $current, which no longer exists (dangling link)"
+            printf "\nRepointing it to this checkout (runs with sudo):\n"
+            printf "  %s -> %s\n" "$target" "$(readlink -f "$REPO")"
+            ask_yes_no "Repoint /etc/nixos now?" "true" || { printf "  skipped\n"; return 0; }
+            sudo ln -sfn "$(readlink -f "$REPO")" "$target"
+            ok "$target -> $(readlink -f "$REPO")"
+            return 0
+        fi
+        warn "$target symlinks to $current (not this checkout)"
         return 0
     fi
     if [ -e "$target" ]; then
@@ -658,6 +669,8 @@ cmd_check() {
     fi
     if [ -L /etc/nixos ] && [ "$(readlink -f /etc/nixos)" = "$(readlink -f "$REPO")" ]; then
         ok "/etc/nixos symlinks to this checkout"
+    elif [ -L /etc/nixos ] && [ ! -e /etc/nixos ]; then
+        warn "/etc/nixos is a dangling link to $(readlink /etc/nixos) — repoint it with: sudo ln -sfn $REPO /etc/nixos"
     elif [ -L /etc/nixos ]; then
         warn "/etc/nixos symlinks to $(readlink -f /etc/nixos) (not this checkout)"
     elif [ -e /etc/nixos ]; then

@@ -131,6 +131,12 @@ detect_repo() {
   fi
 
   if [[ ! -f "$dir/scripts/setup-nas.sh" ]]; then
+    if [[ "$dir" == "/etc/nixos" && -L /etc/nixos && ! -e /etc/nixos ]]; then
+      _HELP="/etc/nixos is a dangling link to $(readlink /etc/nixos).
+Point it at the checkout, then run setup-nas again:
+  sudo ln -sfn ~/Projetos/hamra /etc/nixos"
+      die "Could not find the Hamra repository at: $dir"
+    fi
     _HELP="Clone the repository on this PC first. E.g.:
   git clone <repo-url> ~/Projetos/hamra
   sudo ln -s ~/Projetos/hamra /etc/nixos

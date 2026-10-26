@@ -46,6 +46,19 @@ installer's original configuration with
 `sudo rm /etc/nixos && sudo mv /etc/nixos.pre-hamra /etc/nixos` — and delete
 the backup once Hamra is stable.
 
+If the checkout ever moves, repoint the link: a symlink to a path that no
+longer exists goes stale silently, and that breaks `nixos-rebuild` without
+`--flake` and hides the repo from `setup-nas`:
+
+```bash
+ls -l /etc/nixos                        # target must exist
+sudo ln -sfn ~/Projetos/hamra /etc/nixos
+```
+
+`cookiecutter` detects a dangling link and offers to repoint it; `setup-nas`
+explains the fix when that is what blocks it, and `cookiecutter --check`
+reports it as a warning.
+
 ### Fast path: `cookiecutter`
 
 ```bash
