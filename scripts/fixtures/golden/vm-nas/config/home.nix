@@ -8,6 +8,7 @@
     };
     shell = {
       aliases = true;
+      flakeDir = null;
       starship = true;
       zsh = true;
     };

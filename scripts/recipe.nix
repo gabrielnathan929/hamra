@@ -94,11 +94,15 @@
         cat = lib.elemAt p 0;
         app = lib.concatStringsSep "." (lib.drop 1 p);
       in
-        if !builtins.isBool d
-        then throw "home toggle ${cat}.${app} has non-bool default"
-        else acc // {${cat} = (acc.${cat} or {}) // {${app} = d;};};
+        if builtins.isBool d
+        then acc // {toggles = acc.toggles // {${cat} = (acc.toggles.${cat} or {}) // {${app} = d;};};}
+        else acc // {skipped = acc.skipped ++ [("hamra.home.programs." + lib.concatStringsSep "." p)];};
   in
-    lib.foldl step {} entries;
+    lib.foldl step {
+      toggles = {};
+      skipped = [];
+    }
+    entries;
 
   setToggle = val: acc: path: let
     parts = lib.splitString "." path;
@@ -127,7 +131,12 @@
 
   optionals0 = applyToggles optionalsUniverse.toggles enable (get "disable" []);
   core = applyToggles coreUniverse.toggles (get "core_enable" []) (get "core_disable" []);
-  home = applyToggles homeUniverse (get "hm_enable" []) (get "hm_disable" []);
+  home = applyToggles homeUniverse.toggles (get "hm_enable" []) (get "hm_disable" []);
+
+  homeTree =
+    if (home.shell or {}) ? aliases
+    then home // {shell = home.shell // {flakeDir = get "flakeDir" null;};}
+    else home;
 
   davinciAuto = answers.gpu == "virtio" && optionals0.media ? "davinci-resolve" && optionals0.media."davinci-resolve";
   optionals1 =
@@ -453,7 +462,7 @@
     // {
       "config/home.nix" = ''
         {config, ...}: {
-          home-manager.users.''${config.hamra.users.userName}.hamra.home.programs = ${render home 1};
+          home-manager.users.''${config.hamra.users.userName}.hamra.home.programs = ${render homeTree 1};
         }
       '';
     };
@@ -462,10 +471,10 @@
 in
   assert lib.all (x: x == null) webappCheck; {
     inherit files autoNotes;
-    skipped = coreUniverse.skipped ++ optionalsUniverse.skipped;
+    skipped = coreUniverse.skipped ++ optionalsUniverse.skipped ++ homeUniverse.skipped;
     counts = {
       core = countToggles coreUniverse.toggles;
       optionals = countToggles optionalsUniverse.toggles;
-      home = countToggles homeUniverse;
+      home = countToggles homeUniverse.toggles;
     };
   }

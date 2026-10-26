@@ -69,6 +69,14 @@ info() { printf "  %b\n" "$1"; }
 ok() { printf "%b\n" "${BLD}${CGR}ok:${CNC} $1"; }
 warn() { printf "%b\n" "${BLD}${CYE}warn:${CNC} $1" >&2; }
 
+flake_dir() {
+    dir=$(readlink -f "$REPO")
+    case "$dir" in
+        "$HOME"/*) printf '$HOME/%s' "${dir#"$HOME"/}" ;;
+        *) printf "%s" "$dir" ;;
+    esac
+}
+
 logo() {
     text="$1"
     printf "%b" "
@@ -575,6 +583,8 @@ ${BLD}${CRE}[${CYE}!${CRE}]${CNC} ${BLD}${CRE}It never overwrites an existing ho
         "$nas" "$vnc" "$env_editor" "$env_browser" "$env_terminal" "$env_filemanager" \
         "$enable_list" "$core_disable_list" "$hm_enable_list" \
         > "$ANSWERS"
+    jq --arg f "$(flake_dir)" '.flakeDir = $f' "$ANSWERS" > "$ANSWERS.tmp" \
+        && mv "$ANSWERS.tmp" "$ANSWERS"
 }
 
 ensure_flakes_user() {

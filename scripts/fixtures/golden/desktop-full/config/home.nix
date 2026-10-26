@@ -8,6 +8,7 @@
     };
     shell = {
       aliases = true;
+      flakeDir = "\$HOME/Projetos/hamra";
       starship = true;
       zsh = true;
     };
