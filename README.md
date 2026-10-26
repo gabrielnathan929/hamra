@@ -165,7 +165,14 @@ The `games.hydralauncher` toggle installs Hydra through a wrapper
 (`hydra`, also the menu entry) that puts `python3`, `umu-launcher`,
 `gamemoderun`, `mangohud` and `winetricks` on its PATH, so the
 GameMode and MangoHud toggles in Hydra's settings are detected and
-the Winetricks button works. Hydra has no gamescope option; its own
+the Winetricks button works. Hydra probes GameMode in three steps
+(`gamemoderun` in PATH, `libgamemode.so` plus `libgamemodeauto.so`
+in `ldconfig -p`, and a test run), and the packaged app runs inside
+an FHS sandbox where `/etc/ld.so.cache` does not exist, so the
+module ships a real cache built from the GameMode libraries and
+mounts it into the sandbox (the packaged launch script is patched
+with a check that fails the build if its layout changes, instead of
+silently dropping GameMode). Hydra has no gamescope option; its own
 GameMode/MangoHud switches stay in the app settings (Behavior
 section) and now flip on and off as expected. The wrapper also
 keeps the umu-launcher runtime complete: `~/.local/share/umu/steamrt*`

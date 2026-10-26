@@ -35,10 +35,25 @@
     '';
   };
 
+  gamemodeLdso = pkgs.runCommand "hydra-gamemode-ldso" {} ''
+    mkdir -p $out/etc
+    echo ${pkgs.gamemode.lib}/lib > $out/etc/ld.so.conf
+    ${pkgs.glibc.bin}/bin/ldconfig -f $out/etc/ld.so.conf -C $out/etc/ld.so.cache
+  '';
+
   hydraLauncher = pkgs.symlinkJoin {
     name = "hydralauncher";
     paths = [pkgs.hydralauncher];
     postBuild = ''
+      launcher=$(readlink $out/bin/hydralauncher)
+      rm $out/bin/hydralauncher
+
+      sed -e 's|^\(  .*-container-init "\$@"\)$|--symlink '"${gamemodeLdso}"'/etc/ld.so.conf /etc/ld.so.conf\n--symlink '"${gamemodeLdso}"'/etc/ld.so.cache /etc/ld.so.cache\n\1|' \
+        "$launcher" > $out/bin/hydralauncher
+      chmod +x $out/bin/hydralauncher
+
+      grep -q -- "--symlink ${gamemodeLdso}/etc/ld.so.cache /etc/ld.so.cache" $out/bin/hydralauncher
+
       rm -f $out/share/applications/hydralauncher.desktop
     '';
     passthru.updateScript = pkgs.hydralauncher.updateScript;
