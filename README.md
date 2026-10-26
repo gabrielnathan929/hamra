@@ -198,6 +198,32 @@ the import, then Import. Repeat the import whenever a new shortcut is
 added; rename the shortcut to the exact title if a game gets the
 wrong art.
 
+## Game saves for non-Steam games
+
+The `games.saves` toggle ships `hamra-saves`, which keeps the saves of
+every game Hydra manages in `~/Saves/<game>` — one folder per game, the
+same idea as `~/Games`. It reads the titles from Hydra's own database
+and the save locations from the Ludusavi manifest (the same one Hydra
+bundles), then moves each save folder into `~/Saves` and leaves a
+symlink where the game expects it: the launcher keeps writing to the
+same files, but the data now lives outside the prefix, so reinstalling
+the game or wiping the prefix does not touch it.
+
+- `hamra-saves list` shows the games and what is already adopted.
+- `hamra-saves adopt` (no argument) adopts every game; `adopt "<game>"`
+  does one. The first run prints the folders and asks for confirmation
+  (`--yes` skips it, `--dry-run` only prints the plan).
+- `hamra-saves detach "<game>"` copies the saves back to the game
+  location and keeps the `~/Saves/<game>` copy.
+- `hamra-saves open` opens the folder.
+
+Run `adopt` again after playing a game through another launcher: each
+launcher uses its own Wine prefix, and a save created in a new prefix is
+adopted into the same `~/Saves/<game>` folder. Saves kept in the Windows
+registry are not covered (the command warns when the manifest lists
+them). The folder is not a backup by itself — copy `~/Saves` to another
+disk, the NAS or the cloud whenever you want an off-machine copy.
+
 ## Game streaming: Sunshine and Moonlight
 
 The pair replaces Parsec when it does not work for you. The machine that

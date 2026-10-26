@@ -27,6 +27,7 @@ _: {
       mangohud = true;
       pcsx2 = true;
       "protonup-qt" = true;
+      saves = true;
       steam = true;
       umu = true;
       wine = true;
