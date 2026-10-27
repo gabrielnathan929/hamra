@@ -8,11 +8,21 @@ lib.mkIf (config.hamra.hardware.gpu == "intel") {
   services.thermald.enable = lib.mkDefault true;
 
   hardware.graphics = {
+    enable = true;
     enable32Bit = true;
     extraPackages = with pkgs; [
       intel-media-driver
+      intel-compute-runtime
+    ];
+    extraPackages32 = with pkgs.pkgsi686Linux; [
+      intel-media-driver
     ];
   };
+
+  boot.kernelParams = lib.optionals (config.hamra.hardware.intel.xe != null) [
+    "i915.force_probe=!${config.hamra.hardware.intel.xe}"
+    "xe.force_probe=${config.hamra.hardware.intel.xe}"
+  ];
   environment.sessionVariables.LIBVA_DRIVER_NAME = "iHD";
   environment.systemPackages = with pkgs; [
     intel-gpu-tools

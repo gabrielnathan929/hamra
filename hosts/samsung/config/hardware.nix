@@ -5,6 +5,7 @@ _: {
       brightness = true;
       firmware = "uefi";
       gpu = "intel";
+      intel.xe = null;
       touchpad = true;
     };
 
