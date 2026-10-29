@@ -5,6 +5,7 @@ _: {
       brightness = true;
       firmware = "uefi";
       gpu = "intel";
+      cpu.intel.powerLimit = 15;
       touchpad = true;
     };
 
