@@ -15,7 +15,7 @@
   hyprctl = "${pkgs.hyprland}/bin/hyprctl";
   swaymsg = "${pkgs.swayfx}/bin/swaymsg";
   wayvncPkg = pkgs.wayvnc.overrideAttrs (oldAttrs: {
-    patches = (oldAttrs.patches or []) ++ [ ./wayvnc-cursor.patch ];
+    patches = (oldAttrs.patches or []) ++ [./wayvnc-cursor.patch];
   });
   openssl = "${pkgs.openssl}/bin/openssl";
   ssh-keygen = "${pkgs.openssh}/bin/ssh-keygen";
