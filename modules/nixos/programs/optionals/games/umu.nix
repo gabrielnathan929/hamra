@@ -20,7 +20,7 @@ in {
 
     systemd.tmpfiles.rules = mkIf cfg [
       "d ${userHome}/.local/share/Steam/compatibilitytools.d 0755 ${userName} users - -"
-      "L+ ${userHome}/.local/share/Steam/compatibilitytools.d/${pkgs.proton-ge-bin.version} - - - - ${pkgs.proton-ge-bin}"
+      "L+ ${userHome}/.local/share/Steam/compatibilitytools.d/${pkgs.proton-ge-bin.version} - - - - ${pkgs.proton-ge-bin.steamcompattool}"
     ];
   };
 }
