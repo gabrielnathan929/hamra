@@ -30,7 +30,7 @@ _: {
       saves = true;
       steam = true;
       umu = true;
-      wine = false;
+      wine = true;
     };
     gui = {
       "android-studio" = true;
