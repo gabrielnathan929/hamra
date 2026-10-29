@@ -25,7 +25,7 @@ _: {
       hydralauncher = true;
       lutris = false;
       mangohud = true;
-      pcsx2 = true;
+      pcsx2 = false;
       "protonup-qt" = true;
       saves = true;
       steam = true;
@@ -37,7 +37,7 @@ _: {
       bitwarden = true;
       boxes = false;
       brmodelo = true;
-      bruno = true;
+      bruno = false;
       "camunda-modeler" = true;
       chromium = true;
       dbeaver = true;
@@ -67,10 +67,10 @@ _: {
       wireshark = false;
     };
     media = {
-      "davinci-resolve" = true;
+      "davinci-resolve" = false;
       kodi = true;
       obs = true;
-      qbittorrent = true;
+      qbittorrent = false;
       spicetify = true;
       spotify = true;
     };
