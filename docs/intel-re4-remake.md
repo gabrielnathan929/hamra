@@ -19,7 +19,7 @@ it through vkd3d-proton onto Vulkan (Mesa ANV).
 | `environment.sessionVariables.LIBVA_DRIVER_NAME = "iHD"` | pins the modern VA-API backend |
 | `environment.systemPackages = [ intel-gpu-tools ]` | `intel_gpu_top`, useful to see whether the GPU is the bottleneck |
 | `services.thermald` | thermal daemon, keeps the 15 W package from clamping early |
-| `hamra-intel-dptf-powerlimit` | writes `28000000` (28 W) to the DPTF MMIO RAPL limit at boot, reasserted every 30 s by a timer |
+| `hamra-intel-powerlimit` | writes `28000000` (28 W) to the DPTF MMIO RAPL limit and holds it, re-checking every 5 s |
 
 Neither package above accelerates vkd3d-proton: DX12 shaders and compute are
 compiled by Mesa's ANV Vulkan driver, which ships with `enable`/`enable32Bit`.
@@ -62,6 +62,17 @@ in `hosts/<machine>/config/hardware.nix`.
 regress power management and output handling from one kernel to the next. Test
 it with the frame rate you already recorded, and keep `i915` if it does not
 measurably help.
+
+### Result on this machine
+
+The handover was tested on 2026-10-28 with kernel 6.18.57 and Mesa 26.1.8, in
+the same scene (title screen, 1280x720 display, 1080p scene resolution, FSR2):
+`xe` bound cleanly, the journal had no DRM errors, and the frame rate was
+unchanged at 10 FPS. The GPU clock went from 1000 MHz to 1200 MHz while
+utilisation went from 95% to 97%, which is the signature of a GPU already at its
+ceiling rather than a driver fighting for submissions. The host was returned to
+`i915`: the newer driver is not worth the kernel-update risk when it buys
+nothing for this title.
 
 ## Steam launch options
 
@@ -112,8 +123,8 @@ GPU load, clocks and the frame time, which separates "GPU idle, CPU bound" from
 2. Check that the window is not being forced through software: in `MangoHud`,
    the GPU name must be the Iris Xe, not `llvmpipe`.
 3. Check the power limit: `cat /sys/class/powercap/intel-rapl-mmio:0/constraint_0_power_limit_uw`
-   should read `28000000`. If it reads `15000000`, the refresh timer did not run
-   (`systemctl status hamra-intel-dptf-powerlimit-refresh`).
+   should read `28000000`. If it reads `20000000` or `15000000`, DPTF lowered it
+   and the holder is not running (`systemctl status hamra-intel-powerlimit`).
 4. Check GPU utilisation with `intel_gpu_top`: near 100% render busy means the
    iGPU is the limit, and the only levers left are resolution and upscaling
    (1280x720 + FSR, lowest textures); low utilisation with high CPU time means
