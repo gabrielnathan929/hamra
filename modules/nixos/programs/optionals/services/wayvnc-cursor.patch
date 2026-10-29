@@ -1,0 +1,16 @@
+diff --git a/src/main.c b/src/main.c
+index 96c382f..4d92c23 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -2077,7 +2077,10 @@ static void on_cursor_capture_done(enum screencopy_result result,
+ 
+ 	switch (result) {
+ 	case SCREENCOPY_FATAL:
+-		nvnc_log(NVNC_LOG_ERROR, "Failed to capture cursor. The source probably went away");
++		nvnc_log(NVNC_LOG_DEBUG, "Failed to capture cursor. The source probably went away");
++		screencopy_stop(self->cursor_sc);
++		screencopy_destroy(self->cursor_sc);
++		self->cursor_sc = NULL;
+ 		break;
+ 	case SCREENCOPY_FAILED:
+ 		wayvnc_start_cursor_capture(self, true);

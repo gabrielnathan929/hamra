@@ -14,6 +14,9 @@
 
   hyprctl = "${pkgs.hyprland}/bin/hyprctl";
   swaymsg = "${pkgs.swayfx}/bin/swaymsg";
+  wayvncPkg = pkgs.wayvnc.overrideAttrs (oldAttrs: {
+    patches = (oldAttrs.patches or []) ++ [ ./wayvnc-cursor.patch ];
+  });
   openssl = "${pkgs.openssl}/bin/openssl";
   ssh-keygen = "${pkgs.openssh}/bin/ssh-keygen";
   flock = "${pkgs.util-linux}/bin/flock";
@@ -335,9 +338,10 @@
         if [ "$1" = "--open" ]; then
           info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, no auth)..."
           ${flock} -u 9
-          exec ${lib.getExe pkgs.wayvnc} \
+          exec ${lib.getExe wayvncPkg} \
             "$VNC_ADDR" \
             --max-fps="$VNC_FPS" \
+            --render-cursor \
             --output="$output"
         fi
         tls_dir=$(ensure_tls)
@@ -345,10 +349,11 @@
 
         info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, TLS auth)..."
         ${flock} -u 9
-        exec ${lib.getExe pkgs.wayvnc} \
+        exec ${lib.getExe wayvncPkg} \
           --config="$auth_conf" \
           "$VNC_ADDR" \
           --max-fps="$VNC_FPS" \
+          --render-cursor \
           --output="$output"
       }
 
