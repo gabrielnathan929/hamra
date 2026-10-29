@@ -28,46 +28,24 @@ lib.mkIf (config.hamra.hardware.gpu == "intel") {
     intel-gpu-tools
   ];
 
-  systemd = {
-    services.hamra-intel-dptf-powerlimit = {
-      description = "Raise Intel DPTF MMIO RAPL power limit";
-      wantedBy = ["multi-user.target"];
-      after = ["local-fs.target"];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-      };
-      path = [pkgs.coreutils];
-      script = ''
-        f=/sys/class/powercap/intel-rapl-mmio:0/constraint_0_power_limit_uw
+  systemd.services.hamra-intel-powerlimit = {
+    description = "Hold the Intel DPTF MMIO RAPL limit at 28 W";
+    wantedBy = ["multi-user.target"];
+    after = ["local-fs.target"];
+    serviceConfig = {
+      Type = "simple";
+      Restart = "always";
+      RestartSec = 5;
+    };
+    path = [pkgs.coreutils];
+    script = ''
+      f=/sys/class/powercap/intel-rapl-mmio:0/constraint_0_power_limit_uw
+      while true; do
         if [ -w "$f" ]; then
           echo 28000000 > "$f"
         fi
-      '';
-    };
-
-    services.hamra-intel-dptf-powerlimit-refresh = {
-      description = "Reassert Intel DPTF MMIO RAPL power limit";
-      serviceConfig = {
-        Type = "oneshot";
-      };
-      path = [pkgs.coreutils];
-      script = ''
-        f=/sys/class/powercap/intel-rapl-mmio:0/constraint_0_power_limit_uw
-        if [ -w "$f" ]; then
-          echo 28000000 > "$f"
-        fi
-      '';
-    };
-
-    timers.hamra-intel-dptf-powerlimit-refresh = {
-      description = "Periodic Intel DPTF RAPL refresh";
-      wantedBy = ["timers.target"];
-      timerConfig = {
-        OnBootSec = "15s";
-        OnUnitActiveSec = "30s";
-        Unit = "hamra-intel-dptf-powerlimit-refresh.service";
-      };
-    };
+        sleep 5
+      done
+    '';
   };
 }
