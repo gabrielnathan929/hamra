@@ -303,7 +303,6 @@ Full guide: `./scripts/setup-nas.sh --help` and `SETUP.md` section 3.
 - [`SETUP.md`](SETUP.md) — install NixOS and bring up Hamra on a new machine
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — Git Flow, local validation, golden rules
 - [`SECURITY.md`](SECURITY.md) — secrets (sops) and vulnerability reporting
-- [`docs/intel-re4-remake.md`](docs/intel-re4-remake.md) — Intel iGPU tuning for DirectX 12 titles
 - [`AGENTS.md`](AGENTS.md) — repo rules: layers, categories, toggle modules
 
 ## License
