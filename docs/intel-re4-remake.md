@@ -14,65 +14,45 @@ it through vkd3d-proton onto Vulkan (Mesa ANV).
 |---|---|
 | `hardware.graphics.enable` | installs Mesa + the Vulkan ICDs into `/run/opengl-driver` |
 | `hardware.graphics.enable32Bit` | same libraries for 32-bit binaries (Steam's client and some games) |
-| `extraPackages = [ intel-media-driver intel-compute-runtime ]` | VA-API encode/decode (`iHD`) and the OpenCL runtime |
+| `extraPackages = [ intel-media-driver ]` | VA-API encode/decode (`iHD`) |
 | `extraPackages32 = [ intel-media-driver ]` | 32-bit VA-API driver |
 | `environment.sessionVariables.LIBVA_DRIVER_NAME = "iHD"` | pins the modern VA-API backend |
 | `environment.systemPackages = [ intel-gpu-tools ]` | `intel_gpu_top`, useful to see whether the GPU is the bottleneck |
-| `services.thermald` | thermal daemon, keeps the 15 W package from clamping early |
-| `hamra-intel-powerlimit` | writes `28000000` (28 W) to the DPTF MMIO RAPL limit and holds it, re-checking every 5 s |
+| `services.thermald` | thermal daemon, keeps the package from clamping early |
 
-Neither package above accelerates vkd3d-proton: DX12 shaders and compute are
-compiled by Mesa's ANV Vulkan driver, which ships with `enable`/`enable32Bit`.
-`intel-media-driver` is VA-API (video), and the `intel-compute-runtime` build in
-nixpkgs 26.05 only contains the OpenCL ICD (`intel-opencl` and `libocloc.so`, no
-Level Zero `libze_intel_gpu.so`). They are still correct to have for browsers,
-video and OpenCL workloads, but they are not the fix for a low frame rate.
+None of it accelerates vkd3d-proton: DX12 shaders and compute are compiled by
+Mesa's ANV Vulkan driver, which ships with `enable`/`enable32Bit`. The module
+does not touch power limits: the firmware's DPTF policy is left alone.
 
 The 32-bit block matters for the Steam client itself: the client is a 32-bit
 program, and without `extraPackages32` it cannot load the VA-API/Vulkan stack.
 
-## Kernel driver: `i915` (default) or `xe`
+## Kernel driver
 
-`samsung` runs `i915`. `lspci -k -s 00:02.0` reports:
+`samsung` runs `i915`, the in-tree default for Alder Lake-P. `lspci -k -s 00:02.0`
+reports:
 
 ```
 Kernel driver in use: i915
 Kernel modules: i915, xe
 ```
 
-Both modules are available in the 6.18 kernel, so the handover is a kernel
-parameter, not a rebuild of the kernel. `hamra.hardware.intel.xe` takes the PCI
-device ID to hand over to `xe` (`null` keeps `i915`):
-
-```nix
-hamra.hardware = {
-  gpu = "intel";
-  intel.xe = "46a8";
-};
-```
-
-That generates `boot.kernelParams = [ "i915.force_probe=!46a8" "xe.force_probe=46a8" ]`.
-Use the ID from your own `lspci -nn`: a wrong ID leaves the GPU without a
-driver. Rebuild, reboot and check with `lspci -k -s 00:02.0`
-(`Kernel driver in use: xe`). If the display, brightness or suspend misbehaves,
-pick the previous generation in the systemd-boot menu; the setting is one line
-in `hosts/<machine>/config/hardware.nix`.
-
-`xe` is still the newer path on Alder Lake-P: it is the way forward, but it can
-regress power management and output handling from one kernel to the next. Test
-it with the frame rate you already recorded, and keep `i915` if it does not
-measurably help.
+`xe` is the newer driver and the long-term path, but on Alder Lake-P it is still
+gated behind `force_probe`, and the handover is one-way: it needs
+`i915.force_probe=!<id>` plus `xe.force_probe=<id>`. Without the blacklist
+`i915` always probes first, so there is no automatic fallback — a `xe` probe
+that fails leaves the GPU unbound until the next boot entry. The toggle does not
+ship that switch; using it means adding the two kernel parameters by hand, with
+the previous generation in the systemd-boot menu as the way back.
 
 ### Result on this machine
 
-The handover was tested on 2026-10-28 with kernel 6.18.57 and Mesa 26.1.8, in
-the same scene (title screen, 1280x720 display, 1080p scene resolution, FSR2):
-`xe` bound cleanly, the journal had no DRM errors, and the frame rate was
-unchanged at 10 FPS. The GPU clock went from 1000 MHz to 1200 MHz while
-utilisation went from 95% to 97%, which is the signature of a GPU already at its
-ceiling rather than a driver fighting for submissions. The host was returned to
-`i915`: the newer driver is not worth the kernel-update risk when it buys
-nothing for this title.
+The handover was measured on 2026-10-28 with kernel 6.18.57 and Mesa 26.1.8, in
+the same scene (title screen, 1280x720 display, FSR2): `xe` bound cleanly, the
+journal had no DRM errors, and the frame rate was unchanged at 10 FPS. The GPU
+clock went from 1000 MHz to 1200 MHz while utilisation went from 95% to 97%,
+which is the signature of a GPU already at its ceiling rather than a driver
+fighting for submissions. The machine stayed on `i915`.
 
 ## Steam launch options
 
@@ -122,9 +102,10 @@ GPU load, clocks and the frame time, which separates "GPU idle, CPU bound" from
    `vulkaninfo --summary` (device `Intel(R) Iris Xe Graphics (ADL GT2)`).
 2. Check that the window is not being forced through software: in `MangoHud`,
    the GPU name must be the Iris Xe, not `llvmpipe`.
-3. Check the power limit: `cat /sys/class/powercap/intel-rapl-mmio:0/constraint_0_power_limit_uw`
-   should read `28000000`. If it reads `20000000` or `15000000`, DPTF lowered it
-   and the holder is not running (`systemctl status hamra-intel-powerlimit`).
+3. Check the power limit the firmware is enforcing:
+   `cat /sys/class/powercap/intel-rapl-mmio:0/constraint_0_power_limit_uw`. The
+   module does not override it; if it reads `15000000` the package is at 15 W and
+   the GPU shares that budget with the CPU.
 4. Check GPU utilisation with `intel_gpu_top`: near 100% render busy means the
    iGPU is the limit, and the only levers left are resolution and upscaling
    (1280x720 + FSR, lowest textures); low utilisation with high CPU time means
@@ -139,7 +120,7 @@ GPU load, clocks and the frame time, which separates "GPU idle, CPU bound" from
 | Role | laptop, `wayvnc` server | NAS (`services.samba`), desktop |
 | CPU | Intel Core i5-1235U, verified with `lscpu` | Intel (`kvm-intel`, `vmd` in `initrd.availableKernelModules`); exact model not recorded in the repo |
 | iGPU | Iris Xe `8086:46a8`, verified with `lspci -nn` | declared only as `hamra.hardware.gpu = "intel"`; PCI ID not recorded in the repo |
-| Kernel driver | `i915` (`hamra.hardware.intel.xe = null`) | `i915` (option not set, default `null`) |
+| Kernel driver | `i915` | `i915` |
 | Games toggles | `steam`, `gamemode`, `mangohud` | `steam`, `gamemode`, `mangohud` |
 
 To fill the `acer` row, run on that machine:
@@ -150,5 +131,5 @@ lspci -nn | grep -Ei 'vga|3d|display'
 ```
 
 If it also has an Iris Xe and the same title screen behaviour, the same toggle
-applies; `hamra.hardware.intel.xe` stays per host on purpose, because the PCI ID
-and the willingness to run `xe` differ per machine.
+applies; the kernel driver stays `i915` on both hosts unless a measured win says
+otherwise.
