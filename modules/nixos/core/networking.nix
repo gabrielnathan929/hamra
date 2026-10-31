@@ -14,7 +14,7 @@ in {
   config.networking = {
     hostName = lib.mkDefault networking.hostname;
     networkmanager.enable = lib.mkDefault true;
-    networkmanager.insertNameservers = ["1.1.1.1" "8.8.8.8"];
+    networkmanager.insertNameservers = ["94.140.14.14" "94.140.15.15" "1.1.1.1" "8.8.8.8"];
     firewall.enable = lib.mkDefault true;
   };
 }
