@@ -21,9 +21,15 @@ in {
       pkgs.localsend
     ];
 
+    services.avahi = {
+      enable = true;
+      nssmdns4 = true;
+      openFirewall = true;
+    };
+
     networking.firewall = {
       allowedTCPPorts = [53317];
-      allowedUDPPorts = [53317];
+      allowedUDPPorts = [53317 5353];
     };
   };
 }

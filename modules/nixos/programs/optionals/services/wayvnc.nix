@@ -31,7 +31,7 @@
   wayvncDaemon = pkgs.writeShellScript "wayvnc-daemon" ''
       set -e
 
-      VNC_ADDR="0.0.0.0"
+      VNC_ADDR="::"
       VNC_FPS=30
       TIMEOUT=90
       SLEEP=1
