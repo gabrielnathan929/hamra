@@ -20,6 +20,10 @@ in {
       options = ["--cmd cd"];
     };
 
+    home.sessionPath = mkIf cfg [
+      "$HOME/.local/bin"
+    ];
+
     programs.zsh = mkIf cfg {
       enable = true;
       enableCompletion = true;

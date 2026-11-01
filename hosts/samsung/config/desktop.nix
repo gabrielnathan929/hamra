@@ -52,7 +52,7 @@
         "github:google-antigravity/antigravity-cli" = "latest";
         "github:herdrdev/herdr" = "latest";
         go = "latest";
-        java = "latest";
+        java = "21";
         "npm:@opencode/cli" = "latest";
         python = "latest";
       };
