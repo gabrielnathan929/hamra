@@ -21,7 +21,7 @@ _: {
       gamemode = true;
       gamepad = true;
       gamescope = true;
-      heroic = false;
+      heroic = true;
       hydralauncher = true;
       lutris = false;
       mangohud = true;
