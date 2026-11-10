@@ -140,7 +140,6 @@ ask_yes_no() {
 
 ask_enum() {
     label="$1"; default="$2"; shift 2
-    opts="$*"
     display=$(printf "%s | " "$@")
     display="${display% | }"
     if [ -n "$GUM" ]; then
@@ -329,10 +328,12 @@ write_host() {
     final="$REPO/hosts/$hostname"
     [ -e "$final" ] && die "hosts/$hostname already exists — write-once rule; nothing was written"
     tmp=$(mktemp -d "$REPO/hosts/.${hostname}.tmp-XXXXXX")
+    trap 'rm -rf "$tmp"' EXIT
     write_rendered "$tmp" "$json"
     printf "%s" "$hardware" > "$tmp/hardware-configuration.nix"
     command -v alejandra > /dev/null 2>&1 && alejandra -q "$tmp" 2>/dev/null
     mv "$tmp" "$final"
+    trap - EXIT
     ok "hosts/$hostname/ created (atomic)"
 }
 
@@ -388,7 +389,8 @@ build_answers() {
     gpu="$6"; firmware="$7"; desktop="$8"; displayManager="$9"; keyboard="${10}"
     nas="${11}"; vnc="${12}"; env_editor="${13}"; env_browser="${14}"
     env_terminal="${15}"; env_filemanager="${16}"; enable_list="${17}"
-    core_disable_list="${18}"; hm_enable_list="${19}"
+    core_disable_list="${18}"; hm_enable_list="${19}"; fullName="${20}"
+    email="${21}"; bootDevice="${22}"
 
     json_list() {
         [ -z "${1:-}" ] && { printf "[]"; return 0; }
@@ -415,6 +417,9 @@ build_answers() {
     printf '{
   "hostname": "%s",
   "username": "%s",
+  "fullName": "%s",
+  "email": "%s",
+  "bootDevice": "%s",
   "locale": "%s",
   "timezone": "%s",
   "theme": "%s",
@@ -435,7 +440,8 @@ build_answers() {
   "core_disable": %s,
   "hm_enable": %s
 }' \
-        "$hostname" "$username" "$locale" "$timezone" "$theme" \
+        "$hostname" "$username" "$fullName" "$email" "$bootDevice" \
+        "$locale" "$timezone" "$theme" \
         "$gpu" "$firmware" "$desktop" "$displayManager" "$keyboard_json" \
         "$nas" "$vnc" \
         "$env_editor" "$env_browser" "$env_terminal" "$env_filemanager" \
@@ -463,7 +469,7 @@ validate_answers() {
         ""|*[!a-z0-9_-]*) die "invalid username '$username'" ;;
     esac
     case "$username" in [0-9]*) die "invalid username '$username'" ;; esac
-    for key in locale timezone theme; do
+    for key in locale timezone theme fullName email; do
         v=$(jq -r --arg k "$key" '.[$k] // ""' "$answers_file")
         case "$v" in *\"*|*\\*) die "'$key' must not contain quotes or backslashes" ;; esac
     done
@@ -484,6 +490,13 @@ validate_answers() {
     if [ -n "$dm" ]; then
         echo "$enums" | jq -e --arg v "$dm" '.displayManagers | index($v) != null' > /dev/null \
             || die "invalid displayManager '$dm'"
+    fi
+    if [ "$firmware" = "bios" ]; then
+        boot_device=$(jq -r '.bootDevice // ""' "$answers_file")
+        case "$boot_device" in
+            /dev/?*) ;;
+            *) die "firmware=bios requires bootDevice (disk for GRUB, e.g. /dev/sda)" ;;
+        esac
     fi
     for key in editor browser terminal filemanager; do
         v=$(jq -rn --arg k "$key" --slurpfile a "$answers_file" '$a[0].env[$k] // ""')
@@ -539,6 +552,11 @@ ${BLD}${CRE}[${CYE}!${CRE}]${CNC} ${BLD}${CRE}It never overwrites an existing ho
     [ -n "$detected_gpu" ] || detected_gpu="intel"
     gpu=$(ask_enum "GPU" "$detected_gpu" intel amd nvidia virtio)
     firmware=$(ask_enum "Firmware" "$(detect_firmware)" uefi bios)
+    if [ "$firmware" = "bios" ]; then
+        bootDevice=$(ask_input "Disk for GRUB (e.g. /dev/sda)" "/dev/sda")
+    else
+        bootDevice=""
+    fi
     if ask_yes_no "Custom keyboard? (default is br/abnt2)" "false"; then
         keymap=$(ask_input "  keymap (e.g. us, br)" "us")
         variant=$(ask_input "  xkbVariant (e.g. intl, abnt2 — empty for none)" "")
@@ -582,6 +600,7 @@ ${BLD}${CRE}[${CYE}!${CRE}]${CNC} ${BLD}${CRE}It never overwrites an existing ho
         "$gpu" "$firmware" "$desktop" "$displayManager" "$keyboard" \
         "$nas" "$vnc" "$env_editor" "$env_browser" "$env_terminal" "$env_filemanager" \
         "$enable_list" "$core_disable_list" "$hm_enable_list" \
+        "$fullName" "$email" "$bootDevice" \
         > "$ANSWERS"
     jq --arg f "$(flake_dir)" '.flakeDir = $f' "$ANSWERS" > "$ANSWERS.tmp" \
         && mv "$ANSWERS.tmp" "$ANSWERS"
