@@ -1,21 +1,30 @@
 keys:
-  # Editing key (machine where you run `sops secrets/...`)
+  # Editing key (machine that runs `sops updatekeys` / `sops edit`)
   - &user age1sq570spnk7jm72zzyqa9h264pxulx0xqu8m2hj0ka3u27ca3uycsk3xfhu
-  # Per-host decryption keys (derived from each machine's SSH key).
-  # To get a host key, run once on that host:
-  #   cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age
-  # Then uncomment the matching line and paste the result over `age1...`.
+
+  # Host keys (public — derived from each machine's SSH host key)
   - &host-samsung age1jke3vagr84utrxqsd89m3vpxmr9wgcr44tycngm4lf0570h4tsdqvr23yf
-  - &host-acer age1uw4uek9vywsw0x23hrx65pcdgqp4tmaf8pcfal54k2zct79azecq4s5qm5
+  - &host-acer    age1uw4uek9vywsw0x23hrx65pcdgqp4tmaf8pcfal54k2zct79azecq4s5qm5
   # - &host-vm age1...
 
 creation_rules:
+  # vnc.yaml: wayvnc server may run on any host that enables it
   - path_regex: secrets/vnc\.yaml$
     key_groups:
       - age:
           - *user
           - *host-samsung
           - *host-acer
+
+  # wayvnc-tls.yaml: static TLS private key for wayvnc (same hosts as vnc.yaml)
+  - path_regex: secrets/wayvnc-tls\.yaml$
+    key_groups:
+      - age:
+          - *user
+          - *host-samsung
+          - *host-acer
+
+  # samba.yaml: Samba server runs on the NAS host; clients may need it for activation scripts
   - path_regex: secrets/samba\.yaml$
     key_groups:
       - age:

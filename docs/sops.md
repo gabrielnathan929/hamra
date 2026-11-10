@@ -10,11 +10,14 @@ Hamra uses **sops-nix** with **age** encryption for secret management. Secrets l
 
 ```
 secrets/
-├── vnc.yaml       # wayvnc password (VNC)
-└── samba.yaml     # Samba NAS password
+├── vnc.yaml          # wayvnc password (VNC)
+├── samba.yaml        # Samba NAS password
+└── wayvnc-tls.yaml   # wayvnc static TLS private key
 
-.sops.yaml         # Key/recipient configuration
+.sops.yaml            # Key/recipient configuration
 ```
+
+> **Certificates:** The wayvnc TLS *certificate* (public) lives in the repo at `modules/nixos/programs/optionals/services/wayvnc-cert.pem`. Only the *private key* is encrypted in `secrets/wayvnc-tls.yaml`.
 
 ---
 
@@ -61,6 +64,14 @@ creation_rules:
           - *host-samsung
           - *host-acer
 
+  # wayvnc-tls.yaml: static TLS private key for wayvnc (same hosts as vnc.yaml)
+  - path_regex: secrets/wayvnc-tls\.yaml$
+    key_groups:
+      - age:
+          - *user
+          - *host-samsung
+          - *host-acer
+
   # samba.yaml: Samba server runs on the NAS host; clients may need it for activation scripts
   - path_regex: secrets/samba\.yaml$
     key_groups:
@@ -74,9 +85,83 @@ creation_rules:
 | Secret | Hosts that can decrypt | Rationale |
 |--------|------------------------|-----------|
 | `vnc.yaml` | samsung, acer | wayvnc server can be enabled on any host via toggle |
+| `wayvnc-tls.yaml` | samsung, acer | static TLS key for wayvnc (same hosts as vnc.yaml) |
 | `samba.yaml` | acer (NAS), samsung (client) | NAS host runs the server; client hosts run activation scripts that read the password |
 
 > **Note:** Roles are not fixed. Any host can become a wayvnc server or Samba NAS by enabling the corresponding toggle. The recipient list simply includes all hosts that *might* need the secret.
+
+---
+
+## wayvnc Static TLS Certificate (No More Regeneration)
+
+### Problem with the old approach
+The original wayvnc module generated a **new self-signed certificate + RSA key on every boot** (`~/.local/state/wayvnc/`). This caused:
+- Remmina (and other VNC clients) to prompt "untrusted certificate" **every connection**
+- No way to "trust once" because the cert changed each reboot
+- 300+ lines of shell script for cert/key management
+
+### Solution: Static cert/key via SOPS
+1. **Certificate (public)** → committed to repo: `modules/nixos/programs/optionals/services/wayvnc-cert.pem`
+2. **Private key (secret)** → encrypted in SOPS: `secrets/wayvnc-tls.yaml`
+3. **Generation: once** (100-year validity = 36500 days)
+4. **Result:** Remmina prompts **once**, you click "Always trust", done forever.
+
+### Generate the cert/key pair (run once, on any machine with openssl)
+```bash
+# 100-year validity (36500 days), RSA 4096
+openssl req -x509 -newkey rsa:4096 -sha256 -days 36500 -nodes \
+  -keyout wayvnc-key.pem -out wayvnc-cert.pem \
+  -subj "/CN=wayvnc" -addext "subjectAltName=IP:127.0.0.1,IP:::1"
+
+# wayvnc-cert.pem → commit to repo (modules/nixos/programs/optionals/services/)
+# wayvnc-key.pem  → put in sops (see below)
+```
+
+### Add private key to SOPS (on editing-key machine)
+```bash
+# Create the sops file with the private key
+nix develop --command sops secrets/wayvnc-tls.yaml
+# Paste content:
+# wayvnc_tls_key: |
+#   -----BEGIN PRIVATE KEY-----
+#   ...
+#   -----END PRIVATE KEY-----
+# Save → encrypts for all recipients in .sops.yaml
+
+git add secrets/wayvnc-tls.yaml .sops.yaml
+git commit -m "chore(sops): add wayvnc static TLS key"
+git push
+```
+
+### Update recipients when adding a new host
+```bash
+# On editing-key machine (after adding host key to .sops.yaml)
+nix develop --command sops updatekeys secrets/wayvnc-tls.yaml secrets/vnc.yaml secrets/samba.yaml
+git add secrets/*.yaml .sops.yaml
+git commit -m "chore(sops): sync recipients for new host"
+git push
+```
+
+### Module changes (already done)
+- `wayvnc.nix` now passes `--cert-file` + `--key-file` to wayvnc
+- No more runtime cert generation (`ensure_tls()` removed)
+- No more RSA key generation (`ssh-keygen` removed)
+- Auth config references static files: `private_key_file=/run/secrets/wayvnc-tls-key`, `certificate_file=/path/to/wayvnc-cert.pem`
+
+### Machine lifecycle considerations
+
+| Scenario | What happens | Action needed |
+|----------|--------------|---------------|
+| **Host rebuild** (same machine) | Same cert/key used, no change | Nothing |
+| **OS reinstall** (new SSH host key) | New host key → add to `.sops.yaml` → `sops updatekeys` → rebuild | Run `sops updatekeys` on editing machine |
+| **New machine** | Generate host key → add to `.sops.yaml` → `sops updatekeys` → rebuild | Same as above |
+| **Cert compromised** | Generate new cert/key pair → replace `wayvnc-cert.pem` in repo → update `wayvnc-tls.yaml` in sops → `sops updatekeys` all secrets → rebuild all hosts | Run on editing machine |
+| **Cert expired** (36500 days ≈ 100 years) | Practically never, but same as "compromised" | Same as above |
+
+> **Key insight:** The cert/key are **not tied to the machine identity**. They're just a static TLS identity for the wayvnc service. The *machine identity* is handled by the host SSH key (for sops decryption). This means:
+> - You can move the cert/key to a new machine without regenerating
+> - Only the sops recipients need updating when machines change
+> - The 100-year validity means "effectively never expires"
 
 ---
 
@@ -102,7 +187,7 @@ ssh vm "cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age"
 #    creation_rules: add *host-vm to secrets the vm needs
 
 # 3. On editing-key machine:
-nix develop --command sops updatekeys secrets/vnc.yaml secrets/samba.yaml
+nix develop --command sops updatekeys secrets/vnc.yaml secrets/samba.yaml secrets/wayvnc-tls.yaml
 git add .sops.yaml secrets/*.yaml && git commit -m "chore(sops): add vm key" && git push
 
 # 4. On vm: pull + rebuild
@@ -134,7 +219,7 @@ nix develop --command sops -d secrets/vnc.yaml
    - `owner` / `mode` / `group`
 3. During **activation** (before switch):
    - sops-nix decrypts using the **host's private SSH key** (`/etc/ssh/ssh_host_ed25519_key`)
-   - Writes to `/run/secrets/<name>` (e.g., `/run/secrets/vnc-password`)
+   - Writes to `/run/secrets/<name>` (e.g., `/run/secrets/vnc-password`, `/run/secrets/wayvnc-tls-key`)
 4. Services read from `/run/secrets/...`
 
 ### Example (wayvnc):
@@ -144,19 +229,29 @@ sops.secrets."vnc-password" = {
   owner = config.hamra.users.userName;
   mode = "0400";
 };
-# systemd service uses: ExecStart = "... --password-file /run/secrets/vnc-password"
+
+sops.secrets."wayvnc-tls-key" = {
+  sopsFile = "${config.hamra.secrets.path}/wayvnc-tls.yaml";
+  owner = config.hamra.users.userName;
+  mode = "0400";
+};
+
+# wayvnc command uses:
+# --cert-file=/path/to/wayvnc-cert.pem
+# --key-file=/run/secrets/wayvnc-tls-key
+# --config=/run/user/.../wayvnc.conf (contains password from /run/secrets/vnc-password)
 ```
 
 ---
 
 ## Machine State
 
-| Machine | Has editing key? | Host key in .sops.yaml? | Decrypts vnc.yaml? | Decrypts samba.yaml? |
-|---------|------------------|-------------------------|--------------------|----------------------|
-| **samsung** | ❌ (likely not) | ✅ `host-samsung` | ✅ | ✅ |
-| **acer** | ❌ | ✅ `host-acer` | ✅ | ✅ |
-| **vm** | ❌ | ❌ | ❌ | ❌ |
-| **Editing machine** | ✅ | — | — | — |
+| Machine | Has editing key? | Host key in .sops.yaml? | Decrypts vnc.yaml? | Decrypts wayvnc-tls.yaml? | Decrypts samba.yaml? |
+|---------|------------------|-------------------------|--------------------|---------------------------|----------------------|
+| **samsung** | ❌ (likely not) | ✅ `host-samsung` | ✅ | ✅ | ✅ |
+| **acer** | ❌ | ✅ `host-acer` | ✅ | ✅ | ✅ |
+| **vm** | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Editing machine** | ✅ | — | — | — | — |
 
 > **Important:** Only **one** machine holds the private editing key (`~/.config/sops/age/keys.txt`). Other machines use their host key (derived from SSH) for boot-time decryption.
 
@@ -186,6 +281,12 @@ cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age
 # 4. Rebuild on host
 ```
 
+### wayvnc: Remmina still shows certificate warning after rebuild
+- Verify `wayvnc-cert.pem` is in the module directory and committed
+- Verify `wayvnc-tls.yaml` decrypts on the host: `nix develop --command sops -d secrets/wayvnc-tls.yaml`
+- Check wayvnc logs: `journalctl --user -u wayvnc -f`
+- Ensure the cert's SAN includes the IPs you connect from (127.0.0.1, ::1 by default)
+
 ---
 
 ## Useful Commands
@@ -196,7 +297,7 @@ sops -i secrets/vnc.yaml   # opens editor
 sops -d secrets/vnc.yaml   # decrypts to stdout
 
 # Update recipients (on editing-key machine)
-sops updatekeys secrets/vnc.yaml secrets/samba.yaml
+sops updatekeys secrets/vnc.yaml secrets/samba.yaml secrets/wayvnc-tls.yaml
 
 # Verify local decryption works
 nix develop --command sops -d secrets/vnc.yaml
@@ -206,6 +307,11 @@ cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age
 
 # Generate editing key (once)
 age-keygen > ~/.config/sops/age/keys.txt
+
+# Generate wayvnc static cert/key (once, 100-year validity)
+openssl req -x509 -newkey rsa:4096 -sha256 -days 36500 -nodes \
+  -keyout wayvnc-key.pem -out wayvnc-cert.pem \
+  -subj "/CN=wayvnc" -addext "subjectAltName=IP:127.0.0.1,IP:::1"
 ```
 
 ---
@@ -217,3 +323,4 @@ age-keygen > ~/.config/sops/age/keys.txt
 - `.sops.yaml` contains only **public keys** — safe to commit
 - Editing private key (`~/.config/sops/age/keys.txt`) **stays out of repo** — back up securely (password manager, offline USB, etc.)
 - Host private keys live in `/etc/ssh/` (protected by the OS)
+- wayvnc TLS private key (`wayvnc-tls.yaml`) is encrypted in sops; only the certificate is public
