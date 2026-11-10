@@ -123,8 +123,8 @@ sudo nixos-rebuild switch --flake .#your-hostname
 
 | Host | Role | Desktop | GPU | Notable Toggles |
 |------|------|---------|-----|-----------------|
-| `samsung` | Daily driver laptop | Hyprland | AMD | wayvnc, steam, sunshine, moonlight |
-| `acer` | NAS / desktop | Hyprland | NVIDIA | samba, wayvnc, steam, protonup-qt |
+| `samsung` | Daily driver laptop | Hyprland | Intel | wayvnc, steam, sunshine, moonlight |
+| `acer` | NAS / desktop | Hyprland | Intel | samba, wayvnc, steam, protonup-qt |
 | `vm` | Test VM | Hyprland | virtio | minimal, no wayvnc/samba |
 
 ---
