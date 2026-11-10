@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -32,7 +35,7 @@ jobs:
           ALLOWED: ${{ contains(github.event.pull_request.labels.*.name, 'personal-layer') }}
         run: |
           git fetch --no-tags origin "$BASE_SHA" "$HEAD_SHA" 2>/dev/null || true
-          files=$(git diff --name-only "$BASE_SHA"... "$HEAD_SHA" || git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
+          files=$(git diff --name-only "$BASE_SHA...$HEAD_SHA" || git diff --name-only "origin/${{ github.event.pull_request.base.ref }}...HEAD")
           personal=$(echo "$files" | grep -E '^hosts/' || true)
           if [ -n "$personal" ] && [ "$ALLOWED" != 'true' ]; then
             {
@@ -64,9 +67,18 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
       - run: nix develop --accept-flake-config --command sh -c "statix check . && deadnix --fail ."
 
+  shellcheck:
+    name: Shell
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
+      - run: nix run --accept-flake-config nixpkgs#shellcheck -- --severity=warning scripts/cookiecutter.sh scripts/setup-nas.sh scripts/tests/test_golden.sh
+
   check:
     name: Evaluation
-    needs: [format, lint]
+    needs: [format, lint, shellcheck]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -113,13 +125,13 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
       - name: Free disk space
         run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache
-      - run: nix build --accept-flake-config --print-build-logs .#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel
-      - name: Push closures to cachix
+      - name: Setup cachix (pull + push)
         if: env.CACHIX_TOKEN != ''
         uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866
         with:
           name: hamra
           authToken: ${{ env.CACHIX_TOKEN }}
+      - run: nix build --accept-flake-config --print-build-logs .#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel
 
   apps:
     name: Apps smoke test (cookiecutter)
@@ -131,10 +143,10 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
-      - run: nix run --accept-flake-config .#cookiecutter -- --help
-      - name: Push apps to cachix
+      - name: Setup cachix (pull + push)
         if: env.CACHIX_TOKEN != ''
         uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866
         with:
           name: hamra
           authToken: ${{ env.CACHIX_TOKEN }}
+      - run: nix run --accept-flake-config .#cookiecutter -- --help
