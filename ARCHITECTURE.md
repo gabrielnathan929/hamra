@@ -88,6 +88,5 @@ input changes go through a PR like anything else.
 | `modules/` | the whole library (lib, nixos, home) |
 | `scripts/cookiecutter.sh` | cookiecutter — wizard that shapes a new machine (bash + gum/fzf when available, no compilation) |
 | `scripts/` | CLI engine (cookiecutter), golden tests, NAS wizard |
-| `scripts/` | assistants (e.g. setup-nas) |
 | `secrets/` | encrypted secrets |
 | `docs/` | guides (NAS for beginners, firewall) |

@@ -214,10 +214,8 @@ New hosts from `cookiecutter` start opinionated: `chromium` + `thunar`
 | `mosh` | UDP 60000-61000 |
 | `http` | TCP 80 |
 | `https` | TCP 443 |
-| `dev` | TCP 3000-3001/4000/4200/5000-5001/5173-5174/8000-8001/8080-8082/9000/19000-19002 — test a local dev server from the phone (bind it to 0.0.0.0, e.g. `vite --host`) |
-| `vnc` | TCP 5900 |
+| `dev` | TCP 3000-3001/4000/4200/5000-5001/5173-5174/8000-8001/8080-8082/9000/19000-19002/4173 — test a local dev server from the phone (bind it to 0.0.0.0, e.g. `vite --host`) |
 | `rdp` | TCP 3389 |
-| `samba` | TCP 139/445 + UDP 137/138 |
 | `syncthing` | TCP 8384/22000 + UDP 21027 |
 | `kdeconnect` | TCP+UDP 1714-1764 |
 | `jellyfin` | TCP 8096/8920 + UDP 1900/7359 |
@@ -225,9 +223,9 @@ New hosts from `cookiecutter` start opinionated: `chromium` + `thunar`
 | `mpd` | TCP 6600 |
 
 `enable = false` disables the firewall (everything opens). Unknown names fail
-the build (assertion in `core/firewall.nix`). The `wayvnc`, `samba` and
-`localsend` and `sunshine` toggles open their own ports when enabled — the menu is for
-everything else.
+the build (assertion in `core/firewall.nix`). The `wayvnc`, `samba`,
+`localsend` and `sunshine` toggles open their own ports when enabled — the menu
+is for everything else (that is why `vnc`/`samba` are not listed here).
 
 ### Build-time assertions
 

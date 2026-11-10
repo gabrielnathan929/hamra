@@ -295,7 +295,8 @@ nix develop
 ./scripts/setup-nas.sh --help
 ```
 
-Full guide: `./scripts/setup-nas.sh --help` and `SETUP.md` section 3.
+Full guide: [`docs/nas.md`](docs/nas.md), `./scripts/setup-nas.sh --help` and
+`SETUP.md` section 3.
 
 ## Further reading
 
@@ -304,6 +305,8 @@ Full guide: `./scripts/setup-nas.sh --help` and `SETUP.md` section 3.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — Git Flow, local validation, golden rules
 - [`SECURITY.md`](SECURITY.md) — secrets (sops) and vulnerability reporting
 - [`AGENTS.md`](AGENTS.md) — repo rules: layers, categories, toggle modules
+- [`docs/nas.md`](docs/nas.md) — beginner NAS guide (shares, trash, keys, mounting)
+- [`docs/firewall.md`](docs/firewall.md) — named-port menu and service-owned ports
 
 ## License
 
