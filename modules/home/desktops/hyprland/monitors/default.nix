@@ -15,9 +15,9 @@
     ]
   );
 in ''
-    -- Monitores
+    -- Monitors
   ${allMonitors}
 
-    -- Workspaces persistentes
+    -- Persistent workspaces
   ${workspacesPart}
 ''

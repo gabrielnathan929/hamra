@@ -11,6 +11,7 @@
     ./maintenance.nix
     ./networking.nix
     ./packages.nix
+    ./secrets.nix
     ./services
     ./theme
     ./timezone.nix

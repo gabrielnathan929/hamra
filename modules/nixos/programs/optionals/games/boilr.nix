@@ -5,14 +5,13 @@
   ...
 }: let
   cfg = config.hamra.programs.optionals.games.boilr;
-  games = config.hamra.programs.optionals.games;
   inherit (lib) mkOption mkIf types;
 in {
   options.hamra.programs.optionals.games.boilr = mkOption {
     type = types.bool;
     default = false;
-    description = "Enable BoilR (imports non-Steam games into Steam with artwork from SteamGridDB, auto-enabled with Steam).";
+    description = "Enable BoilR (imports non-Steam games into Steam with artwork from SteamGridDB).";
   };
 
-  config.environment.systemPackages = mkIf (cfg || games.steam) (with pkgs; [boilr]);
+  config.environment.systemPackages = mkIf cfg (with pkgs; [boilr]);
 }
