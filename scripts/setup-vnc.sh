@@ -41,7 +41,7 @@ EXAMPLES:
 
 NOTES:
     - Must run on machine with SOPS editing key (~/.config/sops/age/keys.txt)
-    - Or have sudo access to /etc/ssh/ssh_host_ed25519_key on a recipient host
+    - SSH host keys only work with sops-nix during system activation (not manual sops)
     - After rotation, run 'nixos-rebuild switch' on samsung and acer
     - Certificate is 100-year self-signed (36500 days)
     - RSA key is PKCS#1 format (-----BEGIN RSA PRIVATE KEY-----) for nettle compatibility
@@ -65,15 +65,9 @@ check_sops_key() {
         ok "Found editing key at ~/.config/sops/age/keys.txt"
         return 0
     fi
-    # Try SSH host key
-    if [[ -r /etc/ssh/ssh_host_ed25519_key ]]; then
-        ok "Can read SSH host key (will use with sudo)"
-        return 0
-    fi
-    error "No SOPS decryption key found!"
-    error "Need either:"
-    error "  - ~/.config/sops/age/keys.txt (editing key)"
-    error "  - sudo access to /etc/ssh/ssh_host_ed25519_key (on recipient host)"
+    error "No SOPS editing key found at ~/.config/sops/age/keys.txt"
+    error "Manual sops operations require the editing key."
+    error "SSH host keys only work with sops-nix during system activation."
     return 1
 }
 
@@ -84,7 +78,9 @@ decrypt_secret() {
     if [[ -f ~/.config/sops/age/keys.txt ]]; then
         SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt nix develop --command sops -d "$file" 2>/dev/null | grep -oP '(?<='"$key_var"': ).*' | tr -d '"'
     else
-        sudo SOPS_AGE_SSH_PRIVATE_KEY_FILE=/etc/ssh/ssh_host_ed25519_key nix run nixpkgs#sops -- -d "$file" 2>/dev/null | grep -oP '(?<='"$key_var"': ).*' | tr -d '"'
+        error "SSH host key decryption not supported for manual sops commands."
+        error "Use the editing key (~/.config/sops/age/keys.txt) or run via sops-nix at activation."
+        return 1
     fi
 }
 
