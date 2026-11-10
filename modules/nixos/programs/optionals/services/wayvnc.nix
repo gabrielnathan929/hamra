@@ -299,8 +299,6 @@
         echo "certificate_file=${certFile}"
         echo "private_key_file=${tlsKeyFile}"
         echo "rsa_private_key_file=${rsaKeyFile}"
-        echo "relax_encryption=true"
-        echo "allow_broken_crypto=true"
       } >"$conf"
       chmod 600 "$conf"
       echo "$conf"
