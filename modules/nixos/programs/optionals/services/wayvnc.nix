@@ -23,8 +23,14 @@
     else headlessDisplays.${lib.head headlessNames};
 
   certFile = ./wayvnc-cert.pem;
-  tlsKeyFile = config.sops.secrets."wayvnc-tls-key".path;
-  rsaKeyFile = config.sops.secrets."wayvnc-rsa-key".path;
+  tlsKeyFile =
+    if noAuth
+    then ""
+    else config.sops.secrets."wayvnc-tls-key".path;
+  rsaKeyFile =
+    if noAuth
+    then ""
+    else config.sops.secrets."wayvnc-rsa-key".path;
 
   wayvncDaemon = pkgs.writeShellScript "wayvnc-daemon" ''
     set -e
@@ -280,6 +286,15 @@
       esac
     }
 
+    write_open_config() {
+      conf="$XDG_RUNTIME_DIR/wayvnc.conf"
+      {
+        echo "enable_auth=false"
+      } >"$conf"
+      chmod 600 "$conf"
+      echo "$conf"
+    }
+
     write_config() {
       secret_file=$1
       if [ ! -f "$secret_file" ]; then
@@ -315,15 +330,21 @@
       compositor=$(wait_compositor) || exit 1
       output=$(setup_headless "$compositor") || exit 1
       if [ "$1" = "--open" ]; then
+        open_conf=$(write_open_config) || exit 1
         info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, no auth)..."
         ${pkgs.util-linux}/bin/flock -u 9
         exec ${lib.getExe pkgs.wayvnc} \
+          --config="$open_conf" \
           "$VNC_ADDR" \
           --max-fps="$VNC_FPS" \
           --render-cursor \
           --output="$output"
       fi
-      vnc_pw_path='${config.sops.secrets."vnc-password".path}'
+      vnc_pw_path='${
+      if noAuth
+      then ""
+      else config.sops.secrets."vnc-password".path
+    }'
       config_file=$(write_config "$vnc_pw_path") || exit 1
 
       info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, TLS auth, static cert/keys)..."
