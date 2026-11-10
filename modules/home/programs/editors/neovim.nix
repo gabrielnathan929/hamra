@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }: let
   cfg = config.hamra.home.programs.editors.neovim;
@@ -10,7 +9,7 @@ in {
   options.hamra.home.programs.editors.neovim = mkOption {
     type = types.bool;
     default = false;
-    description = "Enable Neovim editor configuration.";
+    description = "Enable Neovim editor configuration. Pair with hamra.programs.optionals.cli.\"neovim-tools\" (NixOS) for LSP servers and companion tools.";
   };
 
   config = mkIf cfg {
@@ -25,16 +24,6 @@ in {
         require("config.lazy")
       '';
     };
-
-    home.packages = with pkgs; [
-      lua-language-server
-      nil
-      ripgrep
-      fd
-      lazygit
-      alejandra
-      stylua
-    ];
 
     xdg.configFile = {
       "nvim/lua/config/lazy.lua".text = ''

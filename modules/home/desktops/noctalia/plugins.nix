@@ -22,13 +22,13 @@ _: {
         name = "official";
         kind = "git";
         location = "https://github.com/gabrielnathan929/official-plugins";
-        auto_update = true;
+        auto_update = false;
       }
       {
         name = "community";
         kind = "git";
         location = "https://github.com/gabrielnathan929/community-plugins";
-        auto_update = true;
+        auto_update = false;
       }
     ];
   };
