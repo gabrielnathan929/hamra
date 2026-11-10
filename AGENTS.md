@@ -238,13 +238,22 @@ or Sway; firewall port names within the registry (`core/firewall.nix`).
 
 `services.wayvnc` is the **server** (user unit, TCP 5900, requires
 `hamra.displays.headless`); `services.tigervnc` is the **client**
-(`vncviewer`). Both are plain toggles, so a host can be server and client.
+(`vncviewer`) and `services."vnc-client"` runs the client as a background
+user unit. All are plain toggles, so a host can be server and client.
+
+`vnc-client` connects at login to `hamra.home.programs.shell.vncHost` using
+`X509Plain` with the TLS certificate pinned in the repo and the sops password
+via `VNC_USERNAME`/`VNC_PASSWORD` (no dialogs, no fingerprint), and
+`Restart=always`/`RestartSec=5` reopens the session when the link drops. The
+compositor starts it (`systemctl --user start vnc-client`) at login on
+Hyprland, Sway and Niri.
 
 Auth is user + password from `secrets/vnc.yaml`, plus static TLS and RSA keys
 from sops. neatvnc only implements `RA2`/`RA2_256` (RSA-AES) and `X509Plain`
-(TLS), so clients must ask for one of those — `VncAuth`/`TLSVnc` fail.
-`hamra.home.programs.shell.vncHost` adds a `vnc` alias on the client host
-(TigerVNC with `RA2`); Remmina is off by default. Recipe, key formats and
+(TLS), so clients must ask for one of those — `VncAuth`/`TLSVnc` fail. With
+`vncHost` set (and the daemon off) the `vnc` alias runs TigerVNC manually;
+with the daemon on it becomes `vnc`/`vnc-restart`/`vnc-stop`/`vnc-status`
+around the unit. Remmina is off by default. Recipe, key formats and
 troubleshooting: `docs/vnc.md`. Manage the credentials with
 `./scripts/setup-vnc.sh` (`--check`, `--show-password`, `--rotate-password`,
 `--rotate-certs`); it must run on the machine that holds the sops editing key.

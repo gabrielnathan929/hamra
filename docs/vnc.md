@@ -9,8 +9,9 @@ physical screen.
 |--------|------|
 | `services.wayvnc` | VNC **server** (wayvnc + systemd user unit, TCP 5900) |
 | `services.tigervnc` | VNC **client** tools (`vncviewer`) |
+| `services."vnc-client"` | **Background client** that connects automatically and reconnects |
 
-Both are plain toggles in the host file; the same machine can be server and
+All are plain toggles in the host file; the same machine can be server and
 client.
 
 ---
@@ -18,13 +19,12 @@ client.
 ## What the server accepts
 
 wayvnc delegates the RFB handshake to **neatvnc**, which implements only a
-subset of the security types. Use this table when a client asks "which
-security type?":
+subset of the security types:
 
 | Client option | Server side | Credentials | Works |
 |---------------|-------------|-------------|-------|
-| `RA2` / `RA2_256` (RSA-AES) | static RSA key (`wayvnc-rsa-key`) | user + password | **yes — recommended** |
-| `X509Plain` (VeNCrypt TLS) | static TLS cert + key (`wayvnc-tls-key`) | user + password | yes, needs the CA cert on the client |
+| `X509Plain` (VeNCrypt TLS) | static TLS cert + key (`wayvnc-tls-key`) | user + password | **yes — what `vnc-client` uses** |
+| `RA2` / `RA2_256` (RSA-AES) | static RSA key (`wayvnc-rsa-key`) | user + password | yes, prompts the fingerprint |
 | `TLSVnc`, `TLSPlain`, `X509Vnc`, `X509None` | — | — | no: `No valid VeNCrypt sub-type` |
 | `VncAuth` (classic DES) | — | password | no: rejected by this build |
 
@@ -33,9 +33,60 @@ So every working session uses **username + password**. The username is
 
 ---
 
-## Connecting
+## Automatic client (`vnc-client`)
 
-Client side (machine with `services.tigervnc = true`):
+Turning on `services."vnc-client"` makes the client host connect by itself:
+
+- the compositor starts `vnc-client.service` at login (Hyprland, Sway or Niri);
+- the unit runs **TigerVNC** with `-SecurityTypes X509Plain -X509CA <cert>`,
+  so the TLS certificate pinned in the repo replaces the fingerprint prompt;
+- username and password come from the sops secret at
+  `/run/secrets/vnc-password` (`VNC_USERNAME` + `VNC_PASSWORD`, no dialog);
+- `Restart=always` with `RestartSec=5`: if the link drops the viewer exits and
+  systemd brings it back — no need to start the server first, the client keeps
+  retrying until it appears.
+
+The target is the **same** `hamra.home.programs.shell.vncHost` used by the
+alias, so there is one place to change:
+
+```nix
+# hosts/<client>/config/home.nix
+shell = {
+  aliases = true;
+  flakeDir = "$HOME/Projetos/hamra";
+  vncHost = "192.168.1.15:5900";
+};
+
+# hosts/<client>/config/programs-optionals.nix
+services = {
+  "vnc-client" = true;
+  tigervnc = true;
+};
+```
+
+Aliases that come with it (only when `vncHost` is set):
+
+| Alias | Does |
+|-------|------|
+| `vnc` | `systemctl --user start vnc-client` (opens the viewer now) |
+| `vnc-restart` | `systemctl --user restart vnc-client` |
+| `vnc-stop` | `systemctl --user stop vnc-client` |
+| `vnc-status` | `systemctl --user status vnc-client` + logs |
+
+Changes to the wrapper need a restart: `vnc-restart` after a rebuild.
+
+---
+
+## Connecting manually
+
+Without `vnc-client`, the client host gets a `vnc` alias that runs the viewer
+in the foreground:
+
+```bash
+vnc            # vncviewer -SecurityTypes RA2 <vncHost>
+```
+
+The full command, if you want another server:
 
 ```bash
 vncviewer -SecurityTypes RA2 <server-ip>:5900
@@ -52,21 +103,12 @@ vncviewer -SecurityTypes RA2 <server-ip>:5900
 Without `-SecurityTypes` the client picks the first type it supports, which is
 `VncAuth` — that is why the flag is required.
 
-### The `vnc` alias
+`X509Plain` with `-X509CA` also works interactively and skips the fingerprint
+step (only the user/password dialog remains):
 
-Setting `hamra.home.programs.shell.vncHost` (in the host `config/home.nix`,
-next to `flakeDir`) turns the whole command into one word:
-
-```nix
-shell = {
-  aliases = true;
-  flakeDir = "$HOME/Projetos/hamra";
-  vncHost = "192.168.1.15:5900";
-};
+```bash
+vncviewer -SecurityTypes X509Plain -X509CA /path/to/wayvnc-cert.pem <host>:5900
 ```
-
-Now `vnc` does `vncviewer -SecurityTypes RA2 192.168.1.15:5900`. For a
-different server, call `vncviewer -SecurityTypes RA2 <host>:5900` directly.
 
 ### Remmina
 
@@ -81,7 +123,7 @@ on `X509Plain` and asks for certificate files:
 
 Then username + password. The certificate is self-signed with `CN=wayvnc` and
 `subjectAltName = IP:127.0.0.1, IP:::1`, so hostname/IP verification must stay
-off. TigerVNC with `RA2` avoids all of this.
+off. TigerVNC avoids all of this.
 
 ---
 
@@ -143,11 +185,15 @@ confirmation once more.
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `Authentication failed` after choosing `VncAuth` | classic DES type is not usable on this build | use `-SecurityTypes RA2` |
+| `Authentication failed` | wrong password or username | `./scripts/setup-vnc.sh --show-password`; the user is `hamra.users.userName` |
+| `Authentication failed` after choosing `VncAuth` | classic DES type is not usable on this build | use `-SecurityTypes RA2` or `X509Plain` |
 | `No valid VeNCrypt sub-type` | client requested `TLSVnc`/`X509Vnc` | `-SecurityTypes RA2` or `X509Plain` |
 | Remmina asks for "certificate authentication files" | it negotiated `X509Plain` | fill the CA cert field, or use TigerVNC |
+| `vnc-client` restarts every 5 s | server host down or wrong `vncHost` | start the server; `vnc-status` shows the log |
+| `vnc-client` dies with `Can't open display` | unit started before XWayland exists | it retries; if it persists, check `DISPLAY` in the session |
 | `Connection refused` | unit down | `systemctl --user status wayvnc` |
 | Port 5900 unreachable from outside | firewall | the toggle opens 5900; see `docs/firewall.md` |
 | Build fails: `attribute 'vnc-password' missing` | server enabled without the secret | `./scripts/setup-vnc.sh --rotate-password` |
+| Build fails: `requires hamra.home.programs.shell.vncHost` | `vnc-client` on without a target | set `vncHost` in the host `config/home.nix` |
 | Build fails: `requires a configured hamra.displays.headless` | no headless output declared | add `hamra.displays.headless` to the host |
-| Service restarts in a loop | no compositor / headless output | check `journalctl --user -u wayvnc` |
+| Server service restarts in a loop | no compositor / headless output | check `journalctl --user -u wayvnc` |

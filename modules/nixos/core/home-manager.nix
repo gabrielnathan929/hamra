@@ -18,6 +18,7 @@
       desktop = config.hamra.desktop.default;
       displays = config.hamra.displays;
       wayvnc = config.hamra.programs.optionals.services.wayvnc;
+      vncClient = config.hamra.programs.optionals.services.vnc-client;
       env = config.hamra.env;
     };
     users.${config.hamra.users.userName} = {

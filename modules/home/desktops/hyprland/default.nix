@@ -6,6 +6,7 @@
   displays,
   env,
   wayvnc,
+  vncClient,
   ...
 }: let
   monitorsPart = import ./monitors {inherit displays lib;};
@@ -29,6 +30,11 @@ in {
         ${
         if wayvnc
         then ''hl.exec_cmd("systemctl --user start wayvnc.service")''
+        else ""
+      }
+        ${
+        if vncClient
+        then ''hl.exec_cmd("systemctl --user start vnc-client.service")''
         else ""
       }
       end)

@@ -88,6 +88,7 @@ _: {
       samba = false;
       sunshine = false;
       tailscale = false;
+      "vnc-client" = false;
       tigervnc = false;
       wayvnc = false;
     };

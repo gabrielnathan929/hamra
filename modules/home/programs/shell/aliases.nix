@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  vncClient ? false,
   ...
 }: let
   cfg = config.hamra.home.programs.shell.aliases;
@@ -12,6 +13,35 @@
     if flakeDir == null
     then "."
     else flakeDir;
+
+  vncAliases =
+    if vncHost == null
+    then {}
+    else if vncClient
+    then {
+      vnc = "systemctl --user start vnc-client";
+      vnc-restart = "systemctl --user restart vnc-client";
+      vnc-stop = "systemctl --user stop vnc-client";
+      vnc-status = "systemctl --user status vnc-client";
+    }
+    else {
+      vnc = "vncviewer -SecurityTypes RA2 ${vncHost}";
+    };
+
+  vncHelp =
+    if vncHost == null
+    then ""
+    else if vncClient
+    then ''
+      printf '%s\n' \
+        'vnc             start the background viewer (vnc-client)' \
+        'vnc-restart     restart the background viewer' \
+        'vnc-stop        stop the background viewer' \
+        'vnc-status      status of the background viewer'
+    ''
+    else ''
+      printf '%s\n' 'vnc             remote desktop (RA2 to ${vncHost})'
+    '';
 in {
   options.hamra.home.programs.shell = {
     aliases = mkOption {
@@ -82,7 +112,7 @@ in {
             'shelf           list installed and installable apps' \
             'keys            list the keybinds' \
             'aliases         list every shell alias (aliases <name>)'
-          ${lib.optionalString (vncHost != null) "printf '%s\\n' 'vnc             remote desktop (RA2 to ${vncHost})'"}
+          ${vncHelp}
         '';
 
         ".." = "cd ..";
@@ -94,9 +124,7 @@ in {
         gcam = "git commit -a -m";
         gcad = "git commit -a --amend";
       }
-      // lib.optionalAttrs (vncHost != null) {
-        vnc = "vncviewer -SecurityTypes RA2 ${vncHost}";
-      };
+      // vncAliases;
 
     initContent = mkAfter ''
       if command -v eza &> /dev/null; then

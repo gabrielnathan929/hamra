@@ -5,6 +5,7 @@
   keyboard,
   displays,
   env,
+  vncClient,
   ...
 }: let
   monitorsPart = import ./monitors {inherit displays lib;};
@@ -22,6 +23,8 @@ in {
       ${noctaliaPart}
 
       ${keybindsPart}
+
+      ${lib.optionalString vncClient ''spawn-at-startup "systemctl" "--user" "start" "vnc-client.service"''}
     '';
   };
 

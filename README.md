@@ -125,7 +125,7 @@ sudo nixos-rebuild switch --flake .#your-hostname
 | Host | Role | Desktop | GPU | Notable Toggles |
 |------|------|---------|-----|-----------------|
 | `samsung` | Daily driver laptop | Hyprland | Intel | wayvnc (server), steam, sunshine, moonlight |
-| `acer` | NAS / desktop | Hyprland | Intel | samba, tigervnc (client), steam, protonup-qt |
+| `acer` | NAS / desktop | Hyprland | Intel | samba, vnc-client (auto TigerVNC), steam, protonup-qt |
 | `vm` | Test VM | Hyprland | virtio | minimal, no wayvnc/samba |
 
 ---

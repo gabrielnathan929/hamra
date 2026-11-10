@@ -90,6 +90,7 @@ _: {
         sunshine = false;
         tailscale = false;
         tigervnc = false;
+        "vnc-client" = false;
         wayvnc = false;
       };
       tui = {
