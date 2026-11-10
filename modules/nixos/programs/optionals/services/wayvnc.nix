@@ -299,6 +299,8 @@
         echo "certificate_file=${certFile}"
         echo "private_key_file=${tlsKeyFile}"
         echo "rsa_private_key_file=${rsaKeyFile}"
+        echo "relax_encryption=true"
+        echo "allow_broken_crypto=true"
       } >"$conf"
       chmod 600 "$conf"
       echo "$conf"
@@ -316,7 +318,7 @@
       vnc_pw_path='${config.sops.secrets."vnc-password".path}'
       config_file=$(write_config "$vnc_pw_path") || exit 1
 
-      info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, TLS auth, static cert/keys)..."
+      info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, password + TLS auth)..."
       ${pkgs.util-linux}/bin/flock -u 9
       exec ${lib.getExe pkgs.wayvnc} \
         --config="$config_file" \
@@ -332,7 +334,7 @@ in {
   options.hamra.programs.optionals.services.wayvnc = mkOption {
     type = types.bool;
     default = false;
-    description = "Enable WayVNC (port 5900, sops password + static TLS cert + RSA key). Requires Hyprland or Sway.";
+    description = "Enable WayVNC (port 5900, password + TLS cert auth from sops). Requires Hyprland or Sway.";
   };
 
   config = mkIf (cfg && supported) (lib.mkMerge [

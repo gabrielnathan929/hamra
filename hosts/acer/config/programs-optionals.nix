@@ -88,7 +88,7 @@ _: {
       samba = true;
       sunshine = true;
       tailscale = true;
-      tigervnc = false;
+      tigervnc = true;
       wayvnc = false;
     };
     tui = {
