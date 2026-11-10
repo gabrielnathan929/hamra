@@ -98,6 +98,12 @@ hamra.webapps.notion = {
 };
 ```
 
+## Secrets (SOPS)
+
+Segredos (senhas, tokens, chaves) são gerenciados com **sops-nix + age**.
+Veja [`docs/sops.md`](docs/sops.md) para: estrutura de chaves, fluxos de edição,
+adição de hosts, troubleshooting e estado atual por máquina.</think>
+
 ## Adding a new app
 
 One file, one toggle. Real example —

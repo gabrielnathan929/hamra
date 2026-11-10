@@ -6,16 +6,19 @@ keys:
   #   cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age
   # Then uncomment the matching line and paste the result over `age1...`.
   - &host-samsung age1jke3vagr84utrxqsd89m3vpxmr9wgcr44tycngm4lf0570h4tsdqvr23yf
-  - &user2 age1r323pqtxklkhn2pm9npneltwf97s0l20nhzmpla5znq2jj5rraksz0uwxc
-  # - &host-acer age1...
+  - &host-acer age1uw4uek9vywsw0x23hrx65pcdgqp4tmaf8pcfal54k2zct79azecq4s5qm5
   # - &host-vm age1...
 
 creation_rules:
-  - path_regex: secrets/.+\.yaml$
+  - path_regex: secrets/vnc\.yaml$
     key_groups:
       - age:
           - *user
           - *host-samsung
-          - *user2
-          # - *host-acer
-          # - *host-vm
+          - *host-acer
+  - path_regex: secrets/samba\.yaml$
+    key_groups:
+      - age:
+          - *user
+          - *host-samsung
+          - *host-acer
