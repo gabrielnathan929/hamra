@@ -113,6 +113,26 @@ check_env() {
     fi
   done
   printf "\n  %sTip:%s run  nix develop  to get anything missing.\n" "$_B" "$_N"
+
+  printf "\n  %-18s %s\n" "Secrets" "Status"
+  if [[ -f .sops.yaml ]]; then
+    printf "  %-18s %s\n" ".sops.yaml" "ok ✔"
+    host_name=$(hostname 2>/dev/null || echo "")
+    if [[ -n $host_name ]] && grep -q "host-$host_name" .sops.yaml; then
+      printf "  %-18s %s\n" "host key" "registered ✔"
+    else
+      printf "  %-18s %s\n" "host key" "not registered ✖"
+    fi
+  else
+    printf "  %-18s %s\n" ".sops.yaml" "missing ✖"
+  fi
+  if [[ -f secrets/samba.yaml ]]; then
+    if (( TOOLS[sops] )) && sops --decrypt secrets/samba.yaml > /dev/null 2>&1; then
+      printf "  %-18s %s\n" "samba secret" "decrypts ✔"
+    else
+      printf "  %-18s %s\n" "samba secret" "cannot decrypt ✖"
+    fi
+  fi
 }
 
 # ---------------------------------------------------------------------------
@@ -304,6 +324,7 @@ ask_host() {
 
   HOST_NAME="$name"
   HOST_DIR="$REPO/hosts/$HOST_NAME"
+  HOST_BOOT_DEVICE=""
 
   if [[ -f "$HOST_DIR/configuration.nix" ]]; then
     HOST_EXISTS=1
@@ -324,6 +345,14 @@ ask_host() {
       uefi|bios) firmware="$REPLY" ;;
       *) die "Invalid firmware \"$REPLY\". Use: uefi or bios."
     esac
+
+    if [[ $firmware == "bios" ]]; then
+      ask "Disk for GRUB (e.g. /dev/sda)" "/dev/sda"
+      case "$REPLY" in
+        /dev/?*) HOST_BOOT_DEVICE="$REPLY" ;;
+        *) die "Invalid disk \"$REPLY\". Use a device path (e.g. /dev/sda)." ;;
+      esac
+    fi
 
     ask "Desktop (hyprland | sway | niri | gnome | plasma)" "hyprland"
     case "$REPLY" in
@@ -365,6 +394,7 @@ create_host() {
   "username": "$HOST_USER",
   "gpu": "$HOST_GPU",
   "firmware": "$HOST_FIRMWARE",
+  "bootDevice": "$HOST_BOOT_DEVICE",
   "desktop": "$HOST_DESKTOP",
   "nas": true,
   "vnc": false
@@ -473,13 +503,19 @@ handle_password() {
 
   read_password
   write_secret
+}
 
-  if [[ -f $secret_file ]]; then
-    info "Syncing recipients (so every registered PC"
-    info "can decrypt at boot)..."
-    printf 'y\n' | sops updatekeys secrets/samba.yaml >/dev/null \
-      || warn "updatekeys failed — other machines may fail to apply."
-    ok "Recipients synced."
+sync_secret_recipients() {
+  local secret_file="secrets/samba.yaml"
+  [[ -f $secret_file ]] || return 0
+  title "Secret recipients"
+  info "Re-encrypting secrets/samba.yaml for every key registered in .sops.yaml..."
+  if printf 'y\n' | sops updatekeys "$secret_file" >/dev/null 2>&1; then
+    ok "secrets/samba.yaml updated for all registered keys."
+  else
+    warn "Could not re-encrypt secrets/samba.yaml on this machine."
+    info "Run this from a PC that holds the editing key (~/.config/sops/age/keys.txt):"
+    info "  nix develop --command sops updatekeys secrets/samba.yaml"
   fi
 }
 
@@ -621,5 +657,6 @@ in SETUP.md (section 3) and adjust manually if needed."
 fi
 
 handle_password
+sync_secret_recipients
 deploy
 summary
