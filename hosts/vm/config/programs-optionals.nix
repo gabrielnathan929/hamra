@@ -9,6 +9,7 @@ _: {
       inetutils = false;
       jdk = true;
       mtr = false;
+      "neovim-tools" = true;
       nodejs = true;
       powertop = false;
       python3 = true;
@@ -18,6 +19,7 @@ _: {
       traceroute = false;
     };
     games = {
+      boilr = false;
       gamemode = false;
       gamepad = false;
       gamescope = false;
@@ -26,7 +28,10 @@ _: {
       lutris = false;
       mangohud = false;
       pcsx2 = false;
+      "protonup-qt" = false;
+      saves = false;
       steam = false;
+      umu = false;
       wine = false;
     };
     gui = {
@@ -49,6 +54,7 @@ _: {
       keepassxc = false;
       localsend = false;
       "mongodb-compass" = false;
+      moonlight = false;
       nautilus = false;
       netbeans = false;
       obsidian = false;
@@ -81,6 +87,7 @@ _: {
       docker = true;
       "docker-compose" = true;
       samba = false;
+      sunshine = false;
       tailscale = false;
       tigervnc = false;
       wayvnc = false;

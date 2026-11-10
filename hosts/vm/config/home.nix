@@ -3,6 +3,9 @@
     editors = {
       neovim = true;
     };
+    games = {
+      mangohud = false;
+    };
     shell = {
       aliases = true;
       flakeDir = "$HOME/Projetos/hamra";

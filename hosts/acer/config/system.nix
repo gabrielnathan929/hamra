@@ -37,9 +37,7 @@ _: {
         http = false;
         https = false;
         dev = true;
-        vnc = false;
         rdp = false;
-        samba = true;
         syncthing = false;
         kdeconnect = false;
         jellyfin = false;

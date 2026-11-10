@@ -9,6 +9,7 @@ _: {
       inetutils = true;
       jdk = true;
       mtr = true;
+      "neovim-tools" = true;
       nodejs = true;
       powertop = true;
       python3 = true;
@@ -18,6 +19,7 @@ _: {
       traceroute = true;
     };
     games = {
+      boilr = true;
       gamemode = true;
       gamepad = true;
       gamescope = true;
@@ -89,7 +91,7 @@ _: {
       tailscale = true;
       tigervnc = false;
       wayvnc = true;
-      "wayvnc-no-auth" = true;
+      "wayvnc-no-auth" = false;
     };
     tui = {
       cliamp = true;
