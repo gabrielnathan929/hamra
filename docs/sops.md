@@ -1,59 +1,59 @@
 # SOPS Secrets Management
 
-## Visão Geral
+## Overview
 
-O Hamra usa **sops-nix** para gerenciar segredos criptografados com **age**. Os segredos ficam em `secrets/*.yaml` (criptografados) e são descriptografados automaticamente no boot/activation para `/run/secrets/`.
+Hamra uses **sops-nix** with **age** encryption for secret management. Secrets live in `secrets/*.yaml` (encrypted) and are decrypted automatically at boot/activation to `/run/secrets/`.
 
 ---
 
-## Estrutura
+## Structure
 
 ```
 secrets/
-├── vnc.yaml       # Senha do wayvnc (VNC)
-└── samba.yaml     # Senha do Samba NAS
+├── vnc.yaml       # wayvnc password (VNC)
+└── samba.yaml     # Samba NAS password
 
-.sops.yaml         # Configuração de chaves/recipients
+.sops.yaml         # Key/recipient configuration
 ```
 
 ---
 
-## Chaves (Age)
+## Keys (Age)
 
-| Tipo | Onde fica | Finalidade |
-|------|-----------|------------|
-| **Editing key** (privada) | `~/.config/sops/age/keys.txt` | **Apenas uma máquina** — quem edita/cria segredos (`sops secrets/...`, `sops updatekeys`) |
-| **Host keys** (públicas) | `.sops.yaml` (no repo) | Cada host que precisa descriptografar — derivadas da chave SSH do host |
+| Type | Location | Purpose |
+|------|----------|---------|
+| **Editing key** (private) | `~/.config/sops/age/keys.txt` | **Single machine only** — used to edit/create secrets (`sops secrets/...`, `sops updatekeys`) |
+| **Host keys** (public) | `.sops.yaml` (in repo) | Each host that needs to decrypt — derived from the host's SSH key |
 
-### Gerar chave de host
+### Generate host key
 ```bash
-# Rode EM CADA HOST (acer, samsung, vm)
+# Run ON EACH HOST (acer, samsung, vm, etc.)
 cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age
-# Saída: age1abc... → adicione no .sops.yaml
+# Output: age1abc... → add to .sops.yaml
 ```
 
-### Chave de edição (gerar uma vez)
+### Editing key (generate once)
 ```bash
 age-keygen > ~/.config/sops/age/keys.txt
-# Guarde esse arquivo com segurança — ele permite descriptografar TUDO
+# Store securely — this key can decrypt EVERYTHING
 ```
 
 ---
 
-## .sops.yaml Atual
+## Current .sops.yaml
 
 ```yaml
 keys:
-  # Editing key (máquina que roda sops updatekeys / sops edit)
+  # Editing key (machine that runs `sops updatekeys` / `sops edit`)
   - &user age1sq570spnk7jm72zzyqa9h264pxulx0xqu8m2hj0ka3u27ca3uycsk3xfhu
 
-  # Host keys (públicas — derivadas do SSH host key de cada máquina)
+  # Host keys (public — derived from each machine's SSH host key)
   - &host-samsung age1jke3vagr84utrxqsd89m3vpxmr9wgcr44tycngm4lf0570h4tsdqvr23yf
   - &host-acer    age1uw4uek9vywsw0x23hrx65pcdgqp4tmaf8pcfal54k2zct79azecq4s5qm5
   # - &host-vm age1...
 
 creation_rules:
-  # vnc.yaml: wayvnc roda no samsung E acer
+  # vnc.yaml: wayvnc server may run on any host that enables it
   - path_regex: secrets/vnc\.yaml$
     key_groups:
       - age:
@@ -61,7 +61,7 @@ creation_rules:
           - *host-samsung
           - *host-acer
 
-  # samba.yaml: NAS roda no acer, mas samsung acessa (cliente)
+  # samba.yaml: Samba server runs on the NAS host; clients may need it for activation scripts
   - path_regex: secrets/samba\.yaml$
     key_groups:
       - age:
@@ -70,148 +70,150 @@ creation_rules:
           - *host-acer
 ```
 
-### Regras atuais
-| Secret | Quem descriptografa | Por quê |
-|--------|---------------------|---------|
-| `vnc.yaml` | samsung, acer | wayvnc server rodando em ambos |
-| `samba.yaml` | acer (server), samsung (cliente/activation script) | acer é o NAS; samsung roda `sync-samba-password` no activation |
+### Current Rules
+| Secret | Hosts that can decrypt | Rationale |
+|--------|------------------------|-----------|
+| `vnc.yaml` | samsung, acer | wayvnc server can be enabled on any host via toggle |
+| `samba.yaml` | acer (NAS), samsung (client) | NAS host runs the server; client hosts run activation scripts that read the password |
+
+> **Note:** Roles are not fixed. Any host can become a wayvnc server or Samba NAS by enabling the corresponding toggle. The recipient list simply includes all hosts that *might* need the secret.
 
 ---
 
-## Fluxos Comuns
+## Common Workflows
 
-### 1. Editar um segredo (ex: mudar senha do VNC)
+### 1. Edit a secret (e.g., change VNC password)
 ```bash
-# Na máquina COM chave de edição (~/.config/sops/age/keys.txt)
+# On the machine WITH the editing key (~/.config/sops/age/keys.txt)
 nix develop --command sops secrets/vnc.yaml
-# Abre $EDITOR com YAML descriptografado
-# Salva → re-criptografa automaticamente para TODOS recipients do .sops.yaml
+# Opens $EDITOR with decrypted YAML
+# Save → auto-reencrypts for ALL recipients in .sops.yaml
 git add secrets/vnc.yaml && git commit -m "chore: update vnc password" && git push
 ```
 
-### 2. Adicionar novo host (ex: vm)
+### 2. Add a new host (e.g., vm)
 ```bash
-# 1. No vm: gerar host key
+# 1. On the new host: generate host key
 ssh vm "cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age"
 # → age1vm...
 
-# 2. No repo: adicionar no .sops.yaml
+# 2. In repo: add to .sops.yaml
 #    keys: - &host-vm age1vm...
-#    creation_rules: adicionar *host-vm nos secrets que o vm precisa
+#    creation_rules: add *host-vm to secrets the vm needs
 
-# 3. Na máquina com chave de edição:
+# 3. On editing-key machine:
 nix develop --command sops updatekeys secrets/vnc.yaml secrets/samba.yaml
 git add .sops.yaml secrets/*.yaml && git commit -m "chore(sops): add vm key" && git push
 
-# 4. No vm: pull + rebuild
+# 4. On vm: pull + rebuild
 ```
 
-### 3. Rotacionar chave de edição (se comprometida)
+### 3. Rotate editing key (if compromised)
 ```bash
-# 1. Gerar nova
-age-keygen > ~/.config/sops/age/keys.txt.novo
-# 2. Atualizar .sops.yaml (trocar &user)
-# 3. Re-encryptar tudo:
+# 1. Generate new
+age-keygen > ~/.config/sops/age/keys.txt.new
+# 2. Update .sops.yaml (replace &user)
+# 3. Re-encrypt all:
 nix develop --command sops updatekeys secrets/*.yaml
 git add .sops.yaml secrets/*.yaml && git commit -m "chore(sops): rotate editing key" && git push
 ```
 
-### 4. Ver segredo sem editar
+### 4. View secret without editing
 ```bash
-# Em qualquer host que consiga descriptografar (tem sua host key no .sops.yaml)
+# On any host that can decrypt (has its host key in .sops.yaml)
 nix develop --command sops -d secrets/vnc.yaml
 ```
 
 ---
 
-## Como Funciona no Boot (sops-nix)
+## How It Works at Boot (sops-nix)
 
-1. `configuration.nix` importa `sops-nix` module
-2. `sops.secrets.<name>` define:
+1. `configuration.nix` imports the `sops-nix` module
+2. `sops.secrets.<name>` defines:
    - `sopsFile` = `secrets/...yaml`
    - `owner` / `mode` / `group`
-3. No **activation** (antes do switch):
-   - sops-nix descriptografa usando a **host key privada** (`/etc/ssh/ssh_host_ed25519_key`)
-   - Escreve em `/run/secrets/<name>` (ex: `/run/secrets/vnc-password`)
-4. Serviços leem de `/run/secrets/...`
+3. During **activation** (before switch):
+   - sops-nix decrypts using the **host's private SSH key** (`/etc/ssh/ssh_host_ed25519_key`)
+   - Writes to `/run/secrets/<name>` (e.g., `/run/secrets/vnc-password`)
+4. Services read from `/run/secrets/...`
 
-### Exemplo (wayvnc):
+### Example (wayvnc):
 ```nix
 sops.secrets."vnc-password" = {
   sopsFile = "${config.hamra.secrets.path}/vnc.yaml";
   owner = config.hamra.users.userName;
   mode = "0400";
 };
-# systemd service usa: ExecStart = "... --password-file /run/secrets/vnc-password"
+# systemd service uses: ExecStart = "... --password-file /run/secrets/vnc-password"
 ```
 
 ---
 
-## Máquinas e Estado Atual
+## Machine State
 
-| Máquina | Tem editing key? | Host key no .sops.yaml? | Descriptografa vnc.yaml? | Descriptografa samba.yaml? |
-|---------|------------------|-------------------------|--------------------------|----------------------------|
-| **samsung** | ❌ (provavelmente) | ✅ `host-samsung` | ✅ | ✅ |
+| Machine | Has editing key? | Host key in .sops.yaml? | Decrypts vnc.yaml? | Decrypts samba.yaml? |
+|---------|------------------|-------------------------|--------------------|----------------------|
+| **samsung** | ❌ (likely not) | ✅ `host-samsung` | ✅ | ✅ |
 | **acer** | ❌ | ✅ `host-acer` | ✅ | ✅ |
 | **vm** | ❌ | ❌ | ❌ | ❌ |
-| **Máquina de edição** | ✅ | — | — | — |
+| **Editing machine** | ✅ | — | — | — |
 
-> **Importante:** Apenas **uma** máquina deve ter a editing key privada (`~/.config/sops/age/keys.txt`). As outras usam apenas a host key (derivada do SSH) para descriptografar no boot.
+> **Important:** Only **one** machine holds the private editing key (`~/.config/sops/age/keys.txt`). Other machines use their host key (derived from SSH) for boot-time decryption.
 
 ---
 
 ## Troubleshooting
 
 ### "FAILED to decrypt / No master key"
-- Você está rodando `sops` numa máquina **sem a editing key** E **sem host key válida no .sops.yaml**
-- Solução: rode na máquina de edição, ou adicione a host key da máquina atual no .sops.yaml + `sops updatekeys`
+- Running `sops` on a machine **without the editing key** AND **without a valid host key in .sops.yaml**
+- Fix: run on the editing-key machine, or add this machine's host key to .sops.yaml + run `sops updatekeys`
 
 ### "identity did not match any recipients"
-- O arquivo foi criptografado para recipients que **não incluem** a chave da máquina atual
-- Solução: `sops updatekeys` na máquina de edição
+- File was encrypted for recipients that **don't include** this machine's key
+- Fix: `sops updatekeys` on the editing-key machine
 
-### Host novo não descriptografa no boot
-- Verifique se a host key pública está no `.sops.yaml` E no `creation_rules` do secret
-- Verifique se `sops.age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"]` está no módulo
+### New host fails to decrypt at boot
+- Verify host public key is in `.sops.yaml` AND in the relevant `creation_rules`
+- Verify `sops.age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"]` is in the module
 - Rebuild: `sudo nixos-rebuild switch --flake .#host`
 
-### Chave SSH do host mudou (reinstalou SO)
+### Host SSH key changed (OS reinstall)
 ```bash
-# 1. Nova host key
+# 1. New host key
 cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age
-# 2. Atualize .sops.yaml
-# 3. sops updatekeys (na máquina de edição)
-# 4. Rebuild no host
+# 2. Update .sops.yaml
+# 3. sops updatekeys (on editing-key machine)
+# 4. Rebuild on host
 ```
 
 ---
 
-## Comandos Úteis
+## Useful Commands
 
 ```bash
-# Ver recipients de um arquivo
-sops -i secrets/vnc.yaml   # abre editor
-sops -d secrets/vnc.yaml   # descriptografa no stdout
+# View recipients of a file
+sops -i secrets/vnc.yaml   # opens editor
+sops -d secrets/vnc.yaml   # decrypts to stdout
 
-# Atualizar recipients (na máquina de edição)
+# Update recipients (on editing-key machine)
 sops updatekeys secrets/vnc.yaml secrets/samba.yaml
 
-# Verificar se consegue descriptografar no host atual
+# Verify local decryption works
 nix develop --command sops -d secrets/vnc.yaml
 
-# Gerar host key age a partir da SSH key
+# Generate host age key from SSH key
 cat /etc/ssh/ssh_host_ed25519_key.pub | nix run nixpkgs#ssh-to-age
 
-# Gerar editing key (uma vez só)
+# Generate editing key (once)
 age-keygen > ~/.config/sops/age/keys.txt
 ```
 
 ---
 
-## Segurança
+## Security
 
-- **NUNCA** commite chaves privadas (age ou SSH)
-- `secrets/*.yaml` são **criptografados** — seguro commitar
-- `.sops.yaml` tem apenas **chaves públicas** — seguro commitar
-- Editing key privada (`~/.config/sops/age/keys.txt`) **sai do repo** — backup seguro (password manager, pendrive offline, etc.)
-- Host keys privadas ficam em `/etc/ssh/` (protegidas pelo SO)
+- **NEVER** commit private keys (age or SSH)
+- `secrets/*.yaml` are **encrypted** — safe to commit
+- `.sops.yaml` contains only **public keys** — safe to commit
+- Editing private key (`~/.config/sops/age/keys.txt`) **stays out of repo** — back up securely (password manager, offline USB, etc.)
+- Host private keys live in `/etc/ssh/` (protected by the OS)
