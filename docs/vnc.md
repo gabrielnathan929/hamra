@@ -40,6 +40,8 @@ Turning on `services."vnc-client"` makes the client host connect by itself:
 - the compositor starts `vnc-client.service` at login (Hyprland, Sway or Niri);
 - the unit runs **TigerVNC** with `-SecurityTypes X509Plain -X509CA <cert>`,
   so the TLS certificate pinned in the repo replaces the fingerprint prompt;
+  `-RemoteResize=0` keeps the viewer from asking the server to resize (and
+  move) the virtual output to the window size;
 - username and password come from the sops secret at
   `/run/secrets/vnc-password` (`VNC_USERNAME` + `VNC_PASSWORD`, no dialog);
 - `Restart=always` with `RestartSec=5`: if the link drops the viewer exits and
@@ -133,10 +135,14 @@ off. TigerVNC avoids all of this.
 
 1. waits for the compositor (Hyprland or Sway — asserted in `core/assertions.nix`);
 2. creates/reuses the headless output from `hamra.displays.headless`
-   (mode, position, scale) and pins workspaces 6-10 to it;
+   (mode, position, scale) and pins workspaces 6-10 to it; if the output exists
+   with the wrong size or position (for example after a client resized it), it
+   is recreated;
 3. writes `$XDG_RUNTIME_DIR/wayvnc.conf` (mode 0600) with the password read
    from `/run/secrets/vnc-password` and the static TLS/RSA key paths;
-4. execs `wayvnc` on port 5900.
+4. execs `wayvnc` on port 5900 with `--disable-resizing`: the virtual output
+   keeps the configured resolution, so the client scales the image instead of
+   resizing/moving the output over the physical screen.
 
 The unit is a **user** service: `systemctl --user status wayvnc`.
 
@@ -192,6 +198,7 @@ confirmation once more.
 | `vnc-client` restarts every 5 s | server host down or wrong `vncHost` | start the server; `vnc-status` shows the log |
 | `vnc-client` dies with `Can't open display` | unit started before XWayland exists | it retries; if it persists, check `DISPLAY` in the session |
 | `Connection refused` | unit down | `systemctl --user status wayvnc` |
+| VNC shows the same screen as the physical monitor ("mirrored") | the headless output was resized/repositioned at `0x0` by the client | restart `wayvnc` (it recreates the output when the geometry is wrong) and see *Server side* |
 | Port 5900 unreachable from outside | firewall | the toggle opens 5900; see `docs/firewall.md` |
 | Build fails: `attribute 'vnc-password' missing` | server enabled without the secret | `./scripts/setup-vnc.sh --rotate-password` |
 | Build fails: `requires hamra.home.programs.shell.vncHost` | `vnc-client` on without a target | set `vncHost` in the host `config/home.nix` |

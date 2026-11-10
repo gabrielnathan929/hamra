@@ -172,44 +172,71 @@
       warn "Hyprland: output $target did not settle, continuing anyway"
     }
 
+    hyprland_geom_ok() {
+      local target=$1 mode=$2 position=$3
+      ${hyprctl} monitors -j 2>/dev/null | ${pkgs.jq}/bin/jq -e -r \
+        --arg mon "$target" --arg mode "$mode" --arg pos "$position" '
+          [.[] | select(.name == $mon)] as $m
+          | (($m | length) == 1) as $single
+          | (if ($mode | test("^[0-9]+x[0-9]+")) then
+               ($mode | split("@")[0] | split("x") | map(tonumber)) as $wh
+               | (($m[0].width // -1) == $wh[0]) and (($m[0].height // -1) == $wh[1])
+             else true end) as $size_ok
+          | (if ($pos | test("^[0-9]+x[0-9]+$")) then
+               ($pos | split("x") | map(tonumber)) as $xy
+               | (($m[0].x // -1) == $xy[0]) and (($m[0].y // -1) == $xy[1])
+             else true end) as $pos_ok
+          | $single and $size_ok and $pos_ok
+        ' >/dev/null 2>&1
+    }
+
+    hyprland_create() {
+      local name found i
+      for name in $(detect_hyprland_headless_all); do
+        info "Hyprland: removing headless output: $name"
+        ${hyprctl} output remove "$name" >/dev/null 2>&1 || warn "Hyprland: failed to remove $name"
+      done
+      if [ -n "$WANTED" ]; then
+        ${hyprctl} output create headless "$WANTED" >/dev/null 2>&1 || true
+      else
+        ${hyprctl} output create headless >/dev/null 2>&1 || true
+      fi
+      for i in $(seq 1 15); do
+        found=$(detect_hyprland_headless)
+        if [ -n "$found" ]; then
+          echo "$found"
+          return 0
+        fi
+        if [ "$i" = 5 ] && [ -n "$WANTED" ]; then
+          warn "Hyprland: named output $WANTED did not appear, creating unnamed"
+          ${hyprctl} output create headless >/dev/null 2>&1 || true
+        fi
+        sleep "$SLEEP"
+      done
+      return 1
+    }
+
     setup_headless() {
       local compositor=$1
 
       case "$compositor" in
         hyprland)
-          local real name named
+          local real mode position
           real=$(detect_hyprland_headless)
-          named=0
-          if [ -n "$WANTED" ] && [ "$real" != "$WANTED" ]; then
-            info "Hyprland: recreating headless output as $WANTED..."
-            for name in $(detect_hyprland_headless_all); do
-              info "Hyprland: removing stale headless output: $name"
-              ${hyprctl} output remove "$name" >/dev/null 2>&1 || warn "Hyprland: failed to remove $name"
-            done
-            real=""
-            if ${hyprctl} output create headless "$WANTED" >/dev/null 2>&1; then
-              named=1
-            else
-              ${hyprctl} output create headless >/dev/null 2>&1 || true
-            fi
-          elif [ -z "$real" ]; then
-            info "Hyprland: creating headless output..."
-            ${hyprctl} output create headless >/dev/null 2>&1 || true
-          else
-            info "Hyprland: existing headless output: $real"
+          if [ -n "$real" ]; then
+            read -r mode position _ <<<"$(spec_for "$real")"
           fi
           if [ -z "$real" ]; then
-            for _ in $(seq 1 15); do
-              if [ "$named" = 1 ]; then
-                real=$(detect_hyprland_headless_all | grep -xF "$WANTED" || true)
-              else
-                real=$(detect_hyprland_headless)
-              fi
-              if [ -n "$real" ]; then
-                break
-              fi
-              sleep "$SLEEP"
-            done
+            info "Hyprland: creating headless output..."
+            real=$(hyprland_create) || real=""
+          elif [ -n "$WANTED" ] && [ "$real" != "$WANTED" ]; then
+            info "Hyprland: recreating headless output as $WANTED..."
+            real=$(hyprland_create) || real=""
+          elif ! hyprland_geom_ok "$real" "$mode" "$position"; then
+            info "Hyprland: $real is not at $mode/$position, recreating..."
+            real=$(hyprland_create) || real=""
+          else
+            info "Hyprland: existing headless output: $real"
           fi
 
           if [ -z "$real" ]; then
@@ -323,6 +350,7 @@
         "$VNC_ADDR" \
         --max-fps="$VNC_FPS" \
         --render-cursor \
+        --disable-resizing \
         --output="$output"
     }
 

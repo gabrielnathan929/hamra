@@ -25,7 +25,7 @@
       vnc-status = "systemctl --user status vnc-client";
     }
     else {
-      vnc = "vncviewer -SecurityTypes RA2 ${vncHost}";
+      vnc = "vncviewer -SecurityTypes RA2 -RemoteResize=0 ${vncHost}";
     };
 
   vncHelp =

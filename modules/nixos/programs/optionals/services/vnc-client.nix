@@ -50,6 +50,7 @@
     exec ${pkgs.tigervnc}/bin/vncviewer \
       -SecurityTypes X509Plain \
       -X509CA ${certFile} \
+      -RemoteResize=0 \
       -AlertOnFatalError=0 \
       -ReconnectOnError=0 \
       "$host"
