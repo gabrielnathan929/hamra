@@ -131,13 +131,6 @@ in {
     }
 
     {
-      assertion = !cfg.programs.optionals.services."wayvnc-no-auth" || cfg.programs.optionals.services.wayvnc;
-      message =
-        "hamra.programs.optionals.services.\"wayvnc-no-auth\" = true requires "
-        + "hamra.programs.optionals.services.wayvnc = true (the flag alone does nothing).";
-    }
-
-    {
       assertion = cfg.flatpak.apps == [] || cfg.programs.optionals.packaging.flatpak;
       message = "hamra.flatpak.apps requires hamra.programs.optionals.packaging.flatpak = true.";
     }

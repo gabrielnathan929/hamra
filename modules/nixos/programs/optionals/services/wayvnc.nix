@@ -7,7 +7,6 @@
   inherit (lib) mkOption mkIf types;
 
   cfg = config.hamra.programs.optionals.services.wayvnc;
-  noAuth = config.hamra.programs.optionals.services."wayvnc-no-auth";
   supported = builtins.elem config.hamra.desktop.default ["hyprland" "sway"];
   userName = config.hamra.users.userName;
   secretsPath = config.hamra.secrets.path;
@@ -23,14 +22,8 @@
     else headlessDisplays.${lib.head headlessNames};
 
   certFile = ./wayvnc-cert.pem;
-  tlsKeyFile =
-    if noAuth
-    then ""
-    else config.sops.secrets."wayvnc-tls-key".path;
-  rsaKeyFile =
-    if noAuth
-    then ""
-    else config.sops.secrets."wayvnc-rsa-key".path;
+  tlsKeyFile = config.sops.secrets."wayvnc-tls-key".path;
+  rsaKeyFile = config.sops.secrets."wayvnc-rsa-key".path;
 
   wayvncDaemon = pkgs.writeShellScript "wayvnc-daemon" ''
     set -e
@@ -286,15 +279,6 @@
       esac
     }
 
-    write_open_config() {
-      conf="$XDG_RUNTIME_DIR/wayvnc.conf"
-      {
-        echo "enable_auth=false"
-      } >"$conf"
-      chmod 600 "$conf"
-      echo "$conf"
-    }
-
     write_config() {
       secret_file=$1
       if [ ! -f "$secret_file" ]; then
@@ -329,22 +313,7 @@
       fi
       compositor=$(wait_compositor) || exit 1
       output=$(setup_headless "$compositor") || exit 1
-      if [ "$1" = "--open" ]; then
-        open_conf=$(write_open_config) || exit 1
-        info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, no auth)..."
-        ${pkgs.util-linux}/bin/flock -u 9
-        exec ${lib.getExe pkgs.wayvnc} \
-          --config="$open_conf" \
-          "$VNC_ADDR" \
-          --max-fps="$VNC_FPS" \
-          --render-cursor \
-          --output="$output"
-      fi
-      vnc_pw_path='${
-      if noAuth
-      then ""
-      else config.sops.secrets."vnc-password".path
-    }'
+      vnc_pw_path='${config.sops.secrets."vnc-password".path}'
       config_file=$(write_config "$vnc_pw_path") || exit 1
 
       info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, TLS auth, static cert/keys)..."
@@ -366,12 +335,6 @@ in {
     description = "Enable WayVNC (port 5900, sops password + static TLS cert + RSA key). Requires Hyprland or Sway.";
   };
 
-  options.hamra.programs.optionals.services."wayvnc-no-auth" = mkOption {
-    type = types.bool;
-    default = false;
-    description = "Expose WayVNC without password or TLS. Anyone on the network can control the desktop.";
-  };
-
   config = mkIf (cfg && supported) (lib.mkMerge [
     {
       programs.wayvnc.enable = true;
@@ -383,11 +346,11 @@ in {
           Type = "simple";
           Restart = "on-failure";
           RestartSec = 10;
-          ExecStart = "${wayvncDaemon}${lib.optionalString noAuth " --open"}";
+          ExecStart = "${wayvncDaemon}";
         };
       };
     }
-    (lib.mkIf (!noAuth) {
+    {
       sops = {
         age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
@@ -411,7 +374,7 @@ in {
           };
         };
       };
-    })
+    }
     {
       assertions = [
         {

@@ -90,7 +90,6 @@ _: {
       tailscale = false;
       tigervnc = false;
       wayvnc = false;
-      "wayvnc-no-auth" = false;
     };
     tui = {
       cliamp = true;
