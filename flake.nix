@@ -99,6 +99,7 @@
       ${pkgs.shellcheck}/bin/shellcheck --severity=warning \
         ${./scripts/cookiecutter.sh} \
         ${./scripts/setup-nas.sh} \
+        ${./scripts/setup-vnc.sh} \
         ${./scripts/tests/test_golden.sh}
       touch $out
     '';

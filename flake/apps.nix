@@ -98,5 +98,36 @@ in {
           mainProgram = "cookiecutter";
         };
       };
+
+      setup-vnc = {
+        type = "app";
+        program = "${pkgs.stdenv.mkDerivation {
+          pname = \"setup-vnc\";
+          version = \"0.1.0\";
+          dontUnpack = true;
+          nativeBuildInputs = [pkgs.makeWrapper pkgs.openssl pkgs.sops pkgs.age pkgs.ssh-to-age pkgs.git pkgs.bash pkgs.coreutils pkgs.findutils];
+          installPhase = ''
+            mkdir -p \$out/bin
+            makeWrapper ${../scripts/setup-vnc.sh} \$out/bin/setup-vnc \
+              --prefix PATH : ${
+              pkgs.lib.makeBinPath [
+                pkgs.bash
+                pkgs.coreutils
+                pkgs.findutils
+                pkgs.openssl
+                pkgs.sops
+                pkgs.age
+                pkgs.ssh-to-age
+                pkgs.git
+                pkgs.nix
+              ]
+            }
+          '';
+        }}/bin/setup-vnc";
+        meta = {
+          description = "Manage wayvnc static credentials via SOPS";
+          mainProgram = "setup-vnc";
+        };
+      };
     };
 }
