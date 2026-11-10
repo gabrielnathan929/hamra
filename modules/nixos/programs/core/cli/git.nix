@@ -9,7 +9,7 @@ in {
   options.hamra.programs.core.cli.git = mkOption {
     type = types.bool;
     default = true;
-    description = "Enable Git with GPG signing.";
+    description = "Enable Git with LFS support.";
   };
 
   config.programs.git = mkIf cfg {

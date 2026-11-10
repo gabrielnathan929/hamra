@@ -3,3 +3,4 @@ result
 .freebuff/
 __pycache__/
 secrets/.tmp-*
+hosts/.*.tmp-*

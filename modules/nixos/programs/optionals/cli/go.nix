@@ -7,7 +7,8 @@
   cfg = config.hamra.programs.optionals.cli.go;
   inherit (lib) mkOption mkIf types;
   user = config.hamra.users.userName;
-  goPath = "/home/${user}/go";
+  userHome = config.users.users.${user}.home;
+  goPath = "${userHome}/go";
 in {
   options.hamra.programs.optionals.cli.go = mkOption {
     type = types.bool;

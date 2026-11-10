@@ -177,7 +177,7 @@ in {
   options.hamra.home.programs.tui.herdr = mkOption {
     type = types.bool;
     default = false;
-    description = "Enable Herdr terminal workspace manager configuration (mirrors the Tmux keybinds).";
+    description = "Enable Herdr terminal workspace manager configuration (mirrors the Tmux keybinds). Requires the herdr binary, e.g. via hamra.mise.tools.\"github:herdrdev/herdr\".";
   };
 
   config = mkIf cfg {

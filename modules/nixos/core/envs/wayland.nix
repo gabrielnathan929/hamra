@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }: let
   isWayland = builtins.elem config.hamra.desktop.default [
@@ -25,7 +24,4 @@ in
 
       XCOMPOSEFILE = "~/.XCompose";
     };
-
-    environment.systemPackages = with pkgs; [
-    ];
   }

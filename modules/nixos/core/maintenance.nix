@@ -14,7 +14,7 @@ in {
     maxGenerations = lib.mkOption {
       type = lib.types.int;
       default = 20;
-      description = "Maximum number of generations kept.";
+      description = "Maximum number of boot generations kept in the boot menu (the GC itself is time-based, see keepDays).";
     };
     schedule = lib.mkOption {
       type = lib.types.str;

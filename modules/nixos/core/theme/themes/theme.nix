@@ -9,14 +9,14 @@
     wallpaper = lib.mkOption {
       type = lib.types.path;
       internal = true;
-      default = ./dragon-ball/wallpapers/dragon-ball-01.jpg;
+      default = ./dragon-ball/wallpapers/dragon-ball-1.jpg;
       description = "Active wallpaper path, defined by the theme.";
     };
 
     profileIcon = lib.mkOption {
       type = lib.types.path;
       internal = true;
-      default = ./dragon-ball/icons/dragon-ball-profile.jpg;
+      default = ./dragon-ball/icons/dragon-ball-profile-1.jpg;
       description = "Active profile avatar path, defined by the theme.";
     };
 

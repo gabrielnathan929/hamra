@@ -14,6 +14,8 @@
         age
         ssh-to-age
         python3
+        jq
+        git
       ];
 
       shellHook = ''

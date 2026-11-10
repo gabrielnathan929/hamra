@@ -7,8 +7,9 @@
   cfg = config.hamra.programs.optionals.gui."android-studio";
   inherit (lib) mkIf;
   user = config.hamra.users.userName;
-  sdk = "/home/${user}/Android/Sdk";
-  androidHome = "/home/${user}/.android";
+  userHome = config.users.users.${user}.home;
+  sdk = "${userHome}/Android/Sdk";
+  androidHome = "${userHome}/.android";
   shellInit = ''
     export ANDROID_HOME="${sdk}"
     export ANDROID_SDK_ROOT="${sdk}"

@@ -63,9 +63,7 @@
               };
             };
           });
-          default = {
-            HEADLESS-2 = {};
-          };
+          default = {};
         };
       };
     };

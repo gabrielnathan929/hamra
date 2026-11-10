@@ -7,7 +7,8 @@
   cfg = config.hamra.programs.optionals.cli.nodejs;
   inherit (lib) mkOption mkIf types;
   user = config.hamra.users.userName;
-  npmGlobal = "/home/${user}/.npm-global";
+  userHome = config.users.users.${user}.home;
+  npmGlobal = "${userHome}/.npm-global";
 in {
   options.hamra.programs.optionals.cli.nodejs = mkOption {
     type = types.bool;

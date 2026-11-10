@@ -9,12 +9,12 @@ in {
     keymap = lib.mkOption {
       type = lib.types.str;
       default = "br";
-      description = "Layout do teclado (ex: us, br).";
+      description = "Keyboard layout (e.g. us, br).";
     };
     xkbVariant = lib.mkOption {
       type = lib.types.str;
       default = "abnt2";
-      description = "Variante do layout (ex: intl, dvorak, abnt2).";
+      description = "Layout variant (e.g. intl, dvorak, abnt2).";
     };
   };
 

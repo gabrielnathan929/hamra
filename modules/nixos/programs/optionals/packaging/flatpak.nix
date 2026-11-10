@@ -40,10 +40,6 @@ in {
 
   config = mkIf cfg {
     services.flatpak.enable = true;
-    services.packagekit.enable = true;
-    environment.systemPackages = with pkgs; [
-      gnome-software
-    ];
 
     systemd.services.flatpak-sync = {
       description = "Ensure Flathub remote and install declared Flatpak apps (hamra.flatpak.apps)";

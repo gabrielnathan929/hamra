@@ -7,17 +7,17 @@
     bluetooth = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Habilitar bluetooth.";
+      description = "Enable Bluetooth.";
     };
     brightness = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Habilitar controle de brilho (brightnessctl).";
+      description = "Enable brightness control (brightnessctl).";
     };
     touchpad = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Habilitar touchpad (libinput).";
+      description = "Enable touchpad (libinput).";
     };
   };
 

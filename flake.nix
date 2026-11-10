@@ -1,5 +1,5 @@
 {
-  description = "Hamra - Configuracao NixOS e Home Manager";
+  description = "Hamra - NixOS and Home Manager configuration";
 
   nixConfig = {
     extra-substituters = [
@@ -92,8 +92,16 @@
   in {
     formatter.${system} = pkgs.alejandra;
 
+    checks.${system}.shellcheck = pkgs.runCommand "hamra-shellcheck" {} ''
+      ${pkgs.shellcheck}/bin/shellcheck --severity=warning \
+        ${./scripts/cookiecutter.sh} \
+        ${./scripts/setup-nas.sh} \
+        ${./scripts/tests/test_golden.sh}
+      touch $out
+    '';
+
     devShells = import ./flake/devshell.nix {inherit pkgs system;};
     apps = import ./flake/apps.nix {inherit pkgs system self;};
-    nixosConfigurations = import ./flake/hosts.nix {inherit mkHost;};
+    nixosConfigurations = import ./flake/hosts.nix {inherit lib mkHost;};
   };
 }
