@@ -10,13 +10,13 @@ in {
     grub = {
       device = lib.mkOption {
         type = lib.types.str;
-        default = "/dev/sda";
-        description = "Device for GRUB installation.";
+        default = "";
+        description = "Device for GRUB installation (e.g. \"/dev/sda\"). Required when loader = \"grub\".";
       };
       useOSProber = lib.mkOption {
         type = lib.types.bool;
         default = false;
-        description = "Habilitar OS Prober no GRUB.";
+        description = "Enable OS Prober in GRUB.";
       };
     };
   };

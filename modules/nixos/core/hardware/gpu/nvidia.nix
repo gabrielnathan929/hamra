@@ -4,7 +4,9 @@
   ...
 }:
 lib.mkIf (config.hamra.hardware.gpu == "nvidia") {
-  hardware.graphics.enable32Bit = true;
+  services.xserver.videoDrivers = ["nvidia"];
+
+  hardware.graphics.enable = true;
 
   hardware.nvidia = {
     modesetting.enable = true;

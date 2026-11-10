@@ -10,13 +10,13 @@ in {
   options.hamra.boot.systemd.editor = lib.mkOption {
     type = lib.types.bool;
     default = false;
-    description = "Habilitar editor no systemd-boot.";
+    description = "Enable the boot menu editor in systemd-boot.";
   };
 
   options.hamra.hardware.firmware = lib.mkOption {
     type = lib.types.str;
     default = "uefi";
-    description = "Tipo de firmware (uefi ou bios).";
+    description = "Firmware type (uefi or bios).";
   };
 
   config.boot = {

@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: let
   enums = import ../../lib/enums.nix;
@@ -67,6 +68,13 @@ in {
     }
 
     {
+      assertion = cfg.hardware.firmware != "bios" || cfg.boot.loader == "grub";
+      message =
+        "hamra.hardware.firmware = \"bios\" requires hamra.boot.loader = \"grub\" "
+        + "(current: \"${cfg.boot.loader}\"). systemd-boot only works on UEFI systems.";
+    }
+
+    {
       assertion = builtins.elem cfg.theme.name availableThemes;
       message =
         "hamra.theme.name = \"${cfg.theme.name}\" invalid. "
@@ -77,6 +85,13 @@ in {
       assertion = builtins.pathExists cfg.theme.profileIcon;
       message =
         "hamra.theme.profileIcon does not exist: ${toString cfg.theme.profileIcon} "
+        + "(theme \"${cfg.theme.name}\"). Check the file referenced by the theme module.";
+    }
+
+    {
+      assertion = builtins.pathExists cfg.theme.wallpaper;
+      message =
+        "hamra.theme.wallpaper does not exist: ${toString cfg.theme.wallpaper} "
         + "(theme \"${cfg.theme.name}\"). Check the file referenced by the theme module.";
     }
 
@@ -116,6 +131,13 @@ in {
     }
 
     {
+      assertion = !cfg.programs.optionals.services."wayvnc-no-auth" || cfg.programs.optionals.services.wayvnc;
+      message =
+        "hamra.programs.optionals.services.\"wayvnc-no-auth\" = true requires "
+        + "hamra.programs.optionals.services.wayvnc = true (the flag alone does nothing).";
+    }
+
+    {
       assertion = cfg.flatpak.apps == [] || cfg.programs.optionals.packaging.flatpak;
       message = "hamra.flatpak.apps requires hamra.programs.optionals.packaging.flatpak = true.";
     }
@@ -136,6 +158,14 @@ in {
       message =
         "hamra.programs.optionals.media.davinci-resolve requires a real GPU (intel, amd or nvidia) with OpenCL; "
         + "virtio is not supported (current: \"${cfg.hardware.gpu}\"). Disable this toggle on this host.";
+    }
+
+    {
+      assertion = cfg.env.filemanager != pkgs.thunar || cfg.programs.core.gui.thunar;
+      message =
+        "hamra.env.filemanager = pkgs.thunar requires hamra.programs.core.gui.thunar = true "
+        + "(otherwise Thunar is installed without the archive plugin). Either enable the toggle "
+        + "or pick another file manager (e.g. pkgs.nautilus).";
     }
 
     {

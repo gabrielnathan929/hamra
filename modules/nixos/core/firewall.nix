@@ -17,12 +17,7 @@
     http.tcp = [80];
     https.tcp = [443];
     dev.tcp = [3000 3001 4000 4200 5000 5001 5173 5174 8000 8001 8080 8081 8082 9000 19000 19001 19002 4173];
-    vnc.tcp = [5900];
     rdp.tcp = [3389];
-    samba = {
-      tcp = [139 445];
-      udp = [137 138];
-    };
     syncthing = {
       tcp = [8384 22000];
       udp = [21027];
@@ -73,16 +68,14 @@ in {
         http = false;
         https = false;
         dev = false;
-        vnc = false;
         rdp = false;
-        samba = false;
         syncthing = false;
         kdeconnect = false;
         jellyfin = false;
         printer = false;
         mpd = false;
       };
-      description = "Common service ports to open, by name. The wayvnc and samba toggles open their own ports when enabled.";
+      description = "Common service ports to open, by name. Service toggles that ship their own server (wayvnc, samba, sunshine, localsend) open their ports themselves and are not listed here.";
     };
   };
 
