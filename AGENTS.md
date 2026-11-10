@@ -242,8 +242,10 @@ or Sway; firewall port names within the registry (`core/firewall.nix`).
 
 Auth is user + password from `secrets/vnc.yaml`, plus static TLS and RSA keys
 from sops. neatvnc only implements `RA2`/`RA2_256` (RSA-AES) and `X509Plain`
-(TLS), so clients must ask for one of those — `VncAuth`/`TLSVnc` fail. Recipe,
-key formats and troubleshooting: `docs/vnc.md`. Manage the credentials with
+(TLS), so clients must ask for one of those — `VncAuth`/`TLSVnc` fail.
+`hamra.home.programs.shell.vncHost` adds a `vnc` alias on the client host
+(TigerVNC with `RA2`); Remmina is off by default. Recipe, key formats and
+troubleshooting: `docs/vnc.md`. Manage the credentials with
 `./scripts/setup-vnc.sh` (`--check`, `--show-password`, `--rotate-password`,
 `--rotate-certs`); it must run on the machine that holds the sops editing key.
 

@@ -60,7 +60,7 @@ _: {
       office = true;
       postman = true;
       pycharm = true;
-      remmina = true;
+      remmina = false;
       upscayl = false;
       vesktop = false;
       "virt-manager" = true;

@@ -52,10 +52,27 @@ vncviewer -SecurityTypes RA2 <server-ip>:5900
 Without `-SecurityTypes` the client picks the first type it supports, which is
 `VncAuth` — that is why the flag is required.
 
+### The `vnc` alias
+
+Setting `hamra.home.programs.shell.vncHost` (in the host `config/home.nix`,
+next to `flakeDir`) turns the whole command into one word:
+
+```nix
+shell = {
+  aliases = true;
+  flakeDir = "$HOME/Projetos/hamra";
+  vncHost = "192.168.1.15:5900";
+};
+```
+
+Now `vnc` does `vncviewer -SecurityTypes RA2 192.168.1.15:5900`. For a
+different server, call `vncviewer -SecurityTypes RA2 <host>:5900` directly.
+
 ### Remmina
 
-Remmina negotiates VeNCrypt, so it lands on `X509Plain` and asks for
-certificate files:
+Remmina is **off by default** (`gui/remmina = false` on the hosts). If you
+prefer it, enable the toggle and know that it negotiates VeNCrypt, so it lands
+on `X509Plain` and asks for certificate files:
 
 | Field | Value |
 |-------|-------|

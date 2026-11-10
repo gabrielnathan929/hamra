@@ -5,6 +5,7 @@
 }: let
   cfg = config.hamra.home.programs.shell.aliases;
   flakeDir = config.hamra.home.programs.shell.flakeDir;
+  vncHost = config.hamra.home.programs.shell.vncHost;
   inherit (lib) mkOption mkIf mkAfter types;
 
   ref =
@@ -12,77 +13,90 @@
     then "."
     else flakeDir;
 in {
-  options.hamra.home.programs.shell.aliases = mkOption {
-    type = types.bool;
-    default = true;
-    description = "Enable shell aliases.";
-  };
+  options.hamra.home.programs.shell = {
+    aliases = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Enable shell aliases.";
+    };
 
-  options.hamra.home.programs.shell.flakeDir = mkOption {
-    type = types.nullOr types.str;
-    default = null;
-    description = "Path of the hamra flake checkout used by the nix-* aliases, so they also run outside the repository (e.g. \"$HOME/hamra\"). null keeps them relative to the current directory.";
+    flakeDir = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "Path of the hamra flake checkout used by the nix-* aliases, so they also run outside the repository (e.g. \"$HOME/hamra\"). null keeps them relative to the current directory.";
+    };
+
+    vncHost = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "VNC server the `vnc` alias connects to, as host[:port] (e.g. \"192.168.1.15:5900\"). The alias uses TigerVNC with RA2 auth, the only family wayvnc accepts. null disables the alias.";
+    };
   };
 
   config.programs.zsh = mkIf cfg {
-    shellAliases = {
-      ll = "eza -la  --icons --group-directories-first";
-      la = "eza -a   --icons --group-directories-first";
+    shellAliases =
+      {
+        ll = "eza -la  --icons --group-directories-first";
+        la = "eza -a   --icons --group-directories-first";
 
-      nix-run = "nix run nixpkgs#";
-      nix-boot = "sudo nixos-rebuild boot";
-      nix-test = "sudo nixos-rebuild test";
-      nix-builds = "sudo nix-env -p /nix/var/nix/profiles/system --list-generations | sort -k1 -n -r";
-      nix-clean = "nix-env --delete-generations old && sudo nix-env -p /nix/var/nix/profiles/system --delete-generations old && sudo nix-store --gc";
-      nix-dup = ''echo "=== System ==="; for gen in /nix/var/nix/profiles/system-*-link(N); do nix-store -qR "$gen" 2>/dev/null; done | sort -u | grep -v '\.drv$' | sed 's|.*/||' | sed -E 's/^[a-z0-9]{32}-//' | sed -E 's/-[0-9].*$//' | sort | uniq -c | sort -rn | awk '$1 > 1 {printf "%-30s %dx\n", $2, $1}' '';
-      nix-gc = "sudo nix-store --gc";
-      nix-tidy = "sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +5 && nix-env --delete-generations old && sudo nix-store --gc";
-      nix-scrub = "sudo nix-env -p /nix/var/nix/profiles/system --delete-generations old && nix-env --delete-generations old && sudo nix-store --gc && sudo nix-store --optimise";
-      nix-optim = "sudo nix-store --optimise";
-      nix-shell = "nix-shell -p";
-      nix-switch = "sudo nixos-rebuild switch";
-      nix-search = "nix-search";
+        nix-run = "nix run nixpkgs#";
+        nix-boot = "sudo nixos-rebuild boot";
+        nix-test = "sudo nixos-rebuild test";
+        nix-builds = "sudo nix-env -p /nix/var/nix/profiles/system --list-generations | sort -k1 -n -r";
+        nix-clean = "nix-env --delete-generations old && sudo nix-env -p /nix/var/nix/profiles/system --delete-generations old && sudo nix-store --gc";
+        nix-dup = ''echo "=== System ==="; for gen in /nix/var/nix/profiles/system-*-link(N); do nix-store -qR "$gen" 2>/dev/null; done | sort -u | grep -v '\.drv$' | sed 's|.*/||' | sed -E 's/^[a-z0-9]{32}-//' | sed -E 's/-[0-9].*$//' | sort | uniq -c | sort -rn | awk '$1 > 1 {printf "%-30s %dx\n", $2, $1}' '';
+        nix-gc = "sudo nix-store --gc";
+        nix-tidy = "sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +5 && nix-env --delete-generations old && sudo nix-store --gc";
+        nix-scrub = "sudo nix-env -p /nix/var/nix/profiles/system --delete-generations old && nix-env --delete-generations old && sudo nix-store --gc && sudo nix-store --optimise";
+        nix-optim = "sudo nix-store --optimise";
+        nix-shell = "nix-shell -p";
+        nix-switch = "sudo nixos-rebuild switch";
+        nix-search = "nix-search";
 
-      nix-deploy = "nix run ${ref}#deploy-$(hostname)";
-      nix-deploy-vm = "nix run ${ref}#deploy-vm";
-      nix-build = "nix run ${ref}#build-$(hostname)";
-      nix-build-vm = "nix run ${ref}#build-vm";
+        nix-deploy = "nix run ${ref}#deploy-$(hostname)";
+        nix-deploy-vm = "nix run ${ref}#deploy-vm";
+        nix-build = "nix run ${ref}#build-$(hostname)";
+        nix-build-vm = "nix run ${ref}#build-vm";
 
-      nix-fmt = "(cd ${ref} && nix fmt .)";
-      nix-check = "(cd ${ref} && nix flake check)";
-      nix-lint = "(cd ${ref} && nix develop --command sh -c 'statix check . && deadnix --fail .')";
-      nix-update = "(cd ${ref} && nix flake update)";
-      nix-sops = "(cd ${ref} && nix develop --command sops)";
-      nix-host = "nix run ${ref}#cookiecutter";
+        nix-fmt = "(cd ${ref} && nix fmt .)";
+        nix-check = "(cd ${ref} && nix flake check)";
+        nix-lint = "(cd ${ref} && nix develop --command sh -c 'statix check . && deadnix --fail .')";
+        nix-update = "(cd ${ref} && nix flake update)";
+        nix-sops = "(cd ${ref} && nix develop --command sops)";
+        nix-host = "nix run ${ref}#cookiecutter";
 
-      hamra-help = ''
-        printf '%s\n' \
-          'nix-deploy      deploy this host (deploy-<host> alias of the flake)' \
-          'nix-build       build this host without switching' \
-          'nix-deploy-vm   deploy the vm host' \
-          'nix-build-vm    build the vm host' \
-          'nix-fmt         format every .nix with alejandra' \
-          'nix-check       evaluate the whole flake' \
-          'nix-lint        statix check . && deadnix --fail .' \
-          'nix-update      nix flake update' \
-          'nix-sops        edit secrets (nix-sops secrets/samba.yaml)' \
-          'nix-host        generate a new host with cookiecutter' \
-          'setup-nas       NAS wizard (scripts/setup-nas.sh)' \
-          'hamra-saves     keep game saves in ~/Saves (games/saves toggle)' \
-          'shelf           list installed and installable apps' \
-          'keys            list the keybinds' \
-          'aliases         list every shell alias (aliases <name>)'
-      '';
+        hamra-help = ''
+          printf '%s\n' \
+            'nix-deploy      deploy this host (deploy-<host> alias of the flake)' \
+            'nix-build       build this host without switching' \
+            'nix-deploy-vm   deploy the vm host' \
+            'nix-build-vm    build the vm host' \
+            'nix-fmt         format every .nix with alejandra' \
+            'nix-check       evaluate the whole flake' \
+            'nix-lint        statix check . && deadnix --fail .' \
+            'nix-update      nix flake update' \
+            'nix-sops        edit secrets (nix-sops secrets/samba.yaml)' \
+            'nix-host        generate a new host with cookiecutter' \
+            'setup-nas       NAS wizard (scripts/setup-nas.sh)' \
+            'hamra-saves     keep game saves in ~/Saves (games/saves toggle)' \
+            'shelf           list installed and installable apps' \
+            'keys            list the keybinds' \
+            'aliases         list every shell alias (aliases <name>)'
+          ${lib.optionalString (vncHost != null) "printf '%s\\n' 'vnc             remote desktop (RA2 to ${vncHost})'"}
+        '';
 
-      ".." = "cd ..";
-      "..." = "cd ../..";
-      "...." = "cd ../../..";
+        ".." = "cd ..";
+        "..." = "cd ../..";
+        "...." = "cd ../../..";
 
-      g = "git";
-      gcm = "git commit -m";
-      gcam = "git commit -a -m";
-      gcad = "git commit -a --amend";
-    };
+        g = "git";
+        gcm = "git commit -m";
+        gcam = "git commit -a -m";
+        gcad = "git commit -a --amend";
+      }
+      // lib.optionalAttrs (vncHost != null) {
+        vnc = "vncviewer -SecurityTypes RA2 ${vncHost}";
+      };
 
     initContent = mkAfter ''
       if command -v eza &> /dev/null; then

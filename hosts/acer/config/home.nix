@@ -9,6 +9,7 @@
     shell = {
       aliases = true;
       flakeDir = "$HOME/Projetos/hamra";
+      vncHost = "192.168.1.15:5900";
       starship = true;
       zsh = true;
     };
