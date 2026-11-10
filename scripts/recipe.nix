@@ -118,6 +118,13 @@
 
   get = key: default: answers.${key} or default;
 
+  env = get "env" {
+    editor = "neovim";
+    browser = "chromium";
+    terminal = "foot";
+    filemanager = "thunar";
+  };
+
   enableBase = get "enable" [];
   enable = let
     withSamba =
@@ -129,8 +136,14 @@
     then withSamba ++ ["services.wayvnc"]
     else withSamba;
 
+  coreEnableBase = get "core_enable" [];
+  coreEnable =
+    if env.filemanager == "thunar" && !(lib.elem "gui.thunar" coreEnableBase)
+    then coreEnableBase ++ ["gui.thunar"]
+    else coreEnableBase;
+
   optionals0 = applyToggles optionalsUniverse.toggles enable (get "disable" []);
-  core = applyToggles coreUniverse.toggles (get "core_enable" []) (get "core_disable" []);
+  core = applyToggles coreUniverse.toggles coreEnable (get "core_disable" []);
   home = applyToggles homeUniverse.toggles (get "hm_enable" []) (get "hm_disable" []);
 
   homeTree =
@@ -165,13 +178,6 @@
     then throw "webapps.${n} needs url and desktopName"
     else null)
   webapps;
-
-  env = get "env" {
-    editor = "neovim";
-    browser = "chromium";
-    terminal = "foot";
-    filemanager = "thunar";
-  };
 
   keyboard =
     if answers ? keyboard && answers.keyboard != null
@@ -244,10 +250,13 @@
       audio = {default = "pipewire";};
       boot = {
         grub = {
-          device = "/dev/sda";
+          device = get "bootDevice" "";
           useOSProber = false;
         };
-        loader = "systemd-boot";
+        loader =
+          if answers.firmware == "bios"
+          then "grub"
+          else "systemd-boot";
         systemd = {editor = false;};
       };
       desktop = {default = answers.desktop;};
@@ -280,9 +289,7 @@
           http = false;
           https = false;
           dev = false;
-          vnc = false;
           rdp = false;
-          samba = false;
           syncthing = false;
           kdeconnect = false;
           jellyfin = false;
