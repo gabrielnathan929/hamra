@@ -1,0 +1,38 @@
+{
+  "hostname": "bios-desktop",
+  "username": "gabrielnathan",
+  "fullName": "Bios Test",
+  "email": "bios@example.com",
+  "bootDevice": "/dev/sda",
+  "locale": "en_US.UTF-8",
+  "timezone": "America/Sao_Paulo",
+  "theme": "dragon-ball",
+  "gpu": "amd",
+  "firmware": "bios",
+  "desktop": "hyprland",
+  "displayManager": "sddm",
+  "keyboard": null,
+  "nas": false,
+  "vnc": false,
+  "env": {
+    "editor": "neovim",
+    "browser": "chromium",
+    "terminal": "foot",
+    "filemanager": "thunar"
+  },
+  "enable": [
+    "gui.chromium"
+  ],
+  "disable": [
+    "games.steam"
+  ],
+  "core_enable": [
+    "gui.thunar"
+  ],
+  "core_disable": [],
+  "hm_enable": [
+    "editors.neovim"
+  ],
+  "hm_disable": [],
+  "flakeDir": "$HOME/Projetos/hamra"
+}
