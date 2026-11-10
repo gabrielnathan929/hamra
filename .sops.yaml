@@ -24,6 +24,14 @@ creation_rules:
           - *host-samsung
           - *host-acer
 
+  # wayvnc-rsa.yaml: static RSA private key for wayvnc auth (same hosts as vnc.yaml)
+  - path_regex: secrets/wayvnc-rsa\.yaml$
+    key_groups:
+      - age:
+          - *user
+          - *host-samsung
+          - *host-acer
+
   # samba.yaml: Samba server runs on the NAS host; clients may need it for activation scripts
   - path_regex: secrets/samba\.yaml$
     key_groups:

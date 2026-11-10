@@ -23,7 +23,8 @@
     else headlessDisplays.${lib.head headlessNames};
 
   certFile = ./wayvnc-cert.pem;
-  keyFile = config.sops.secrets."wayvnc-tls-key".path;
+  tlsKeyFile = config.sops.secrets."wayvnc-tls-key".path;
+  rsaKeyFile = config.sops.secrets."wayvnc-rsa-key".path;
 
   wayvncDaemon = pkgs.writeShellScript "wayvnc-daemon" ''
     set -e
@@ -279,7 +280,7 @@
       esac
     }
 
-    write_auth_config() {
+    write_config() {
       secret_file=$1
       if [ ! -f "$secret_file" ]; then
         error "vnc-password secret missing at $secret_file (sops)."
@@ -296,8 +297,9 @@
         echo "enable_auth=true"
         echo "username=${userName}"
         echo "password=$pw"
-        echo "private_key_file=${keyFile}"
         echo "certificate_file=${certFile}"
+        echo "private_key_file=${tlsKeyFile}"
+        echo "rsa_private_key_file=${rsaKeyFile}"
       } >"$conf"
       chmod 600 "$conf"
       echo "$conf"
@@ -322,14 +324,12 @@
           --output="$output"
       fi
       vnc_pw_path='${config.sops.secrets."vnc-password".path}'
-      auth_conf=$(write_auth_config "$vnc_pw_path") || exit 1
+      config_file=$(write_config "$vnc_pw_path") || exit 1
 
-      info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, TLS auth, static cert)..."
+      info "Starting wayvnc on output '$output' (port $VNC_ADDR:5900, TLS auth, static cert/keys)..."
       ${pkgs.util-linux}/bin/flock -u 9
       exec ${lib.getExe pkgs.wayvnc} \
-        --config="$auth_conf" \
-        --cert-file="${certFile}" \
-        --key-file="${keyFile}" \
+        --config="$config_file" \
         "$VNC_ADDR" \
         --max-fps="$VNC_FPS" \
         --render-cursor \
@@ -342,7 +342,7 @@ in {
   options.hamra.programs.optionals.services.wayvnc = mkOption {
     type = types.bool;
     default = false;
-    description = "Enable WayVNC (port 5900, sops password + static TLS cert). Requires Hyprland or Sway.";
+    description = "Enable WayVNC (port 5900, sops password + static TLS cert + RSA key). Requires Hyprland or Sway.";
   };
 
   options.hamra.programs.optionals.services."wayvnc-no-auth" = mkOption {
@@ -370,16 +370,24 @@ in {
       sops = {
         age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
-        secrets."vnc-password" = {
-          sopsFile = "${secretsPath}/vnc.yaml";
-          owner = userName;
-          mode = "0400";
-        };
+        secrets = {
+          "vnc-password" = {
+            sopsFile = "${secretsPath}/vnc.yaml";
+            owner = userName;
+            mode = "0400";
+          };
 
-        secrets."wayvnc-tls-key" = {
-          sopsFile = "${secretsPath}/wayvnc-tls.yaml";
-          owner = userName;
-          mode = "0400";
+          "wayvnc-tls-key" = {
+            sopsFile = "${secretsPath}/wayvnc-tls.yaml";
+            owner = userName;
+            mode = "0400";
+          };
+
+          "wayvnc-rsa-key" = {
+            sopsFile = "${secretsPath}/wayvnc-rsa.yaml";
+            owner = userName;
+            mode = "0400";
+          };
         };
       };
     })
