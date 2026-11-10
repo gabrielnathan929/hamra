@@ -234,6 +234,19 @@ desktop and display manager within their ranges; theme exists in the list;
 locale with `.UTF-8`; required fields filled in; WayVNC only with Hyprland
 or Sway; firewall port names within the registry (`core/firewall.nix`).
 
+### Remote desktop (VNC)
+
+`services.wayvnc` is the **server** (user unit, TCP 5900, requires
+`hamra.displays.headless`); `services.tigervnc` is the **client**
+(`vncviewer`). Both are plain toggles, so a host can be server and client.
+
+Auth is user + password from `secrets/vnc.yaml`, plus static TLS and RSA keys
+from sops. neatvnc only implements `RA2`/`RA2_256` (RSA-AES) and `X509Plain`
+(TLS), so clients must ask for one of those — `VncAuth`/`TLSVnc` fail. Recipe,
+key formats and troubleshooting: `docs/vnc.md`. Manage the credentials with
+`./scripts/setup-vnc.sh` (`--check`, `--show-password`, `--rotate-password`,
+`--rotate-certs`); it must run on the machine that holds the sops editing key.
+
 ### NAS / Samba
 
 The `hamra.programs.optionals.services.samba` toggle turns the host into an

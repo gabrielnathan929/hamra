@@ -1,253 +1,252 @@
 #!/usr/bin/env bash
-# setup-vnc - Configure wayvnc with static TLS cert/key and VNC password via SOPS
-# Usage: setup-vnc [--check] [--rotate-password] [--rotate-certs] [--help]
-
+#
+# setup-vnc — Manage the wayvnc credentials (password + static TLS/RSA keys)
+# stored with sops in this repository.
+#
+# Modes:
+#   ./scripts/setup-vnc.sh --check            verify the secrets and the keys
+#   ./scripts/setup-vnc.sh --show-password    print the current VNC password
+#   ./scripts/setup-vnc.sh --rotate-password  generate a new VNC password
+#   ./scripts/setup-vnc.sh --rotate-certs     generate new TLS cert/key + RSA key
+#   ./scripts/setup-vnc.sh --rotate-all       password + certs
+#   ./scripts/setup-vnc.sh --help             this help
+#
+# Needs the sops editing key at ~/.config/sops/age/keys.txt and must run on the
+# machine that holds it. After any rotation, rebuild every host with the
+# wayvnc toggle: sudo nixos-rebuild switch --flake .#<host>
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 cd "$REPO_ROOT"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+CERT_FILE="modules/nixos/programs/optionals/services/wayvnc-cert.pem"
+PW_SECRET="secrets/vnc.yaml"
+TLS_SECRET="secrets/wayvnc-tls.yaml"
+RSA_SECRET="secrets/wayvnc-rsa.yaml"
+AGE_KEY="$HOME/.config/sops/age/keys.txt"
 
-log() { echo -e "${BLUE}[setup-vnc]${NC} $*"; }
-warn() { echo -e "${YELLOW}[setup-vnc]${NC} $*"; }
-error() { echo -e "${RED}[setup-vnc]${NC} $*" >&2; }
-ok() { echo -e "${GREEN}[setup-vnc]${NC} $*"; }
+TMPDIR_SETUP=""
+cleanup() {
+  if [[ -n "$TMPDIR_SETUP" && -d "$TMPDIR_SETUP" ]]; then
+    shopt -u nullglob
+    rm -rf "$TMPDIR_SETUP"
+  fi
+}
+trap cleanup EXIT INT TERM
+
+if [[ -t 1 ]]; then
+  _R=$'\033[31m'; _G=$'\033[32m'; _Y=$'\033[33m'; _C=$'\033[36m'; _N=$'\033[0m'
+else
+  _R=""; _G=""; _Y=""; _C=""; _N=""
+fi
+
+info() { printf "%s[setup-vnc]%s %s\n" "$_C" "$_N" "$*"; }
+ok() { printf "%s[setup-vnc]%s %s\n" "$_G" "$_N" "$*"; }
+warn() { printf "%s[setup-vnc]%s %s\n" "$_Y" "$_N" "$*"; }
+die() {
+  printf "%s[setup-vnc]%s %s\n" "$_R" "$_N" "$*" >&2
+  exit 1
+}
 
 show_help() {
-    cat <<'HELP'
-setup-vnc - Configure wayvnc static credentials via SOPS
+  sed -n '3,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+  cat <<'HELP'
 
-USAGE:
-    setup-vnc [OPTIONS]
+FILES MANAGED
+  secrets/vnc.yaml                                       vnc-password
+  secrets/wayvnc-tls.yaml                                wayvnc-tls-key
+  secrets/wayvnc-rsa.yaml                                wayvnc-rsa-key
+  modules/nixos/programs/optionals/services/wayvnc-cert.pem   public TLS cert
 
-OPTIONS:
-    --check              Verify current configuration (decrypt all secrets)
-    --rotate-password    Generate new VNC password and update SOPS
-    --rotate-certs       Generate new TLS cert/key + RSA key and update SOPS
-    --rotate-all         Rotate password, TLS cert/key, and RSA key
-    --help               Show this help
+KEY FORMATS (they matter to the server)
+  wayvnc-tls-key   PKCS#8  ("BEGIN PRIVATE KEY"), GnuTLS
+  wayvnc-rsa-key   PKCS#1  ("BEGIN RSA PRIVATE KEY"), nettle
+  the cert and the TLS key must be a matching pair (same modulus)
 
-EXAMPLES:
-    setup-vnc --check              # Verify everything decrypts
-    setup-vnc --rotate-password    # New VNC password only
-    setup-vnc --rotate-all         # Full rotation (password + certs + keys)
-
-NOTES:
-    - Must run on machine with SOPS editing key (~/.config/sops/age/keys.txt)
-    - SSH host keys only work with sops-nix during system activation (not manual sops)
-    - After rotation, run 'nixos-rebuild switch' on samsung and acer
-    - Certificate is 100-year self-signed (36500 days)
-    - RSA key is PKCS#1 format (-----BEGIN RSA PRIVATE KEY-----) for nettle compatibility
-
-FILES MANAGED:
-    secrets/vnc.yaml           # VNC password (vnc-password)
-    secrets/wayvnc-tls.yaml    # TLS private key (wayvnc-tls-key)
-    secrets/wayvnc-rsa.yaml    # RSA private key (wayvnc-rsa-key)
-    modules/nixos/programs/optionals/services/wayvnc-cert.pem  # TLS cert (public, in repo)
-    .sops.yaml                 # Recipient rules (updated if needed)
-
-RECIPIENTS (from .sops.yaml):
-    - Editing key (age1sq570spnk...)
-    - samsung (age1jke3vagr...)
-    - acer (age1uw4uek9v...)
+CLIENTS
+  The server accepts RA2/RA2_256 (RSA-AES, user + password) and X509Plain
+  (TLS + user + password). See docs/vnc.md for the client recipe.
 HELP
 }
 
-check_sops_key() {
-    if [[ -f ~/.config/sops/age/keys.txt ]]; then
-        ok "Found editing key at ~/.config/sops/age/keys.txt"
-        return 0
-    fi
-    error "No SOPS editing key found at ~/.config/sops/age/keys.txt"
-    error "Manual sops operations require the editing key."
-    error "SSH host keys only work with sops-nix during system activation."
-    return 1
+tool() {
+  local bin=$1
+  shift
+  if command -v "$bin" >/dev/null 2>&1; then
+    "$bin" "$@"
+  else
+    nix run "nixpkgs#$bin" -- "$@"
+  fi
 }
 
-decrypt_secret() {
-    local file="$1"
-    local key_var="$2"
-    
-    if [[ -f ~/.config/sops/age/keys.txt ]]; then
-        SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt nix develop --command sops -d "$file" 2>/dev/null | grep -oP '(?<='"$key_var"': ).*' | tr -d '"'
-    else
-        error "SSH host key decryption not supported for manual sops commands."
-        error "Use the editing key (~/.config/sops/age/keys.txt) or run via sops-nix at activation."
-        return 1
-    fi
+sops_() {
+  SOPS_AGE_KEY_FILE="$AGE_KEY" tool sops "$@"
+}
+
+openssl_() {
+  tool openssl "$@"
+}
+
+need_key() {
+  [[ -f "$AGE_KEY" ]] || die "editing key not found at $AGE_KEY (run this on the machine that owns it)"
+}
+
+need_repo() {
+  [[ -f "$PW_SECRET" && -f "$TLS_SECRET" && -f "$RSA_SECRET" ]] \
+    || die "missing secret files (expected $PW_SECRET, $TLS_SECRET, $RSA_SECRET)"
+}
+
+decrypt_field() {
+  local file=$1 key=$2
+  sops_ -d --extract "[\"$key\"]" "$file"
+}
+
+encrypt_in_place() {
+  local file=$1
+  sops_ --encrypt --in-place "$file"
+  ok "$file encrypted"
+}
+
+new_tmp() {
+  if [[ -z "$TMPDIR_SETUP" ]]; then
+    TMPDIR_SETUP=$(mktemp -d)
+    chmod 700 "$TMPDIR_SETUP"
+  fi
+  echo "$TMPDIR_SETUP"
 }
 
 cmd_check() {
-    log "Checking SOPS decryption for all wayvnc secrets..."
-    check_sops_key || return 1
-    
-    log "Checking vnc.yaml (vnc-password)..."
-    if decrypt_secret secrets/vnc.yaml "vnc-password" >/dev/null; then
-        ok "vnc.yaml decrypts OK"
-    else
-        error "vnc.yaml FAILED to decrypt"
-        return 1
-    fi
-    
-    log "Checking wayvnc-tls.yaml (wayvnc-tls-key)..."
-    if decrypt_secret secrets/wayvnc-tls.yaml "wayvnc-tls-key" >/dev/null; then
-        ok "wayvnc-tls.yaml decrypts OK"
-    else
-        error "wayvnc-tls.yaml FAILED to decrypt"
-        return 1
-    fi
-    
-    log "Checking wayvnc-rsa.yaml (wayvnc-rsa-key)..."
-    local rsa_decrypt
-    rsa_decrypt=$(decrypt_secret secrets/wayvnc-rsa.yaml "wayvnc-rsa-key" "wayvnc-rsa-key")
-    if [[ -n "$rsa_decrypt" ]]; then
-        ok "wayvnc-rsa.yaml decrypts OK"
-    else
-        error "wayvnc-rsa.yaml FAILED to decrypt"
-        return 1
-    fi
-    
-    log "Checking cert/key match..."
-    local cert_mod
-    cert_mod=$(openssl x509 -noout -modulus -in modules/nixos/programs/optionals/services/wayvnc-cert.pem 2>/dev/null | openssl md5 | awk '{print $2}')
-    local key_mod
-    key_mod=$(decrypt_secret secrets/wayvnc-tls.yaml "wayvnc-tls-key" "wayvnc-tls-key" | openssl rsa -noout -modulus 2>/dev/null | openssl md5 | awk '{print $2}')
-    if [[ "$cert_mod" == "$key_mod" && -n "$cert_mod" ]]; then
-        ok "Cert/key modulus match: $cert_mod"
-    else
-        error "Cert/key modulus MISMATCH (cert: $cert_mod, key: $key_mod)"
-        return 1
-    fi
-    
-    ok "All checks passed!"
+  need_key
+  need_repo
+
+  local dir
+  dir=$(new_tmp)
+
+  info "decrypting vnc-password"
+  local pw
+  pw=$(decrypt_field "$PW_SECRET" vnc-password) || die "vnc.yaml does not decrypt"
+  [[ -n "$pw" ]] || die "vnc-password is empty"
+  ok "vnc-password decrypts (${#pw} chars)"
+
+  info "decrypting wayvnc-tls-key"
+  decrypt_field "$TLS_SECRET" wayvnc-tls-key >"$dir/tls.pem" || die "wayvnc-tls.yaml does not decrypt"
+  grep -q "BEGIN" "$dir/tls.pem" || die "wayvnc-tls-key is not a PEM block"
+  ok "wayvnc-tls-key decrypts ($(head -1 "$dir/tls.pem" | tr -d '-'))"
+
+  info "decrypting wayvnc-rsa-key"
+  decrypt_field "$RSA_SECRET" wayvnc-rsa-key >"$dir/rsa.pem" || die "wayvnc-rsa.yaml does not decrypt"
+  head -1 "$dir/rsa.pem" | grep -qx -- "-----BEGIN RSA PRIVATE KEY-----" \
+    || die "wayvnc-rsa-key is not PKCS#1 (nettle rejects PKCS#8): $(head -1 "$dir/rsa.pem")"
+  openssl_ rsa -in "$dir/rsa.pem" -check -noout >/dev/null 2>&1 || die "wayvnc-rsa-key is not a valid RSA key"
+  ok "wayvnc-rsa-key decrypts and is valid PKCS#1"
+
+  info "comparing cert and TLS key moduli"
+  local cert_mod key_mod
+  cert_mod=$(openssl_ x509 -noout -modulus -in "$CERT_FILE" | openssl_ md5)
+  key_mod=$(openssl_ rsa -noout -modulus -in "$dir/tls.pem" | openssl_ md5)
+  [[ "$cert_mod" == "$key_mod" ]] || die "cert/key modulus mismatch (cert: $cert_mod, key: $key_mod)"
+  ok "cert and TLS key match ($cert_mod)"
+
+  ok "all checks passed"
 }
 
-rotate_password() {
-    log "Rotating VNC password..."
-    check_sops_key || return 1
-    
-    local new_pass
-    new_pass=$(openssl rand -base64 16)
-    log "Generated new password: $new_pass"
-    
-    cat > secrets/vnc.yaml <<YAML
-vnc-password: "$new_pass"
+cmd_show_password() {
+  need_key
+  need_repo
+  decrypt_field "$PW_SECRET" vnc-password
+  echo
+}
+
+git_commit_push() {
+  local msg=$1
+  shift
+  git add "$@"
+  git commit -m "$msg"
+  git push origin HEAD
+  ok "pushed to origin"
+}
+
+cmd_rotate_password() {
+  need_key
+  need_repo
+
+  local pw
+  pw=$(openssl_ rand -base64 16)
+  cat >"$PW_SECRET" <<YAML
+vnc-password: "$pw"
 YAML
-    
-    nix develop --command sops --encrypt --in-place secrets/vnc.yaml
-    ok "secrets/vnc.yaml updated"
-    
-    git add secrets/vnc.yaml
-    git commit -m "chore(vnc): rotate VNC password"
-    git push origin main
-    ok "Pushed to origin/main"
-    
-    warn "Run rebuild on samsung and acer:"
-    warn "  sudo nixos-rebuild switch --flake .#samsung"
-    warn "  sudo nixos-rebuild switch --flake .#acer"
+
+  encrypt_in_place "$PW_SECRET"
+  git_commit_push "chore(vnc): rotate VNC password" "$PW_SECRET"
+
+  echo
+  warn "new VNC password: $pw"
+  warn "rebuild the host that runs wayvnc: sudo nixos-rebuild switch --flake .#<host>"
 }
 
-rotate_certs() {
-    log "Rotating TLS cert/key pair and RSA key..."
-    check_sops_key || return 1
-    
-    # Generate new TLS cert + PKCS#8 key (GnuTLS accepts PKCS#8)
-    log "Generating new self-signed cert (100 years) + TLS key..."
-    openssl req -x509 -newkey rsa:4096 -sha256 -days 36500 -nodes \
-        -keyout /tmp/wayvnc-tls-key.pem -out /tmp/wayvnc-cert.pem \
-        -subj "/CN=wayvnc" -addext "subjectAltName=IP:127.0.0.1,IP:::1"
-    
-    # Verify match
-    local cert_mod
-    cert_mod=$(openssl x509 -noout -modulus -in /tmp/wayvnc-cert.pem | openssl md5 | awk '{print $2}')
-    local key_mod
-    key_mod=$(openssl rsa -noout -modulus -in /tmp/wayvnc-tls-key.pem | openssl md5 | awk '{print $2}')
-    if [[ "$cert_mod" != "$key_mod" ]]; then
-        error "Cert/key generation failed - modulus mismatch"
-        return 1
-    fi
-    ok "Cert/key match: $cert_mod"
-    
-    # Copy cert to repo (public)
-    cp /tmp/wayvnc-cert.pem modules/nixos/programs/optionals/services/wayvnc-cert.pem
-    ok "Cert updated in repo"
-    
-    # Encrypt TLS key
-    log "Encrypting TLS private key..."
-    local tls_key
-    tls_key=$(cat /tmp/wayvnc-tls-key.pem)
-    cat > secrets/wayvnc-tls.yaml <<YAML
-wayvnc-tls-key: |
-$(echo "$tls_key" | sed 's/^/  /')
-YAML
-    nix develop --command sops --encrypt --in-place secrets/wayvnc-tls.yaml
-    ok "secrets/wayvnc-tls.yaml updated"
-    
-    # Generate RSA key in PKCS#1 format (for nettle)
-    log "Generating RSA key (PKCS#1 format for nettle)..."
-    openssl genrsa -traditional -out /tmp/wayvnc-rsa-key.pem 4096
-    local rsa_first
-    rsa_first=$(head -1 /tmp/wayvnc-rsa-key.pem)
-    if [[ "$rsa_first" != "-----BEGIN RSA PRIVATE KEY-----" ]]; then
-        error "RSA key not in PKCS#1 format: $rsa_first"
-        return 1
-    fi
-    ok "RSA key format: PKCS#1"
-    
-    # Encrypt RSA key
-    log "Encrypting RSA private key..."
-    local rsa_key
-    rsa_key=$(cat /tmp/wayvnc-rsa-key.pem)
-    cat > secrets/wayvnc-rsa.yaml <<YAML
-wayvnc-rsa-key: |
-$(echo "$rsa_key" | sed 's/^/  /')
-YAML
-    nix develop --command sops --encrypt --in-place secrets/wayvnc-rsa.yaml
-    ok "secrets/wayvnc-rsa.yaml updated"
-    
-    # Commit all
-    git add modules/nixos/programs/optionals/services/wayvnc-cert.pem secrets/wayvnc-tls.yaml secrets/wayvnc-rsa.yaml
-    git commit -m "chore(vnc): rotate TLS cert/key and RSA key"
-    git push origin main
-    ok "Pushed to origin/main"
-    
-    warn "Run rebuild on samsung and acer:"
-    warn "  sudo nixos-rebuild switch --flake .#samsung"
-    warn "  sudo nixos-rebuild switch --flake .#acer"
+cmd_rotate_certs() {
+  need_key
+  need_repo
+
+  local dir
+  dir=$(new_tmp)
+
+  info "generating TLS cert/key pair (100 years)"
+  openssl_ req -x509 -newkey rsa:4096 -sha256 -days 36500 -nodes \
+    -keyout "$dir/tls.pem" -out "$dir/cert.pem" \
+    -subj "/CN=wayvnc" -addext "subjectAltName=IP:127.0.0.1,IP:::1" >/dev/null 2>&1 \
+    || die "openssl failed to generate the TLS pair"
+
+  local cert_mod key_mod
+  cert_mod=$(openssl_ x509 -noout -modulus -in "$dir/cert.pem" | openssl_ md5)
+  key_mod=$(openssl_ rsa -noout -modulus -in "$dir/tls.pem" | openssl_ md5)
+  [[ "$cert_mod" == "$key_mod" ]] || die "generated cert/key do not match"
+  ok "cert/key match ($cert_mod)"
+
+  info "generating RSA key (PKCS#1, nettle)"
+  openssl_ genrsa -traditional -out "$dir/rsa.pem" 4096 >/dev/null 2>&1
+  head -1 "$dir/rsa.pem" | grep -qx -- "-----BEGIN RSA PRIVATE KEY-----" \
+    || die "generated RSA key is not PKCS#1"
+  ok "RSA key is PKCS#1"
+
+  cp "$dir/cert.pem" "$CERT_FILE"
+
+  {
+    echo "wayvnc-tls-key: |"
+    sed 's/^/  /' "$dir/tls.pem"
+  } >"$TLS_SECRET"
+  encrypt_in_place "$TLS_SECRET"
+
+  {
+    echo "wayvnc-rsa-key: |"
+    sed 's/^/  /' "$dir/rsa.pem"
+  } >"$RSA_SECRET"
+  encrypt_in_place "$RSA_SECRET"
+
+  git_commit_push "chore(vnc): rotate TLS cert/key and RSA key" \
+    "$CERT_FILE" "$TLS_SECRET" "$RSA_SECRET"
+
+  echo
+  warn "clients must accept the new server fingerprint on the next connection"
+  warn "rebuild the host that runs wayvnc: sudo nixos-rebuild switch --flake .#<host>"
 }
 
-rotate_all() {
-    rotate_password
-    rotate_certs
+cmd_rotate_all() {
+  cmd_rotate_password
+  cmd_rotate_certs
 }
 
-# Main
 case "${1:-}" in
-    --check)
-        cmd_check
-        ;;
-    --rotate-password)
-        rotate_password
-        ;;
-    --rotate-certs)
-        rotate_certs
-        ;;
-    --rotate-all)
-        rotate_all
-        ;;
-    --help|-h|"")
-        show_help
-        ;;
-    *)
-        error "Unknown option: $1"
-        show_help
-        exit 1
-        ;;
+  --check) cmd_check ;;
+  --show-password) cmd_show_password ;;
+  --rotate-password) cmd_rotate_password ;;
+  --rotate-certs) cmd_rotate_certs ;;
+  --rotate-all) cmd_rotate_all ;;
+  --help | -h | "") show_help ;;
+  *)
+    printf "%s[setup-vnc]%s unknown option: %s\n" "$_R" "$_N" "$1" >&2
+    show_help
+    exit 1
+    ;;
 esac

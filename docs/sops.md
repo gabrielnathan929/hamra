@@ -12,12 +12,13 @@ Hamra uses **sops-nix** with **age** encryption for secret management. Secrets l
 secrets/
 ├── vnc.yaml          # wayvnc password (VNC)
 ├── samba.yaml        # Samba NAS password
-└── wayvnc-tls.yaml   # wayvnc static TLS private key
+├── wayvnc-tls.yaml   # wayvnc static TLS private key
+└── wayvnc-rsa.yaml   # wayvnc static RSA private key
 
 .sops.yaml            # Key/recipient configuration
 ```
 
-> **Certificates:** The wayvnc TLS *certificate* (public) lives in the repo at `modules/nixos/programs/optionals/services/wayvnc-cert.pem`. Only the *private key* is encrypted in `secrets/wayvnc-tls.yaml`.
+> **Certificates:** The wayvnc TLS *certificate* (public) lives in the repo at `modules/nixos/programs/optionals/services/wayvnc-cert.pem`. Only the *private key* is encrypted in `secrets/wayvnc-tls.yaml`. The RSA key (`secrets/wayvnc-rsa.yaml`) is what clients see as a fingerprint; see [`vnc.md`](vnc.md).
 
 ---
 
@@ -72,6 +73,14 @@ creation_rules:
           - *host-samsung
           - *host-acer
 
+  # wayvnc-rsa.yaml: static RSA private key for wayvnc auth (same hosts as vnc.yaml)
+  - path_regex: secrets/wayvnc-rsa\.yaml$
+    key_groups:
+      - age:
+          - *user
+          - *host-samsung
+          - *host-acer
+
   # samba.yaml: Samba server runs on the NAS host; clients may need it for activation scripts
   - path_regex: secrets/samba\.yaml$
     key_groups:
@@ -86,6 +95,7 @@ creation_rules:
 |--------|------------------------|-----------|
 | `vnc.yaml` | samsung, acer | wayvnc server can be enabled on any host via toggle |
 | `wayvnc-tls.yaml` | samsung, acer | static TLS key for wayvnc (same hosts as vnc.yaml) |
+| `wayvnc-rsa.yaml` | samsung, acer | static RSA key for wayvnc RA2 auth (same hosts as vnc.yaml) |
 | `samba.yaml` | acer (NAS), samsung (client) | NAS host runs the server; client hosts run activation scripts that read the password |
 
 > **Note:** Roles are not fixed. Any host can become a wayvnc server or Samba NAS by enabling the corresponding toggle. The recipient list simply includes all hosts that *might* need the secret.
@@ -136,17 +146,21 @@ git push
 ### Update recipients when adding a new host
 ```bash
 # On editing-key machine (after adding host key to .sops.yaml)
-nix develop --command sops updatekeys secrets/wayvnc-tls.yaml secrets/vnc.yaml secrets/samba.yaml
+sops updatekeys secrets/wayvnc-tls.yaml secrets/wayvnc-rsa.yaml secrets/vnc.yaml secrets/samba.yaml
 git add secrets/*.yaml .sops.yaml
 git commit -m "chore(sops): sync recipients for new host"
 git push
 ```
 
-### Module changes (already done)
-- `wayvnc.nix` now passes `--cert-file` + `--key-file` to wayvnc
-- No more runtime cert generation (`ensure_tls()` removed)
-- No more RSA key generation (`ssh-keygen` removed)
-- Auth config references static files: `private_key_file=/run/secrets/wayvnc-tls-key`, `certificate_file=/path/to/wayvnc-cert.pem`
+### What the module does with them
+- No runtime cert/RSA generation: the files come from the repo + sops.
+- At start the unit writes `$XDG_RUNTIME_DIR/wayvnc.conf` (mode 0600) with
+  `enable_auth=true`, `username`, `password` (read from `/run/secrets/vnc-password`),
+  `certificate_file`, `private_key_file` and `rsa_private_key_file`, then execs
+  `wayvnc --config`.
+- Key formats matter: TLS key is PKCS#8 (GnuTLS), RSA key is PKCS#1 (nettle).
+- Client-facing details (which security types work, client recipe) live in
+  [`vnc.md`](vnc.md).
 
 ### Machine lifecycle considerations
 
@@ -155,7 +169,7 @@ git push
 | **Host rebuild** (same machine) | Same cert/key used, no change | Nothing |
 | **OS reinstall** (new SSH host key) | New host key → add to `.sops.yaml` → `sops updatekeys` → rebuild | Run `sops updatekeys` on editing machine |
 | **New machine** | Generate host key → add to `.sops.yaml` → `sops updatekeys` → rebuild | Same as above |
-| **Cert compromised** | Generate new cert/key pair → replace `wayvnc-cert.pem` in repo → update `wayvnc-tls.yaml` in sops → `sops updatekeys` all secrets → rebuild all hosts | Run on editing machine |
+| **Cert compromised** | `./scripts/setup-vnc.sh --rotate-certs` (regenerates cert + TLS key + RSA key, commits, pushes) → `sops updatekeys` if recipients changed → rebuild all hosts | Run on editing machine |
 | **Cert expired** (36500 days ≈ 100 years) | Practically never, but same as "compromised" | Same as above |
 
 > **Key insight:** The cert/key are **not tied to the machine identity**. They're just a static TLS identity for the wayvnc service. The *machine identity* is handled by the host SSH key (for sops decryption). This means:
@@ -170,7 +184,7 @@ git push
 ### 1. Edit a secret (e.g., change VNC password)
 ```bash
 # On the machine WITH the editing key (~/.config/sops/age/keys.txt)
-nix develop --command sops secrets/vnc.yaml
+sops secrets/vnc.yaml
 # Opens $EDITOR with decrypted YAML
 # Save → auto-reencrypts for ALL recipients in .sops.yaml
 git add secrets/vnc.yaml && git commit -m "chore: update vnc password" && git push

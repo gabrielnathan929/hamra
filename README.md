@@ -84,6 +84,7 @@ games/    → launchers + tooling (steam, proton, umu, mangohud)
 | **Contribute / Git Flow / local CI** | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 | **Secrets (sops/age): keys, workflows, troubleshooting** | [`docs/sops.md`](docs/sops.md) |
 | **Samba NAS: shares, trash, mounting, keys** | [`docs/nas.md`](docs/nas.md) |
+| **Remote desktop (VNC): server, clients, credentials** | [`docs/vnc.md`](docs/vnc.md) |
 | **Firewall: named ports, service-owned ports** | [`docs/firewall.md`](docs/firewall.md) |
 | **Repo rules: layers, categories, toggles** | [`AGENTS.md`](AGENTS.md) |
 
@@ -123,8 +124,8 @@ sudo nixos-rebuild switch --flake .#your-hostname
 
 | Host | Role | Desktop | GPU | Notable Toggles |
 |------|------|---------|-----|-----------------|
-| `samsung` | Daily driver laptop | Hyprland | Intel | wayvnc, steam, sunshine, moonlight |
-| `acer` | NAS / desktop | Hyprland | Intel | samba, wayvnc, steam, protonup-qt |
+| `samsung` | Daily driver laptop | Hyprland | Intel | wayvnc (server), steam, sunshine, moonlight |
+| `acer` | NAS / desktop | Hyprland | Intel | samba, tigervnc (client), steam, protonup-qt |
 | `vm` | Test VM | Hyprland | virtio | minimal, no wayvnc/samba |
 
 ---

@@ -283,7 +283,7 @@
       secret_file=$1
       if [ ! -f "$secret_file" ]; then
         error "vnc-password secret missing at $secret_file (sops)."
-        error "Create it with: nix develop --command sops secrets/vnc.yaml"
+        error "Create it with: ./scripts/setup-vnc.sh --rotate-password"
         return 1
       fi
       pw=$(tr -d '\n\r' <"$secret_file")

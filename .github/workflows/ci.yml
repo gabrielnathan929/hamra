@@ -74,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa
-      - run: nix run --accept-flake-config nixpkgs#shellcheck -- --severity=warning scripts/cookiecutter.sh scripts/setup-nas.sh scripts/tests/test_golden.sh
+      - run: nix run --accept-flake-config nixpkgs#shellcheck -- --severity=warning scripts/cookiecutter.sh scripts/setup-nas.sh scripts/setup-vnc.sh scripts/tests/test_golden.sh
 
   check:
     name: Evaluation
