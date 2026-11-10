@@ -80,7 +80,6 @@ check_sops_key() {
 decrypt_secret() {
     local file="$1"
     local key_var="$2"
-    local key_file="$3"
     
     if [[ -f ~/.config/sops/age/keys.txt ]]; then
         SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt nix develop --command sops -d "$file" 2>/dev/null | grep -oP '(?<='"$key_var"': ).*' | tr -d '"'
@@ -94,7 +93,7 @@ cmd_check() {
     check_sops_key || return 1
     
     log "Checking vnc.yaml (vnc-password)..."
-    if decrypt_secret secrets/vnc.yaml "vnc-password" "vnc-password" >/dev/null; then
+    if decrypt_secret secrets/vnc.yaml "vnc-password" >/dev/null; then
         ok "vnc.yaml decrypts OK"
     else
         error "vnc.yaml FAILED to decrypt"
@@ -102,7 +101,7 @@ cmd_check() {
     fi
     
     log "Checking wayvnc-tls.yaml (wayvnc-tls-key)..."
-    if decrypt_secret secrets/wayvnc-tls.yaml "wayvnc-tls-key" "wayvnc-tls-key" >/dev/null; then
+    if decrypt_secret secrets/wayvnc-tls.yaml "wayvnc-tls-key" >/dev/null; then
         ok "wayvnc-tls.yaml decrypts OK"
     else
         error "wayvnc-tls.yaml FAILED to decrypt"
@@ -110,7 +109,9 @@ cmd_check() {
     fi
     
     log "Checking wayvnc-rsa.yaml (wayvnc-rsa-key)..."
-    if decrypt_secret secrets/wayvnc-rsa.yaml "wayvnc-rsa-key" "wayvnc-rsa-key" >/dev/null; then
+    local rsa_decrypt
+    rsa_decrypt=$(decrypt_secret secrets/wayvnc-rsa.yaml "wayvnc-rsa-key" "wayvnc-rsa-key")
+    if [[ -n "$rsa_decrypt" ]]; then
         ok "wayvnc-rsa.yaml decrypts OK"
     else
         error "wayvnc-rsa.yaml FAILED to decrypt"
@@ -118,8 +119,10 @@ cmd_check() {
     fi
     
     log "Checking cert/key match..."
-    local cert_mod=$(openssl x509 -noout -modulus -in modules/nixos/programs/optionals/services/wayvnc-cert.pem 2>/dev/null | openssl md5 | awk '{print $2}')
-    local key_mod=$(decrypt_secret secrets/wayvnc-tls.yaml "wayvnc-tls-key" "wayvnc-tls-key" | openssl rsa -noout -modulus 2>/dev/null | openssl md5 | awk '{print $2}')
+    local cert_mod
+    cert_mod=$(openssl x509 -noout -modulus -in modules/nixos/programs/optionals/services/wayvnc-cert.pem 2>/dev/null | openssl md5 | awk '{print $2}')
+    local key_mod
+    key_mod=$(decrypt_secret secrets/wayvnc-tls.yaml "wayvnc-tls-key" "wayvnc-tls-key" | openssl rsa -noout -modulus 2>/dev/null | openssl md5 | awk '{print $2}')
     if [[ "$cert_mod" == "$key_mod" && -n "$cert_mod" ]]; then
         ok "Cert/key modulus match: $cert_mod"
     else
@@ -134,7 +137,8 @@ rotate_password() {
     log "Rotating VNC password..."
     check_sops_key || return 1
     
-    local new_pass=$(openssl rand -base64 16)
+    local new_pass
+    new_pass=$(openssl rand -base64 16)
     log "Generated new password: $new_pass"
     
     cat > secrets/vnc.yaml <<YAML
@@ -165,8 +169,10 @@ rotate_certs() {
         -subj "/CN=wayvnc" -addext "subjectAltName=IP:127.0.0.1,IP:::1"
     
     # Verify match
-    local cert_mod=$(openssl x509 -noout -modulus -in /tmp/wayvnc-cert.pem | openssl md5 | awk '{print $2}')
-    local key_mod=$(openssl rsa -noout -modulus -in /tmp/wayvnc-tls-key.pem | openssl md5 | awk '{print $2}')
+    local cert_mod
+    cert_mod=$(openssl x509 -noout -modulus -in /tmp/wayvnc-cert.pem | openssl md5 | awk '{print $2}')
+    local key_mod
+    key_mod=$(openssl rsa -noout -modulus -in /tmp/wayvnc-tls-key.pem | openssl md5 | awk '{print $2}')
     if [[ "$cert_mod" != "$key_mod" ]]; then
         error "Cert/key generation failed - modulus mismatch"
         return 1
@@ -179,7 +185,8 @@ rotate_certs() {
     
     # Encrypt TLS key
     log "Encrypting TLS private key..."
-    local tls_key=$(cat /tmp/wayvnc-tls-key.pem)
+    local tls_key
+    tls_key=$(cat /tmp/wayvnc-tls-key.pem)
     cat > secrets/wayvnc-tls.yaml <<YAML
 wayvnc-tls-key: |
 $(echo "$tls_key" | sed 's/^/  /')
@@ -190,7 +197,8 @@ YAML
     # Generate RSA key in PKCS#1 format (for nettle)
     log "Generating RSA key (PKCS#1 format for nettle)..."
     openssl genrsa -traditional -out /tmp/wayvnc-rsa-key.pem 4096
-    local rsa_first=$(head -1 /tmp/wayvnc-rsa-key.pem)
+    local rsa_first
+    rsa_first=$(head -1 /tmp/wayvnc-rsa-key.pem)
     if [[ "$rsa_first" != "-----BEGIN RSA PRIVATE KEY-----" ]]; then
         error "RSA key not in PKCS#1 format: $rsa_first"
         return 1
@@ -199,7 +207,8 @@ YAML
     
     # Encrypt RSA key
     log "Encrypting RSA private key..."
-    local rsa_key=$(cat /tmp/wayvnc-rsa-key.pem)
+    local rsa_key
+    rsa_key=$(cat /tmp/wayvnc-rsa-key.pem)
     cat > secrets/wayvnc-rsa.yaml <<YAML
 wayvnc-rsa-key: |
 $(echo "$rsa_key" | sed 's/^/  /')

@@ -79,6 +79,37 @@
     };
   };
 
+  setup-vnc = pkgs.stdenv.mkDerivation {
+    pname = "setup-vnc";
+    version = "0.1.0";
+    dontUnpack = true;
+
+    nativeBuildInputs = [pkgs.makeWrapper pkgs.openssl pkgs.sops pkgs.age pkgs.ssh-to-age pkgs.git pkgs.bash pkgs.coreutils pkgs.findutils];
+
+    installPhase = ''
+      mkdir -p $out/bin
+      makeWrapper ${../scripts/setup-vnc.sh} $out/bin/setup-vnc \
+        --prefix PATH : ${
+        pkgs.lib.makeBinPath [
+          pkgs.bash
+          pkgs.coreutils
+          pkgs.findutils
+          pkgs.openssl
+          pkgs.sops
+          pkgs.age
+          pkgs.ssh-to-age
+          pkgs.git
+          pkgs.nix
+        ]
+      }
+    '';
+
+    meta = {
+      description = "Manage wayvnc static credentials via SOPS";
+      mainProgram = "setup-vnc";
+    };
+  };
+
   mkApps = fn: prefix:
     builtins.listToAttrs (map (h: {
         name = "${prefix}-${h}";
@@ -101,29 +132,7 @@ in {
 
       setup-vnc = {
         type = "app";
-        program = "${pkgs.stdenv.mkDerivation {
-          pname = \"setup-vnc\";
-          version = \"0.1.0\";
-          dontUnpack = true;
-          nativeBuildInputs = [pkgs.makeWrapper pkgs.openssl pkgs.sops pkgs.age pkgs.ssh-to-age pkgs.git pkgs.bash pkgs.coreutils pkgs.findutils];
-          installPhase = ''
-            mkdir -p \$out/bin
-            makeWrapper ${../scripts/setup-vnc.sh} \$out/bin/setup-vnc \
-              --prefix PATH : ${
-              pkgs.lib.makeBinPath [
-                pkgs.bash
-                pkgs.coreutils
-                pkgs.findutils
-                pkgs.openssl
-                pkgs.sops
-                pkgs.age
-                pkgs.ssh-to-age
-                pkgs.git
-                pkgs.nix
-              ]
-            }
-          '';
-        }}/bin/setup-vnc";
+        program = "${setup-vnc}/bin/setup-vnc";
         meta = {
           description = "Manage wayvnc static credentials via SOPS";
           mainProgram = "setup-vnc";
