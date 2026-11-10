@@ -19,7 +19,7 @@ _: {
 
     boot = {
       grub = {
-        device = "/dev/sda";
+        device = "";
         useOSProber = false;
       };
       loader = "systemd-boot";

@@ -11,6 +11,7 @@
   authSecret = lib.optionalString (!noAuth) config.sops.secrets."vnc-password".path;
   supported = builtins.elem config.hamra.desktop.default ["hyprland" "sway"];
   userName = config.hamra.users.userName;
+  secretsPath = config.hamra.secrets.path;
 
   hyprctl = "${pkgs.hyprland}/bin/hyprctl";
   swaymsg = "${pkgs.swayfx}/bin/swaymsg";
@@ -391,7 +392,7 @@ in {
       sops.age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
       sops.secrets."vnc-password" = {
-        sopsFile = ../../../../../secrets/vnc.yaml;
+        sopsFile = "${secretsPath}/vnc.yaml";
         owner = userName;
         mode = "0400";
       };

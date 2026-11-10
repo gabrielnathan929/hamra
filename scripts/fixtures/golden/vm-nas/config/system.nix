@@ -42,10 +42,8 @@ _: {
         mpd = false;
         printer = false;
         rdp = false;
-        samba = false;
         ssh = true;
         syncthing = false;
-        vnc = false;
       };
     };
   };

@@ -70,7 +70,10 @@
 
     mkHost = hostName:
       lib.nixosSystem {
-        specialArgs = {inherit hamraLib hostName inputs self;};
+        specialArgs = {
+          inherit hamraLib hostName inputs self;
+          repoPath = self.outPath;
+        };
         modules = [
           ./hosts/${hostName}/configuration.nix
           inputs.home-manager.nixosModules.home-manager

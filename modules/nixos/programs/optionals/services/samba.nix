@@ -7,6 +7,7 @@
   cfg = config.hamra.programs.optionals.services.samba;
   inherit (lib) mkOption mkIf types stringAfter;
   userName = config.hamra.users.userName;
+  secretsPath = config.hamra.secrets.path;
   recycleOpts = {
     "vfs objects" = "recycle";
     "recycle:repository" = ".trash";
@@ -83,7 +84,7 @@ in {
     sops.age.sshKeyPaths = ["/etc/ssh/ssh_host_ed25519_key"];
 
     sops.secrets."samba-password" = {
-      sopsFile = ../../../../../secrets/samba.yaml;
+      sopsFile = "${secretsPath}/samba.yaml";
       mode = "0400";
     };
 

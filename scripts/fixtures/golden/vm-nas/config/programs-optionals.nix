@@ -10,6 +10,7 @@ _: {
         inetutils = false;
         jdk = false;
         mtr = false;
+        "neovim-tools" = false;
         nodejs = false;
         powertop = false;
         python3 = false;
@@ -29,7 +30,6 @@ _: {
         mangohud = false;
         pcsx2 = false;
         "protonup-qt" = false;
-        saves = false;
         steam = false;
         umu = false;
         wine = false;
