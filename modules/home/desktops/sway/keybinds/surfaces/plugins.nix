@@ -9,7 +9,7 @@ _: ''
   bindsym Alt+w exec $ipc panel-toggle noctalia/wallhaven:browser
 
   bindsym Alt+space exec $ipc panel-toggle gabrielnathan929/controlfreak:main
-  bindsym Alt+Print exec capture
+  bindsym Alt+Print exec $ipc panel-toggle launcher '/cap '
 
   bindsym $mod+Alt+Print exec $ipc panel-toggle oldirtty/color_picker:panel
 ''

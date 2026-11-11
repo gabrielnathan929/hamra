@@ -183,8 +183,12 @@
 
       stop_recording() {
         stop_webcam
-        pkill -SIGINT -f "$gsr_re" >/dev/null 2>&1 || true
-        notify "Captura" "Gravação finalizada."
+        if recording_active; then
+          pkill -SIGINT -f "$gsr_re" >/dev/null 2>&1 || true
+          notify "Captura" "Gravação finalizada."
+        else
+          notify "Captura" "Nenhuma gravação em andamento."
+        fi
       }
 
       screenshot() {
