@@ -27,6 +27,18 @@ _: ''
   }
 
   window-rule {
+    match title="^WebcamOverlay$"
+    open-floating true
+    default-column-width {
+      fixed 420
+    }
+    default-window-height {
+      fixed 236
+    }
+    default-floating-position x=32 y=32 relative-to="bottom-right"
+  }
+
+  window-rule {
     background-effect {
       blur true
       xray false
