@@ -400,10 +400,6 @@
     action = "Color picker";
   }
   {
-    key = "SUPER + CTRL + ALT + Print";
-    action = "Save recorder replay";
-  }
-  {
     key = "ALT + B";
     action = "Toggle Bongocat";
   }
@@ -434,10 +430,6 @@
   {
     key = "ALT + M";
     action = "MyAnimeList browser";
-  }
-  {
-    key = "SUPER + ALT + B";
-    action = "Bitwarden vault";
   }
   {
     key = "ALT + SHIFT + W";

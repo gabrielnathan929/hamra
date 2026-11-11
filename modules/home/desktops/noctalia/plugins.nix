@@ -1,7 +1,6 @@
 _: {
   programs.noctalia.settings.plugins = {
     enabled = [
-      "noctalia/bitwarden"
       "noctalia/bongocat"
       "noctalia/mpvpaper"
       "noctalia/notes"
@@ -9,7 +8,6 @@ _: {
       "noctalia/translator"
       "noctalia/kaomoji"
       "noctalia/wallhaven"
-      "noctalia/wallpaper_depth"
       "noctalia/world_clock"
       "noctalia/screen_recorder"
       "oldirtty/color_picker"
@@ -28,7 +26,7 @@ _: {
         name = "community";
         kind = "git";
         location = "https://github.com/gabrielnathan929/community-plugins";
-        auto_update = false;
+        auto_update = true;
       }
     ];
   };

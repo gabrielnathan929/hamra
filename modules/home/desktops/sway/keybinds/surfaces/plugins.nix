@@ -1,5 +1,4 @@
 _: ''
-  bindsym Alt+space exec $ipc panel-toggle gabrielnathan929/controlfreak:main
   bindsym Alt+b exec $ipc plugin noctalia/bongocat:cat focused toggle
   bindsym Alt+e exec $ipc panel-toggle launcher '/emo '
   bindsym Alt+m exec $ipc panel-toggle gabrielnathan929/myanimelist:browser
@@ -8,9 +7,9 @@ _: ''
   bindsym Alt+t exec $ipc panel-toggle launcher '/tr '
   bindsym Alt+v exec $ipc panel-toggle noctalia/mpvpaper:picker
   bindsym Alt+w exec $ipc panel-toggle noctalia/wallhaven:browser
-  bindsym $mod+Alt+b exec $ipc panel-toggle launcher '/bw '
+
+  bindsym Alt+space exec $ipc panel-toggle gabrielnathan929/controlfreak:main
   bindsym Alt+Print exec $ipc plugin noctalia/screen_recorder:service all toggle
+
   bindsym $mod+Alt+Print exec $ipc panel-toggle oldirtty/color_picker:panel
-  bindsym $mod+Ctrl+Alt+Print exec $ipc plugin noctalia/screen_recorder:service all replay-save
-  bindsym Ctrl+space exec pkill -USR2 -x handy
 ''

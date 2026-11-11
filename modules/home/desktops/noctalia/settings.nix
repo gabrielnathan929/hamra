@@ -47,6 +47,7 @@
         "noctalia/screen_recorder" = {
           directory = "${config.home.homeDirectory}/noctalia/records";
           video_source = "focused";
+          audio_source = "both";
           replay_enabled = true;
           replay_duration = 60;
         };
