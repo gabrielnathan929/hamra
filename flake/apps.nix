@@ -10,11 +10,19 @@
       HOST="${host}"
       FLAKE="''${FLAKE:-${self}}"
 
+      ACTUAL="$(${pkgs.coreutils}/bin/cat /etc/hostname)"
+      EXPECTED="$(nix eval --raw "$FLAKE#nixosConfigurations.$HOST.config.networking.hostName")"
+
+      if [ "$ACTUAL" != "$EXPECTED" ]; then
+        echo "refusing to deploy #$HOST: this machine is '$ACTUAL', not '$EXPECTED'" >&2
+        exit 1
+      fi
+
       nix flake check "$FLAKE"
 
       sudo nixos-rebuild switch --flake "$FLAKE#$HOST"
 
-      echo "deploy de #$HOST concluido"
+      echo "deploy of #$HOST finished"
     '';
   in {
     type = "app";
@@ -35,7 +43,7 @@
       nix build "$FLAKE#nixosConfigurations.$HOST.config.system.build.toplevel" \
         --extra-experimental-features "nix-command flakes"
 
-      echo "build de #$HOST salvo em ./result"
+      echo "build of #$HOST saved to ./result"
     '';
   in {
     type = "app";
