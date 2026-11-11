@@ -52,6 +52,7 @@ _: {
     scripts = {
       aliases = true;
       apps = true;
+      capture = true;
       keybinds = true;
       "setup-nas" = true;
     };
