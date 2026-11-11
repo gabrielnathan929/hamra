@@ -233,11 +233,32 @@
       }
 
       main_menu() {
+        local -a items=()
+        if recording_active; then
+          items+=("Parar gravação")
+        fi
+        items+=(
+          "Gravar: sem áudio"
+          "Gravar: áudio do sistema"
+          "Gravar: sistema + microfone"
+          "Gravar: sistema + microfone + webcam"
+          "Screenshot: região"
+          "Screenshot: janela"
+          "Screenshot: monitor"
+          "Screenshot: anotar região"
+        )
         local choice
-        choice="$(menu "Captura" "Gravar tela" "Captura de tela")" || return 0
+        choice="$(menu "Captura" "''${items[@]}")" || return 0
         case "$choice" in
-          "Gravar tela") record_menu ;;
-          "Captura de tela") screenshot_menu ;;
+          "Parar gravação") stop_recording ;;
+          "Gravar: sem áudio") start_recording none ;;
+          "Gravar: áudio do sistema") start_recording desktop ;;
+          "Gravar: sistema + microfone") start_recording both ;;
+          "Gravar: sistema + microfone + webcam") start_recording webcam ;;
+          "Screenshot: região") screenshot region ;;
+          "Screenshot: janela") screenshot window ;;
+          "Screenshot: monitor") screenshot monitor ;;
+          "Screenshot: anotar região") screenshot annotate ;;
           *) return 0 ;;
         esac
       }

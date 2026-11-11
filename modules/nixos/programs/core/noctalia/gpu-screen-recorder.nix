@@ -10,7 +10,7 @@ in {
   options.hamra.programs.core.noctalia."gpu-screen-recorder" = mkOption {
     type = types.bool;
     default = true;
-    description = "Enable gpu-screen-recorder (Noctalia screen_recorder plugin) with GPU groups and cap_sys_admin wrapper for gsr-kms-server.";
+    description = "Enable gpu-screen-recorder with GPU groups and the cap_sys_admin wrapper for gsr-kms-server, used by the capture script.";
   };
 
   config = mkIf cfg {

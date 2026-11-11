@@ -9,7 +9,7 @@ _: ''
   bindsym Alt+w exec $ipc panel-toggle noctalia/wallhaven:browser
 
   bindsym Alt+space exec $ipc panel-toggle gabrielnathan929/controlfreak:main
-  bindsym Alt+Print exec $ipc plugin noctalia/screen_recorder:service all toggle
+  bindsym Alt+Print exec capture
 
   bindsym $mod+Alt+Print exec $ipc panel-toggle oldirtty/color_picker:panel
 ''

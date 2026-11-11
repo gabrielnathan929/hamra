@@ -9,7 +9,7 @@ _: ''
   hl.bind("ALT+W", hl.dsp.exec_cmd("noctalia msg panel-toggle noctalia/wallhaven:browser"))
 
   hl.bind("ALT+SPACE", hl.dsp.exec_cmd("noctalia msg panel-toggle gabrielnathan929/controlfreak:main"))
-  hl.bind("ALT+PRINT", hl.dsp.exec_cmd("noctalia msg plugin noctalia/screen_recorder:service all toggle"))
+  hl.bind("ALT+PRINT", hl.dsp.exec_cmd("capture"))
 
   hl.bind("SUPER+ALT+PRINT", hl.dsp.exec_cmd("noctalia msg panel-toggle oldirtty/color_picker:panel"))
 ''

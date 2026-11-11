@@ -9,7 +9,6 @@ _: {
       "noctalia/kaomoji"
       "noctalia/wallhaven"
       "noctalia/world_clock"
-      "noctalia/screen_recorder"
       "oldirtty/color_picker"
       "gabrielnathan929/myanimelist"
       "gabrielnathan929/controlfreak"

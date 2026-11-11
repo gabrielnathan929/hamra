@@ -72,7 +72,7 @@ games/    → launchers + tooling (steam, proton, umu, mangohud)
 | **`keys <context>`** | Searchable keybind cheatsheet for Hyprland/Niri/Sway, tmux, herdr |
 | **`hamra-saves`** | Adopt/detach game saves across Wine prefixes into `~/Saves/<game>` |
 | **`setup-nas`** | Guided onboarding: generates host, registers keys, encrypts Samba password, rebuilds |
-| **`capture`** | Screen recording (no audio / desktop / desktop + mic / + webcam overlay) and screenshots, from a menu or the command line |
+| **`capture`** | Screen recording (no audio / desktop / desktop + mic / + webcam overlay) and screenshots — `Alt+Print` opens the menu, or run it from a terminal |
 
 ---
 

@@ -345,7 +345,7 @@
   }
   {
     key = "ALT + Print";
-    action = "Toggle screen recorder";
+    action = "Capture menu (record / screenshot)";
   }
   {
     key = "SUPER + ALT + Print";

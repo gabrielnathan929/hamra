@@ -9,7 +9,7 @@ _: ''
   Alt+W { spawn-sh "noctalia msg panel-toggle noctalia/wallhaven:browser"; }
 
   Alt+Space { spawn-sh "noctalia msg panel-toggle gabrielnathan929/controlfreak:main"; }
-  Alt+Print { spawn-sh "noctalia msg plugin noctalia/screen_recorder:service all toggle"; }
+  Alt+Print { spawn-sh "capture"; }
 
   Mod+Alt+Print { spawn-sh "noctalia msg panel-toggle oldirtty/color_picker:panel"; }
 ''
