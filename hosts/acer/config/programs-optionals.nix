@@ -87,7 +87,7 @@ _: {
       "docker-compose" = true;
       samba = true;
       sunshine = true;
-      tailscale = true;
+      tailscale = false;
       "vnc-client" = true;
       tigervnc = true;
       wayvnc = false;
