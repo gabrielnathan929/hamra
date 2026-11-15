@@ -143,7 +143,6 @@ in {
       sff() { if [ $# -eq 0 ]; then echo "Usage: sff <destination> (e.g. sff host:/tmp/)"; return 1; fi; local file; file=$(find . -type f -printf '%T@\t%p\n' | sort -rn | cut -f2- | ff) && [ -n "$file" ] && scp "$file" "$1"; }
 
       if command -v zoxide &> /dev/null; then
-        alias cd="zd"
         zd() {
           if (( $# == 0 )); then
             builtin cd ~ || return
