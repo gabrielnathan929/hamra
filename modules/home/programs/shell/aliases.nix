@@ -164,6 +164,10 @@ in {
       open() (
         xdg-open "$@" >/dev/null 2>&1 &
       )
+
+      if [[ -f "$HOME/.config/assistant-cli/init.sh" ]]; then
+        source "$HOME/.config/assistant-cli/init.sh"
+      fi
     '';
   };
 }
